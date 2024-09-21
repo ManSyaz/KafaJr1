@@ -51,7 +51,7 @@ class _ManageStudentProgressPageState
                   final subjectMap =
                       Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
                   return {
-                    'id': entry.key?.toString() ?? 'nknown',
+                    'id': entry.key?.toString() ?? 'Unknown',
                     'name': subjectMap['name']?.toString() ?? 'Unknown',
                   };
                 }).toList();
