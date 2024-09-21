@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "499004650651",
+    "firebase_url": "https://kafajr-96360-default-rtdb.firebaseio.com",
+    "project_id": "kafajr-96360",
+    "storage_bucket": "kafajr-96360.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:499004650651:android:642bf317771a69bb85823e",
+        "android_client_info": {
+          "package_name": "com.example.k"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyByiEOlx0NzcOIajWADolA1uoJ32fNLeGI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
