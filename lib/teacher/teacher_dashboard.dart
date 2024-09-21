@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 
-// Assuming these are your respective pages
 import 'manage_student_progress_page.dart';
 import 'manage_academic_record_page.dart';
 import 'manage_student_page.dart';

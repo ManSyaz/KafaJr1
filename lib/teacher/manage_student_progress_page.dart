@@ -122,11 +122,11 @@ class _ManageStudentProgressPageState
         );
 
         setState(() {
-          studentsProgress = filteredProgress;
+          studentsProgress = filteredProgress; // Update state with fetched data
         });
       } else {
         setState(() {
-          studentsProgress = {};
+          studentsProgress = {}; // Clear progress if no data found
         });
       }
     } catch (e) {
@@ -159,7 +159,7 @@ class _ManageStudentProgressPageState
               _fullName = studentMap['fullName'] ?? 'Unknown';
               _selectedStudentId = studentId;
               _selectedSubject = 'Choose Subject'; // Reset subject selection
-              studentProgress = null;
+              studentProgress = null; // Clear previous progress
               studentsProgress = {}; // Clear previous data
             });
           } else {
@@ -183,7 +183,7 @@ class _ManageStudentProgressPageState
 
   Future<void> _fetchStudentProgress() async {
     if (_selectedStudentId.isEmpty || _selectedSubject == 'Choose Subject') {
-      return;
+      return; // Do not fetch if no student or subject is selected
     }
 
     try {
@@ -195,14 +195,8 @@ class _ManageStudentProgressPageState
       if (snapshot.exists) {
         final progressData = snapshot.value as Map<Object?, Object?>;
 
-        final studentProgressData = progressData.entries.fold<Map<String, String>>(
-          {
-            'UP1': '-',
-            'PPT': '-',
-            'UP2': '-',
-            'PAT': '-',
-            'PUPK': '-',
-          },
+        var studentProgress = progressData.entries.fold<Map<String, String>>(
+          {},
           (map, entry) {
             final progress = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
             if (progress['subjectId'] == _selectedSubject) {
@@ -213,11 +207,11 @@ class _ManageStudentProgressPageState
         );
 
         setState(() {
-          studentProgress = studentProgressData;
+          this.studentProgress = studentProgress; // Update state with fetched progress
         });
       } else {
         setState(() {
-          studentProgress = null;
+          studentProgress = null; // Clear progress if no data found
         });
       }
     } catch (e) {
@@ -265,11 +259,29 @@ class _ManageStudentProgressPageState
           alignment: BarChartAlignment.start, // Align bars to the start
           barGroups: dataEntries,
           titlesData: FlTitlesData(
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true, // Show left titles
+                reservedSize: 40, // Space reserved for left titles
+                getTitlesWidget: (value, meta) {
+                  return Text(
+                    value.toInt().toString(),
+                    style: const TextStyle(fontSize: 10),
+                  );
+                },
+              ),
+            ),
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
                 getTitlesWidget: (value, meta) => Text(_getExamDescription(value.toInt())),
               ),
+            ),
+            rightTitles: AxisTitles(
+              sideTitles: SideTitles(showTitles: false), // Hide right titles
+            ),
+            topTitles: AxisTitles(
+              sideTitles: SideTitles(showTitles: false), // Hide top titles
             ),
           ),
           borderData: FlBorderData(
@@ -325,9 +337,21 @@ class _ManageStudentProgressPageState
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
-        title: const Text('Students Progress'),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(width: 48), // Space for the back icon
+            const Expanded(
+              child: Text(
+                'Students Progress',
+                textAlign: TextAlign.center, // Center the text
+                style: TextStyle(color: Colors.white), // Change text color
+              ),
+            ),
+          ],
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.white), // Change back icon color
           onPressed: () {
             Navigator.pop(context);
           },
@@ -369,24 +393,24 @@ class _ManageStudentProgressPageState
             if (_selectedFilter == 'Student') ...[
               TextField(
                 controller: _searchController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Search by Full Name',
+                  prefixIcon: const Icon(Icons.search), // Search icon inside the text field
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
                 ),
-                onChanged: (value) {
-                  if (value.isNotEmpty) {
-                    _searchStudentByName(value);
-                  } else {
-                    setState(() {
-                      _fullName = '';
-                      studentProgress = null;
-                      studentsProgress = {};
-                    });
-                  }
+                onSubmitted: (value) {
+                  _searchStudentByName(value); // Trigger search on submit
                 },
               ),
               const SizedBox(height: 16.0),
               if (_fullName.isNotEmpty && _selectedStudentId.isNotEmpty) ...[
-                Text('Full Name:\n$_fullName'),
+                Text(
+                  'Full Name: $_fullName',
+                  style: const TextStyle(fontWeight: FontWeight.bold), // Make the text bold
+                ),
+                const SizedBox(height: 16.0), // Added space here
                 DropdownButtonFormField<String>(
                   decoration: InputDecoration(
                     labelText: 'Choose Subject',
@@ -406,7 +430,7 @@ class _ManageStudentProgressPageState
                     setState(() {
                       _selectedSubject = value!;
                       if (_selectedSubject != 'Choose Subject') {
-                        _fetchStudentProgress();
+                        _fetchStudentProgress(); // Fetch progress for the selected student
                       } else {
                         studentProgress = null; // Clear progress if no subject is selected
                       }
@@ -464,7 +488,7 @@ class _ManageStudentProgressPageState
                   setState(() {
                     _selectedSubject = value!;
                     if (_selectedSubject != 'Choose Subject') {
-                      _fetchStudentProgressBySubject(_selectedSubject);
+                      _fetchStudentProgressBySubject(_selectedSubject); // Fetch progress for the selected subject
                     } else {
                       studentsProgress = {}; // Clear progress if no subject is selected
                     }
@@ -481,37 +505,36 @@ class _ManageStudentProgressPageState
                   ),
                 ),
                 const SizedBox(height: 8.0),
-                if (studentsProgress.isNotEmpty)
-                  Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        return DataTable(
-                          columnSpacing: constraints.maxWidth / 12,
-                          columns: const [
-                            DataColumn(label: Text('Full Name', style: TextStyle(fontSize: 12))),
-                            DataColumn(label: Text('UP1', style: TextStyle(fontSize: 12))),
-                            DataColumn(label: Text('PPT', style: TextStyle(fontSize: 12))),
-                            DataColumn(label: Text('UP2', style: TextStyle(fontSize: 12))),
-                            DataColumn(label: Text('PAT', style: TextStyle(fontSize: 12))),
-                            DataColumn(label: Text('PUPK', style: TextStyle(fontSize: 12))),
-                          ],
-                          rows: studentsProgress.entries.map((entry) {
-                            final progress = entry.value;
-                            return DataRow(cells: [
-                              DataCell(Text(progress['name'] ?? '-', style: const TextStyle(fontSize: 12))),
-                              DataCell(Text(progress['UP1'] ?? '-', style: const TextStyle(fontSize: 12))),
-                              DataCell(Text(progress['PPT'] ?? '-', style: const TextStyle(fontSize: 12))),
-                              DataCell(Text(progress['UP2'] ?? '-', style: const TextStyle(fontSize: 12))),
-                              DataCell(Text(progress['PAT'] ?? '-', style: const TextStyle(fontSize: 12))),
-                              DataCell(Text(progress['PUPK'] ?? '-', style: const TextStyle(fontSize: 12))),
-                            ]);
-                          }).toList(),
-                        );
-                      },
-                    ),
-                  )
-                else
-                  const Text('No data available for the selected subject.'),
+                Expanded(
+                  child: studentsProgress.isNotEmpty
+                      ? LayoutBuilder(
+                          builder: (context, constraints) {
+                            return DataTable(
+                              columnSpacing: constraints.maxWidth / 12,
+                              columns: const [
+                                DataColumn(label: Text('Full Name', style: TextStyle(fontSize: 12))),
+                                DataColumn(label: Text('UP1', style: TextStyle(fontSize: 12))),
+                                DataColumn(label: Text('PPT', style: TextStyle(fontSize: 12))),
+                                DataColumn(label: Text('UP2', style: TextStyle(fontSize: 12))),
+                                DataColumn(label: Text('PAT', style: TextStyle(fontSize: 12))),
+                                DataColumn(label: Text('PUPK', style: TextStyle(fontSize: 12))),
+                              ],
+                              rows: studentsProgress.entries.map((entry) {
+                                final progress = entry.value;
+                                return DataRow(cells: [
+                                  DataCell(Text(progress['name'] ?? '-', style: const TextStyle(fontSize: 12))),
+                                  DataCell(Text(progress['UP1'] ?? '-', style: const TextStyle(fontSize: 12))),
+                                  DataCell(Text(progress['PPT'] ?? '-', style: const TextStyle(fontSize: 12))),
+                                  DataCell(Text(progress['UP2'] ?? '-', style: const TextStyle(fontSize: 12))),
+                                  DataCell(Text(progress['PAT'] ?? '-', style: const TextStyle(fontSize: 12))),
+                                  DataCell(Text(progress['PUPK'] ?? '-', style: const TextStyle(fontSize: 12))),
+                                ]);
+                              }).toList(),
+                            );
+                          },
+                        )
+                      : const Center(child: Text('No data available for the selected subject.')),
+                ),
               ],
             ],
           ],
