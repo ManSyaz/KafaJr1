@@ -53,7 +53,15 @@ class _AddStudentPageState extends State<AddStudentPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
-        title: const Text('Add New Student'),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Container(
+          padding: const EdgeInsets.only(right: 48.0),
+          alignment: Alignment.center,
+          child: const Text(
+            'Add New Student',
+            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+        )
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -100,18 +108,21 @@ class _AddStudentPageState extends State<AddStudentPage> {
               ),
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _addStudent,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pinkAccent,
-                padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            SizedBox( // {{ edit_1 }}
+              width: double.infinity, // Make the button take the full width
+              child: ElevatedButton(
+                onPressed: _addStudent,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.pinkAccent,
+                  padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-              ),
-              child: const Text(
-                'Add Student',
-                style: TextStyle(fontSize: 16, color: Colors.white),
+                child: const Text(
+                  'Add Student',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
               ),
             ),
           ],

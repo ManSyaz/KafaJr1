@@ -124,7 +124,15 @@ class _EditStudentPageState extends State<EditStudentPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
-        title: const Text('Edit Student'),
+        iconTheme: const IconThemeData(color: Colors.white), // {{ edit_1 }}
+        title: Container(
+          padding: const EdgeInsets.only(right:48.0),
+          alignment: Alignment.center,
+          child: const Text(
+            'Edit Student',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -172,18 +180,21 @@ class _EditStudentPageState extends State<EditStudentPage> {
               ),
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _saveStudentInfo,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pinkAccent,
-                padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            SizedBox( // {{ edit_1 }}
+              width: double.infinity, // Make the button take the full width
+              child: ElevatedButton(
+                onPressed: _saveStudentInfo,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.pinkAccent,
+                  padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-              ),
-              child: const Text(
-                'Save',
-                style: TextStyle(fontSize: 16, color: Colors.white),
+                child: const Text(
+                  'Save',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
               ),
             ),
           ],

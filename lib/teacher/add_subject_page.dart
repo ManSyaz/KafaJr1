@@ -35,7 +35,15 @@ class _AddSubjectPageState extends State<AddSubjectPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
-        title: const Text('Add New Subject'),
+        iconTheme: const IconThemeData(color: Colors.white), // {{ edit_1 }}
+        title: Container(
+          padding: const EdgeInsets.only(right:48.0),
+          alignment: Alignment.center,
+          child: const Text(
+            'Add New Subject',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -71,13 +79,22 @@ class _AddSubjectPageState extends State<AddSubjectPage> {
                 },
               ),
               const SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: _addSubject,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pinkAccent,
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              SizedBox( // {{ edit_1 }}
+                width: double.infinity, // Make the button take the full width
+                child: ElevatedButton(
+                  onPressed: _addSubject,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.pinkAccent,
+                    padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 16),
+                    shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  ),
+                  child: const Text( // {{ edit_2 }}
+                    'Add Subject',
+                    style: TextStyle(color: Colors.white), // Change text color to white
+                  ),
                 ),
-                child: const Text('Add Subject'),
               ),
             ],
           ),

@@ -76,12 +76,14 @@ class _ManageSubjectPageState extends State<ManageSubjectPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
-        title: const Text('Manage Subjects'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+        iconTheme: const IconThemeData(color: Colors.white), // {{ edit_1 }}
+        title: Container(
+          padding: const EdgeInsets.only(right:48.0),
+          alignment: Alignment.center,
+          child: const Text(
+            'Manage Subjects',
+            style: TextStyle(color: Colors.white),
+          ),
         ),
       ),
       body: Column(
@@ -108,28 +110,51 @@ class _ManageSubjectPageState extends State<ManageSubjectPage> {
             ),
           ),
           const SizedBox(height: 16.0),
-          const Text('List of Subjects', style: TextStyle(fontSize: 18)),
+          const Align( // {{ edit_1 }}
+            alignment: Alignment.centerLeft, // Align to the left
+            child: Padding(
+              padding: EdgeInsets.only(left: 16.0), // Add left padding
+              child: Text('List of Subjects', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            ),
+          ),
           const SizedBox(height: 16),
           Expanded(
             child: ListView.builder(
               itemCount: subjects.length,
               itemBuilder: (context, index) {
                 final subject = subjects[index];
-                return ListTile(
-                  title: Text(subject['name']),
-                  subtitle: Text(subject['code']),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.green),
-                        onPressed: () => _navigateToEditSubjectPage(subject['key'], subject),
+                return Card( // {{ edit_1 }}
+                  color: Color.fromARGB(255, 121, 108, 108), // Change the card color here
+                  margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0), // Add margin for spacing
+                  child: ListTile(
+                    title: Text( // {{ edit_2 }}
+                      subject['name'],
+                      style: const TextStyle( // Add your desired text style here
+                        fontSize: 16, // Example font size
+                        fontWeight: FontWeight.bold, // Example font weight
+                        color: Color.fromARGB(255, 255, 255, 255), // Example text color
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => _deleteSubject(subject['key']),
+                    ),
+                    subtitle: Text( // {{ edit_3 }}
+                      subject['code'],
+                      style: const TextStyle( // Add your desired text style here
+                        fontSize: 14, // Example font size
+                        color: Color.fromARGB(255, 212, 212, 212), // Example text color
                       ),
-                    ],
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.green),
+                          onPressed: () => _navigateToEditSubjectPage(subject['key'], subject),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _deleteSubject(subject['key']),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

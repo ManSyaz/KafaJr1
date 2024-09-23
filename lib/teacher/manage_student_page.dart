@@ -83,9 +83,18 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
-        title: const Text('Manage Students'),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Container(
+          padding: const EdgeInsets.only(right:48.0),
+          alignment: Alignment.center,
+          child: const Text(
+            'Manage Students',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start, // {{ edit_1 }}
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -108,27 +117,41 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
               ),
             ),
           ),
-          const Text('List of Students', style: TextStyle(fontSize: 18)),
+          const Padding( // {{ edit_2 }}
+            padding: EdgeInsets.only(left: 16.0), // Add padding to align with button
+            child: Text('List of Students', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ),
           const SizedBox(height: 16),
           Expanded(
             child: ListView.builder(
               itemCount: students.length,
               itemBuilder: (context, index) {
                 final student = students[index];
-                return ListTile(
-                  title: Text(student['fullName'] ?? 'No Name'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.green),
-                        onPressed: () => _navigateToEditStudent(student),
+                return Card( // {{ edit_1 }}
+                color: Color.fromARGB(255, 121, 108, 108),
+                  margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0), // Add margin for spacing
+                  child: ListTile(
+                    title: Text( // {{ edit_1 }}
+                      student['fullName'] ?? 'No Name',
+                      style: const TextStyle( // Add your desired text style here
+                        fontSize: 16, // Example font size
+                        fontWeight: FontWeight.bold, // Example font weight
+                        color: Color.fromARGB(255, 255, 255, 255), // Example text color
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => _deleteStudent(student['uid']),
-                      ),
-                    ],
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.green),
+                          onPressed: () => _navigateToEditStudent(student),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Color.fromARGB(255, 255, 17, 0)),
+                          onPressed: () => _deleteStudent(student['uid']),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
