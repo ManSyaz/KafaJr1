@@ -310,9 +310,16 @@ class _ManageAcademicRecordPageState
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
-        title: const Text('Academic Records'),
+        title: Container(
+          padding: const EdgeInsets.only(right: 48.0), // Adjust right padding for space
+          alignment: Alignment.center, // Center the title
+          child: const Text(
+            'Academic Records',
+            style: TextStyle(color: Colors.white), // Change text color
+          ),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.white), // Change back icon color
           onPressed: () {
             Navigator.pop(context);
           },
@@ -353,27 +360,32 @@ class _ManageAcademicRecordPageState
               ),
               const SizedBox(height: 16.0),
               if (_selectedFilter == 'Student') ...[
-                Row(
-                  children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        decoration: const InputDecoration(
-                          labelText: 'Search by Full Name',
-                        ),
-                      ),
-                    ),
-                    IconButton(
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    labelText: 'Search by Full Name',
+                    prefixIcon: IconButton(
                       icon: Icon(Icons.search),
                       onPressed: _searchStudentByName,
                     ),
-                  ],
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                      borderSide: BorderSide(color: Colors.pinkAccent),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16.0),
                 if (_fullName.isNotEmpty && _selectedStudentId.isNotEmpty) ...[
                   Text('Full Name: $_fullName'),
+                  const SizedBox(height: 16.0), // Added space here
                   DropdownButtonFormField<String>(
-                    decoration: const InputDecoration(labelText: 'Choose Exam'),
+                    decoration: InputDecoration(
+                      labelText: 'Choose Exam',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0), // Rounded corners
+                        borderSide: BorderSide(color: Colors.pinkAccent), // Border color
+                      ),
+                    ),
                     value: _selectedExam,
                     items: exams.map((exam) {
                       return DropdownMenuItem<String>(
@@ -422,7 +434,13 @@ class _ManageAcademicRecordPageState
               ],
               if (_selectedFilter == 'All') ...[
                 DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(labelText: 'Choose Exam'),
+                  decoration: InputDecoration(
+                    labelText: 'Choose Exam',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0), // Rounded corners
+                      borderSide: BorderSide(color: Colors.pinkAccent), // Border color
+                    ),
+                  ),
                   value: _selectedExam,
                   items: exams.map((exam) {
                     return DropdownMenuItem<String>(

@@ -337,18 +337,13 @@ class _ManageStudentProgressPageState
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(width: 48), // Space for the back icon
-            const Expanded(
-              child: Text(
-                'Students Progress',
-                textAlign: TextAlign.center, // Center the text
-                style: TextStyle(color: Colors.white), // Change text color
-              ),
-            ),
-          ],
+        title: Container(
+          alignment: Alignment.center, // Center the title
+          padding: const EdgeInsets.only(right: 48.0), // Adjust right padding for space
+          child: const Text(
+            'Students Progress',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22), // Change text color
+          ),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white), // Change back icon color
@@ -407,7 +402,7 @@ class _ManageStudentProgressPageState
               const SizedBox(height: 16.0),
               if (_fullName.isNotEmpty && _selectedStudentId.isNotEmpty) ...[
                 Text(
-                  'Full Name: $_fullName',
+                  'Full Name:\n$_fullName',
                   style: const TextStyle(fontWeight: FontWeight.bold), // Make the text bold
                 ),
                 const SizedBox(height: 16.0), // Added space here
