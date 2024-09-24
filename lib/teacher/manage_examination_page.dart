@@ -21,7 +21,15 @@ class _ManageExaminationPageState extends State<ManageExaminationPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
-        title: const Text('Manage Examinations'),
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Container(
+          padding: const EdgeInsets.only(right: 48.0),
+          alignment: Alignment.center,
+          child: const Text(
+            'Manage Examination',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
       ),
       body: Column(
         children: [
@@ -42,7 +50,7 @@ class _ManageExaminationPageState extends State<ManageExaminationPage> {
                 );
               },
               child: const Text(
-                'Add New Exam Folder',
+                'Add New Exam',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -51,6 +59,18 @@ class _ManageExaminationPageState extends State<ManageExaminationPage> {
               ),
             ),
           ),
+          const SizedBox(height: 16.0),
+          const Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: EdgeInsets.only(left: 16.0),
+              child: Text(
+                'List of Examinations',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
           Expanded(
             child: StreamBuilder(
               stream: _examRef.onValue,
@@ -83,81 +103,106 @@ class _ManageExaminationPageState extends State<ManageExaminationPage> {
                     final description = folderData['description'] as String? ?? 'No Description';
                     final subjects = folderData['subjects'] as Map<dynamic, dynamic>?;
 
-                    return ExpansionTile(
-                      title: Text(title),
-                      subtitle: Text(description),
-                      children: [
-                        ListTile(
-                          title: const Text('Enter Scores'),
-                          trailing: const Icon(Icons.edit),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => EnterScorePage(examId: folderKey),
+                    return Card(
+                      color: Color.fromARGB(255, 255, 255, 255),
+                      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                      child: Theme(
+                        data: Theme.of(context).copyWith(dividerColor: Colors.transparent), // This removes the line
+                        child: ExpansionTile(
+                          tilePadding: const EdgeInsets.symmetric(horizontal: 16.0), // Add padding here
+                          childrenPadding: EdgeInsets.zero, // Remove padding around children
+                          title: Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(255, 32, 32, 32),
+                            ),
+                          ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 4.0), // Add a little space between title and subtitle
+                            child: Text(
+                              description,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Color.fromARGB(179, 63, 61, 61),
                               ),
-                            );
-                          },
-                        ),
-                        if (subjects != null)
-                          ...subjects.entries.map((entry) {
-                            final subjectKey = entry.key;
-                            final subjectData = entry.value as Map<dynamic, dynamic>?;
-                            final subjectTitle = subjectData?['title'] as String? ?? 'No Title';
-                            final fileUrl = subjectData?['fileUrl'] as String? ?? '';
+                            ),
+                          ),
+                          children: [
+                            ListTile(
+                              title: const Text('Enter Scores'),
+                              trailing: const Icon(Icons.edit),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => EnterScorePage(examId: folderKey),
+                                  ),
+                                );
+                              },
+                            ),
+                            if (subjects != null)
+                              ...subjects.entries.map((entry) {
+                                final subjectKey = entry.key;
+                                final subjectData = entry.value as Map<dynamic, dynamic>?;
+                                final subjectTitle = subjectData?['title'] as String? ?? 'No Title';
+                                final fileUrl = subjectData?['fileUrl'] as String? ?? '';
 
-                            return ListTile(
-                              title: Text(subjectTitle),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.remove_red_eye, color: Colors.blue),
-                                    onPressed: () {
-                                      if (fileUrl.isNotEmpty) {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => PDFViewerPage(fileUrl: fileUrl),
-                                          ),
-                                        );
-                                      }
-                                    },
+                                return ListTile(
+                                  title: Text(subjectTitle),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.remove_red_eye, color: Colors.blue),
+                                        onPressed: () {
+                                          if (fileUrl.isNotEmpty) {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => PDFViewerPage(fileUrl: fileUrl),
+                                              ),
+                                            );
+                                          }
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.edit, color: Colors.green),
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => EditExamPage(examId: folderKey, subjectId: subjectKey),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete, color: Colors.red),
+                                        onPressed: () {
+                                          _examRef.child(folderKey).child('subjects').child(subjectKey).remove();
+                                        },
+                                      ),
+                                    ],
                                   ),
-                                  IconButton(
-                                    icon: const Icon(Icons.edit, color: Colors.green),
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => EditExamPage(examId: folderKey, subjectId: subjectKey),
-                                        ),
-                                      );
-                                    },
+                                );
+                              }),
+                            ListTile(
+                              title: const Text('Add Subject'),
+                              trailing: const Icon(Icons.add),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => AddExamSubjectPage(examId: folderKey),
                                   ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete, color: Colors.red),
-                                    onPressed: () {
-                                      _examRef.child(folderKey).child('subjects').child(subjectKey).remove();
-                                    },
-                                  ),
-                                ],
-                              ),
-                            );
-                          }),
-                        ListTile(
-                          title: const Text('Add Subject'),
-                          trailing: const Icon(Icons.add),
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => AddExamSubjectPage(examId: folderKey),
-                              ),
-                            );
-                          },
+                                );
+                              },
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     );
                   },
                 );

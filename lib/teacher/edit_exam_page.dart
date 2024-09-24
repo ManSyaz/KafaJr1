@@ -121,26 +121,44 @@ class _EditExamPageState extends State<EditExamPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
-        title: const Text('Edit Exam Subject'),
+        iconTheme: const IconThemeData(color: Colors.white), // {{ edit_1 }}
+        title: Container(
+          padding: const EdgeInsets.only(right:48.0),
+          alignment: Alignment.center,
+          child: const Text(
+            'Edit Exam Subject',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            DropdownButtonFormField<String>(
-              value: _selectedSubject,
-              hint: const Text('Select Subject'),
-              items: subjects.map((subject) {
-                return DropdownMenuItem<String>(
-                  value: subject,
-                  child: Text(subject),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedSubject = value;
-                });
-              },
+            Container( // {{ edit_1 }}
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey), // Border color
+                borderRadius: BorderRadius.circular(8.0), // Rounded corners
+              ),
+              child: DropdownButtonFormField<String>(
+                value: _selectedSubject,
+                hint: const Text('Select Subject'),
+                items: subjects.map((subject) {
+                  return DropdownMenuItem<String>(
+                    value: subject,
+                    child: Text(subject),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedSubject = value;
+                  });
+                },
+                decoration: const InputDecoration(
+                  border: InputBorder.none, // Remove default border
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0), // Padding inside the dropdown
+                ),
+              ),
             ),
             const SizedBox(height: 16.0),
             TextField(
@@ -159,23 +177,41 @@ class _EditExamPageState extends State<EditExamPage> {
               ),
             ),
             const SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: _pickFile,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pinkAccent,
+            SizedBox( // {{ edit_1 }}
+              width: double.infinity, // Make the button take the full width
+              child: ElevatedButton(
+                onPressed: _pickFile,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.pinkAccent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0), // Add border radius here
+                  ),
+                ),
+                child: const Text( // Change text color to white
+                  'Upload New File',
+                  style: TextStyle(color: Colors.white), // Change text color to white
+                ),
               ),
-              child: const Text('Upload New File'),
             ),
             const SizedBox(height: 16.0),
             if (_selectedFile != null)
               Text('Selected File: ${_selectedFile!.path}'),
             const SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: _updateExam,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pinkAccent,
+            SizedBox( // {{ edit_2 }}
+              width: double.infinity, // Make the button take the full width
+              child: ElevatedButton(
+                onPressed: _updateExam,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.pinkAccent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0), // Add border radius here
+                  ),
+                ),
+                child: const Text( // Change text color to white
+                  'Update Exam',
+                  style: TextStyle(color: Colors.white), // Change text color to white
+                ),
               ),
-              child: const Text('Update Exam'),
             ),
           ],
         ),

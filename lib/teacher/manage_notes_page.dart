@@ -70,12 +70,14 @@ class _ManageNotesPageState extends State<ManageNotesPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
-        title: const Text('Manage Notes'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+        iconTheme: const IconThemeData(color: Colors.white), // {{ edit_1 }}
+        title: Container(
+          padding: const EdgeInsets.only(right:48.0),
+          alignment: Alignment.center,
+          child: const Text(
+            'Manage Notes',
+            style: TextStyle(color: Colors.white),
+          ),
         ),
       ),
       body: Column(
@@ -107,45 +109,73 @@ class _ManageNotesPageState extends State<ManageNotesPage> {
             ),
           ),
           const SizedBox(height: 16.0),
+          const Align( // {{ edit_1 }}
+            alignment: Alignment.centerLeft, // Align to the left
+            child: Padding(
+              padding: EdgeInsets.only(left: 16.0), // Add left padding
+              child: Text(
+                'List of Notes',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
           Expanded(
             child: ListView.builder(
               itemCount: _notesList.length,
               itemBuilder: (context, index) {
                 final note = _notesList[index];
-                return ListTile(
-                  title: Text(note['title'] ?? 'No Title'),
-                  subtitle: Text(note['description'] ?? 'No Description'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (note['fileUrl'] != null && note['fileUrl'].isNotEmpty)
+                return Card( // {{ edit_1 }}
+                  color: Color.fromARGB(255, 121, 108, 108), // Change the card color here
+                  margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0), // Add margin for spacing
+                  child: ListTile(
+                    title: Text( // {{ edit_2 }}
+                      note['title'] ?? 'No Title',
+                      style: const TextStyle( // Add your desired text style here
+                        fontSize: 16, // Example font size
+                        fontWeight: FontWeight.bold, // Example font weight
+                        color: Colors.white, // Example text color
+                      ),
+                    ),
+                    subtitle: Text( // {{ edit_3 }}
+                      note['description'] ?? 'No Description',
+                      style: const TextStyle( // Add your desired text style here
+                        fontSize: 14, // Example font size
+                        color: Color.fromARGB(255, 255, 255, 255), // Example text color
+                      ),
+                    ),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (note['fileUrl'] != null && note['fileUrl'].isNotEmpty)
+                          IconButton(
+                            icon: const Icon(Icons.remove_red_eye, color: Colors.blue),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PDFViewerPage(fileUrl: note['fileUrl']),
+                                ),
+                              );
+                            },
+                          ),
                         IconButton(
-                          icon: const Icon(Icons.remove_red_eye, color: Colors.blue),
+                          icon: const Icon(Icons.edit, color: Colors.green),
                           onPressed: () {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => PDFViewerPage(fileUrl: note['fileUrl']),
+                                builder: (context) => EditNotePage(noteId: note['id']),
                               ),
-                            );
+                            ).then((_) => _fetchNotes());
                           },
                         ),
-                      IconButton(
-                        icon: const Icon(Icons.edit, color: Colors.green),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => EditNotePage(noteId: note['id']),
-                            ),
-                          ).then((_) => _fetchNotes());
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => _deleteNoteWithFile(note['id'], note['fileUrl']),
-                      ),
-                    ],
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => _deleteNoteWithFile(note['id'], note['fileUrl']),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

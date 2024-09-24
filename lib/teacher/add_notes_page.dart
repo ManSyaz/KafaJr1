@@ -104,7 +104,15 @@ class _AddNotePageState extends State<AddNotePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
-        title: const Text('Add New Note'),
+        iconTheme: const IconThemeData(color: Colors.white), // {{ edit_1 }}
+        title: Container(
+          padding: const EdgeInsets.only(right:48.0),
+          alignment: Alignment.center,
+          child: const Text(
+            'Add New Note',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -169,23 +177,41 @@ class _AddNotePageState extends State<AddNotePage> {
                 },
               ),
               const SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: _uploadFile,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pinkAccent,
+              SizedBox( // {{ edit_1 }}
+                width: double.infinity, // Make the button take the full width
+                child: ElevatedButton(
+                  onPressed: _uploadFile,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.pinkAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12), // Add border radius here
+                    ),
+                  ),
+                  child: const Text( // {{ edit_2 }}
+                    'Upload File',
+                    style: TextStyle(color: Colors.white), // Change text color to white
+                  ),
                 ),
-                child: const Text('Upload File'),
               ),
               const SizedBox(height: 8.0),
               if (_pickedFile != null) // Show the file name if a file is picked.
                 Text('Selected file: ${_pickedFile!.path.split('/').last}'),
               const SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: _addNote,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pinkAccent,
+              SizedBox( // {{ edit_3 }}
+                width: double.infinity, // Make the button take the full width
+                child: ElevatedButton(
+                  onPressed: _addNote,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.pinkAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12), // Add border radius here
+                    ),
+                  ),
+                  child: const Text( // {{ edit_4 }}
+                    'Add Note',
+                    style: TextStyle(color: Colors.white), // Change text color to white
+                  ),
                 ),
-                child: const Text('Add Note'),
               ),
             ],
           ),

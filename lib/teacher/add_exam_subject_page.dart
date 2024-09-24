@@ -91,26 +91,44 @@ class _AddExamSubjectPageState extends State<AddExamSubjectPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
-        title: const Text('Add Exam Subject'),
+        iconTheme: const IconThemeData(color: Colors.white), // {{ edit_1 }}
+        title: Container(
+          padding: const EdgeInsets.only(right:48.0),
+          alignment: Alignment.center,
+          child: const Text(
+            'Add Exam Subject',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            DropdownButtonFormField<String>(
-              value: _selectedSubject,
-              hint: const Text('Select Subject'),
-              items: subjects.map((subject) {
-                return DropdownMenuItem<String>(
-                  value: subject,
-                  child: Text(subject),
-                );
-              }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedSubject = value;
-                });
-              },
+            Container( // {{ edit_1 }}
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey), // Border color
+                borderRadius: BorderRadius.circular(8.0), // Rounded corners
+              ),
+              child: DropdownButtonFormField<String>(
+                value: _selectedSubject,
+                hint: const Text('Select Subject'),
+                items: subjects.map((subject) {
+                  return DropdownMenuItem<String>(
+                    value: subject,
+                    child: Text(subject),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedSubject = value;
+                  });
+                },
+                decoration: const InputDecoration(
+                  border: InputBorder.none, // Remove default border
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0), // Padding inside the dropdown
+                ),
+              ),
             ),
             const SizedBox(height: 16.0),
             TextField(
@@ -129,22 +147,40 @@ class _AddExamSubjectPageState extends State<AddExamSubjectPage> {
               ),
             ),
             const SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: _pickFile,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pinkAccent,
+            SizedBox( // {{ edit_2 }}
+              width: double.infinity, // Make the button take the full width
+              child: ElevatedButton(
+                onPressed: _pickFile,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.pinkAccent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0), // Add border radius here
+                  ),
+                ),
+                child: const Text( // Change text color to white
+                  'Upload File',
+                  style: TextStyle(color: Colors.white), // Change text color to white
+                ),
               ),
-              child: const Text('Upload File'),
             ),
             const SizedBox(height: 16.0),
             if (_file != null) Text('Selected File: ${_file!.path}'),
             const SizedBox(height: 16.0),
-            ElevatedButton(
-              onPressed: _uploadFileAndSubmit,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pinkAccent,
+            SizedBox( // {{ edit_3 }}
+              width: double.infinity, // Make the button take the full width
+              child: ElevatedButton(
+                onPressed: _uploadFileAndSubmit,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.pinkAccent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.0), // Add border radius here
+                  ),
+                ),
+                child: const Text( // Change text color to white
+                  'Submit',
+                  style: TextStyle(color: Colors.white), // Change text color to white
+                ),
               ),
-              child: const Text('Submit'),
             ),
           ],
         ),

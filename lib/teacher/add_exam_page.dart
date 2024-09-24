@@ -21,7 +21,15 @@ class _AddExamPageState extends State<AddExamPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
-        title: const Text('Add New Exam Folder'),
+        iconTheme: const IconThemeData(color: Colors.white), // {{ edit_1 }}
+        title: Container(
+          padding: const EdgeInsets.only(right:48.0),
+          alignment: Alignment.center,
+          child: const Text(
+            'Add New Exam',
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -55,31 +63,40 @@ class _AddExamPageState extends State<AddExamPage> {
                 },
               ),
               const SizedBox(height: 16.0),
-              ElevatedButton(
-                onPressed: () async {
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState!.save();
-                    try {
-                      final examRef = widget.examId == null
-                          ? _examRef.push()
-                          : _examRef.child(widget.examId!);
+              SizedBox( // {{ edit_1 }}
+                width: double.infinity, // Make the button take the full width
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (_formKey.currentState!.validate()) {
+                      _formKey.currentState!.save();
+                      try {
+                        final examRef = widget.examId == null
+                            ? _examRef.push()
+                            : _examRef.child(widget.examId!);
 
-                      await examRef.set({
-                        'title': _title,
-                        'description': _description,
-                        'subjects': {},
-                      });
+                        await examRef.set({
+                          'title': _title,
+                          'description': _description,
+                          'subjects': {},
+                        });
 
-                      Navigator.pop(context);
-                    } catch (e) {
-                      print('Error adding exam: $e');
+                        Navigator.pop(context);
+                      } catch (e) {
+                        print('Error adding exam: $e');
+                      }
                     }
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pinkAccent,
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.pinkAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12), // Add border radius here
+                    ),
+                  ),
+                  child: const Text( // {{ edit_2 }}
+                    'Create Exam Folder',
+                    style: TextStyle(color: Colors.white), // Change text color to white
+                  ),
                 ),
-                child: const Text('Create Exam Folder'),
               ),
             ],
           ),
