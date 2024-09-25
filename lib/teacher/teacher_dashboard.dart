@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:kafa_jr_1/auth/login_page.dart';
 
 import 'manage_student_progress_page.dart';
 import 'manage_academic_record_page.dart';
@@ -36,6 +37,14 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
     });
   }
 
+  Future<void> _logout() async {
+    await FirebaseAuth.instance.signOut();
+    // Navigate to login page after logout
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const LoginPage()), // Adjust the route as needed
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget _getSelectedPage() {
@@ -43,7 +52,7 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
         case 0:
           return _buildDashboard(); // Your existing dashboard content
         case 1:
-          return ManageProfilePage(); // Navigate to ManageProfilePage
+          return const ManageProfilePage(); // Navigate to ManageProfilePage
         // Add other cases for different pages if needed
         default:
           return _buildDashboard();
@@ -111,9 +120,7 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
                       ),
                       IconButton(
                         icon: const Icon(Icons.logout, size: 35, color: Colors.white),
-                        onPressed: () {
-                          // Handle logout
-                        },
+                        onPressed: _logout, // Call logout function
                       ),
                     ],
                   ),
