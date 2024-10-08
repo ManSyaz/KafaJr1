@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'add_exam_page.dart';
@@ -104,7 +106,7 @@ class _ManageExaminationPageState extends State<ManageExaminationPage> {
                     final subjects = folderData['subjects'] as Map<dynamic, dynamic>?;
 
                     return Card(
-                      color: Color.fromARGB(255, 255, 255, 255),
+                      color: const Color.fromARGB(255, 255, 255, 255),
                       margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                       child: Theme(
                         data: Theme.of(context).copyWith(dividerColor: Colors.transparent), // This removes the line

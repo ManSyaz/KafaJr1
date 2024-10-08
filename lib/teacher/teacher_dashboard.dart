@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api, no_leading_underscores_for_local_identifiers
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -145,14 +147,14 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _buildDashboardButton(context, 'Students\nProgress', const Color.fromARGB(255, 236, 191, 57), const ManageStudentProgressPage()),
-                  _buildDashboardButton(context, 'Academic\nRecord', Color.fromARGB(255, 216, 127, 231), const ManageAcademicRecordPage()),
+                  _buildDashboardButton(context, 'Academic\nRecord', const Color.fromARGB(255, 216, 127, 231), const ManageAcademicRecordPage()),
                 ],
               ),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildDashboardButton(context, 'Student', Color.fromARGB(255, 120, 165, 241), const ManageStudentPage()),
+                  _buildDashboardButton(context, 'Student', const Color.fromARGB(255, 120, 165, 241), const ManageStudentPage()),
                   _buildDashboardButton(context, 'Subject', const Color.fromARGB(255, 72, 214, 181), const ManageSubjectPage()),
                 ],
               ),
@@ -160,7 +162,7 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildDashboardButton(context, 'Notes', Color.fromARGB(255, 123, 184, 74), const ManageNotesPage()),
+                  _buildDashboardButton(context, 'Notes', const Color.fromARGB(255, 123, 184, 74), const ManageNotesPage()),
                   _buildDashboardButton(context, 'Examination', Colors.orangeAccent, const ManageExaminationPage()),
                 ],
               ),

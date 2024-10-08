@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'add_student_page.dart';
@@ -128,7 +130,7 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
               itemBuilder: (context, index) {
                 final student = students[index];
                 return Card( // {{ edit_1 }}
-                color: Color.fromARGB(255, 121, 108, 108),
+                color: const Color.fromARGB(255, 121, 108, 108),
                   margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0), // Add margin for spacing
                   child: ListTile(
                     title: Text( // {{ edit_1 }}

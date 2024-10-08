@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api, no_leading_underscores_for_local_identifiers
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -7,7 +9,7 @@ import 'student_profile.dart';
 import 'view_notes_page.dart';
 import 'progress_student.dart';
 import 'academic_record_student.dart';
-
+import 'view_exam_page.dart';
 class StudentDashboard extends StatefulWidget {
   const StudentDashboard({super.key});
 
@@ -148,7 +150,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildDashboardButton(context, 'Examination', Color.fromARGB(255, 120, 165, 241), const ViewNotesPage()),
+                  _buildDashboardButton(context, 'Examination', const Color.fromARGB(255, 120, 165, 241), const ViewExamPage()),
                   _buildDashboardButton(context, 'Progress\nRecord', const Color.fromARGB(255, 72, 214, 181), const ViewProgressStudentPage())
                 ],
               ),

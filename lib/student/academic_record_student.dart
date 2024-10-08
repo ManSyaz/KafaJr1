@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -189,14 +191,14 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
           alignment: BarChartAlignment.start,
           maxY: 100,
           barGroups: dataEntries,
-          gridData: FlGridData(show: false),
+          gridData: const FlGridData(show: false),
           titlesData: FlTitlesData(
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
                 getTitlesWidget: (value, meta) => Text(
                   value.toInt().toString(),
-                  style: TextStyle(fontSize: 10),
+                  style: const TextStyle(fontSize: 10),
                 ),
                 reservedSize: 30,
               ),
@@ -209,16 +211,16 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
                   if (index >= 0 && index < subjectList.length) {
                     return Text(
                       subjectList[index],
-                      style: TextStyle(fontSize: 10),
+                      style: const TextStyle(fontSize: 10),
                     );
                   }
-                  return Text('');
+                  return const Text('');
                 },
                 reservedSize: 30,
               ),
             ),
-            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           ),
           borderData: FlBorderData(
             show: true,
@@ -300,15 +302,15 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
                     columns: [
                       const DataColumn(label: Text('Exam Description', style: TextStyle(fontSize: 12))),
                       ...subjectCodes.values.map((code) => DataColumn(
-                        label: Text(code, style: TextStyle(fontSize: 12)),
+                        label: Text(code, style: const TextStyle(fontSize: 12)),
                       )),
                     ],
                     rows: studentProgressByExam.entries.map((entry) {
                       final examDescription = entry.value['examDescription'] ?? 'Unknown';
                       return DataRow(cells: [
-                        DataCell(Text(examDescription, style: TextStyle(fontSize: 12))),
+                        DataCell(Text(examDescription, style: const TextStyle(fontSize: 12))),
                         ...subjectCodes.values.map((code) => DataCell(
-                          Text(entry.value[code] ?? '-', style: TextStyle(fontSize: 12)),
+                          Text(entry.value[code] ?? '-', style: const TextStyle(fontSize: 12)),
                         )),
                       ]);
                     }).toList(),

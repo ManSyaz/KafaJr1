@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -85,7 +87,7 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
                   labelText: 'Full Name',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.pinkAccent),
+                    borderSide: const BorderSide(color: Colors.pinkAccent),
                   ),
                   contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                 ),
@@ -99,7 +101,7 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
                   labelText: 'Phone Number',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.pinkAccent),
+                    borderSide: const BorderSide(color: Colors.pinkAccent),
                   ),
                   contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                 ),
@@ -113,7 +115,7 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
                   labelText: 'Username',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.pinkAccent),
+                    borderSide: const BorderSide(color: Colors.pinkAccent),
                   ),
                   contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                 ),
@@ -126,7 +128,7 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
                   labelText: 'Password',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.pinkAccent),
+                    borderSide: const BorderSide(color: Colors.pinkAccent),
                   ),
                   contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                 ),
@@ -141,7 +143,7 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
                 onPressed: _saveProfile,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.pinkAccent, // Set button color to pink accent
-                  minimumSize: Size(double.infinity, 50), // Full width
+                  minimumSize: const Size(double.infinity, 50), // Full width
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),

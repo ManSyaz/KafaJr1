@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api, no_leading_underscores_for_local_identifiers
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -141,7 +143,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _buildDashboardButton(context, 'Students\nProgress', const Color.fromARGB(255, 236, 191, 57), const ViewProgressStudentPage()),
-                  _buildDashboardButton(context, 'Academic\nRecord', Color.fromARGB(255, 216, 127, 231), const ViewAcademicRecordPage()),
+                  _buildDashboardButton(context, 'Academic\nRecord', const Color.fromARGB(255, 216, 127, 231), const ViewAcademicRecordPage()),
                 ],
               ),
             ],

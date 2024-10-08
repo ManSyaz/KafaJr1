@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -31,7 +33,7 @@ class _ManageAcademicRecordPageState
   Map<String, Map<String, String>> studentsProgress = {};
   Map<String, Map<String, String>> studentProgressByExam = {};
 
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -187,7 +189,7 @@ class _ManageAcademicRecordPageState
               final fullName = studentMap['fullName']?.toString().toLowerCase() ?? '';
               return fullName.contains(lowerCaseName);
             },
-            orElse: () => MapEntry('', {}),
+            orElse: () => const MapEntry('', {}),
           );
 
           if (matchedStudent.value.isNotEmpty) {
@@ -230,7 +232,7 @@ class _ManageAcademicRecordPageState
         barRods: [
           BarChartRodData(
             toY: yValue,
-            color: Color.fromARGB(255, 222, 105, 243), // Light purple color
+            color: const Color.fromARGB(255, 222, 105, 243), // Light purple color
             width: 50, // Reduced width of the bar
             borderRadius: BorderRadius.zero, // Make the bars square
           ),
@@ -250,14 +252,14 @@ class _ManageAcademicRecordPageState
           alignment: BarChartAlignment.start, // Align bars to the left
           maxY: 100,
           barGroups: dataEntries,
-          gridData: FlGridData(show: false),
+          gridData: const FlGridData(show: false),
           titlesData: FlTitlesData(
             leftTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
                 getTitlesWidget: (value, meta) => Text(
                   value.toInt().toString(),
-                  style: TextStyle(fontSize: 10),
+                  style: const TextStyle(fontSize: 10),
                 ),
                 reservedSize: 30,
               ),
@@ -270,16 +272,16 @@ class _ManageAcademicRecordPageState
                   if (index >= 0 && index < subjectList.length) {
                     return Text(
                       subjectList[index],
-                      style: TextStyle(fontSize: 10),
+                      style: const TextStyle(fontSize: 10),
                     );
                   }
-                  return Text('');
+                  return const Text('');
                 },
                 reservedSize: 30,
               ),
             ),
-            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
           ),
           borderData: FlBorderData(
             show: true,
@@ -347,13 +349,13 @@ class _ManageAcademicRecordPageState
                 fillColor: Colors.pinkAccent,
                 color: Colors.black,
                 borderRadius: BorderRadius.circular(8.0),
-                children: [
+                children: const [
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+                    padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
                     child: Text('All'),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+                    padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
                     child: Text('Student'),
                   ),
                 ],
@@ -365,12 +367,12 @@ class _ManageAcademicRecordPageState
                   decoration: InputDecoration(
                     labelText: 'Search by Full Name',
                     prefixIcon: IconButton(
-                      icon: Icon(Icons.search),
+                      icon: const Icon(Icons.search),
                       onPressed: _searchStudentByName,
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.0),
-                      borderSide: BorderSide(color: Colors.pinkAccent),
+                      borderSide: const BorderSide(color: Colors.pinkAccent),
                     ),
                   ),
                 ),
@@ -383,7 +385,7 @@ class _ManageAcademicRecordPageState
                       labelText: 'Choose Exam',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.0), // Rounded corners
-                        borderSide: BorderSide(color: Colors.pinkAccent), // Border color
+                        borderSide: const BorderSide(color: Colors.pinkAccent), // Border color
                       ),
                     ),
                     value: _selectedExam,
@@ -414,16 +416,16 @@ class _ManageAcademicRecordPageState
                         columns: [
                           const DataColumn(label: Text('Subject', style: TextStyle(fontSize: 12))),
                           ...exams.where((exam) => exam['id'] != 'Choose Exam').map((exam) => DataColumn(
-                            label: Text(exam['description'] ?? 'Unknown', style: TextStyle(fontSize: 12)),
+                            label: Text(exam['description'] ?? 'Unknown', style: const TextStyle(fontSize: 12)),
                           )),
                         ],
                         rows: subjectCodes.values.map((code) {
                           return DataRow(cells: [
-                            DataCell(Text(code, style: TextStyle(fontSize: 12))),
+                            DataCell(Text(code, style: const TextStyle(fontSize: 12))),
                             ...exams.where((exam) => exam['id'] != 'Choose Exam').map((exam) {
                               final examId = exam['id']!;
                               final progress = studentProgressByExam[examId]?[code] ?? '-';
-                              return DataCell(Text(progress, style: TextStyle(fontSize: 12)));
+                              return DataCell(Text(progress, style: const TextStyle(fontSize: 12)));
                             }).toList(),
                           ]);
                         }).toList(),
@@ -438,7 +440,7 @@ class _ManageAcademicRecordPageState
                     labelText: 'Choose Exam',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.0), // Rounded corners
-                      borderSide: BorderSide(color: Colors.pinkAccent), // Border color
+                      borderSide: const BorderSide(color: Colors.pinkAccent), // Border color
                     ),
                   ),
                   value: _selectedExam,
@@ -468,15 +470,15 @@ class _ManageAcademicRecordPageState
                       columns: [
                         const DataColumn(label: Text('Name', style: TextStyle(fontSize: 12))),
                         ...subjectCodes.values.map((code) => DataColumn(
-                          label: Text(code, style: TextStyle(fontSize: 12)),
+                          label: Text(code, style: const TextStyle(fontSize: 12)),
                         )),
                       ],
                       rows: studentsProgress.entries.map((entry) {
                         final studentName = entry.value['name'] ?? '-';
                         return DataRow(cells: [
-                          DataCell(Text(studentName, style: TextStyle(fontSize: 12))),
+                          DataCell(Text(studentName, style: const TextStyle(fontSize: 12))),
                           ...subjectCodes.values.map((code) => DataCell(
-                            Text(entry.value[code] ?? '-', style: TextStyle(fontSize: 12)),
+                            Text(entry.value[code] ?? '-', style: const TextStyle(fontSize: 12)),
                           )),
                         ]);
                       }).toList(),

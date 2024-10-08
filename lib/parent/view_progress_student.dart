@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -131,7 +133,7 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
   void _searchStudentByName(String name) {
     final studentId = studentNames.entries.firstWhere(
       (entry) => entry.value.toLowerCase() == name.toLowerCase(),
-      orElse: () => MapEntry('', ''),
+      orElse: () => const MapEntry('', ''),
     ).key;
 
     if (studentId.isNotEmpty) {
@@ -240,10 +242,10 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
                 getTitlesWidget: (value, meta) => Text(_getExamDescription(value.toInt())),
               ),
             ),
-            rightTitles: AxisTitles(
+            rightTitles: const AxisTitles(
               sideTitles: SideTitles(showTitles: false),
             ),
-            topTitles: AxisTitles(
+            topTitles: const AxisTitles(
               sideTitles: SideTitles(showTitles: false),
             ),
           ),

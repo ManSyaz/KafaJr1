@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -126,7 +128,7 @@ class _ManageNotesPageState extends State<ManageNotesPage> {
               itemBuilder: (context, index) {
                 final note = _notesList[index];
                 return Card( // {{ edit_1 }}
-                  color: Color.fromARGB(255, 121, 108, 108), // Change the card color here
+                  color: const Color.fromARGB(255, 121, 108, 108), // Change the card color here
                   margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0), // Add margin for spacing
                   child: ListTile(
                     title: Text( // {{ edit_2 }}
