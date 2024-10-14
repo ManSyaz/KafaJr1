@@ -96,20 +96,6 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
               ),
               const SizedBox(height: 16),
               TextFormField(
-                initialValue: _phoneNumber,
-                decoration: InputDecoration(
-                  labelText: 'Phone Number',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.pinkAccent),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                ),
-                onChanged: (value) => _phoneNumber = value,
-                validator: (value) => value!.isEmpty ? 'Please enter your phone number' : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
                 initialValue: _username,
                 decoration: InputDecoration(
                   labelText: 'Username',
@@ -121,6 +107,20 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
                 ),
                 onChanged: (value) => _username = value,
                 validator: (value) => value!.isEmpty ? 'Please enter your username' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                initialValue: _phoneNumber,
+                decoration: InputDecoration(
+                  labelText: 'Phone Number',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Colors.pinkAccent),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                ),
+                onChanged: (value) => _phoneNumber = value,
+                validator: (value) => value!.isEmpty ? 'Please enter your phone number' : null,
               ),
               const SizedBox(height: 16),
               TextFormField(
