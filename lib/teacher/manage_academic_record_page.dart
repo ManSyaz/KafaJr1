@@ -426,7 +426,7 @@ class _ManageAcademicRecordPageState
                               final examId = exam['id']!;
                               final progress = studentProgressByExam[examId]?[code] ?? '-';
                               return DataCell(Text(progress, style: const TextStyle(fontSize: 12)));
-                            }).toList(),
+                            }),
                           ]);
                         }).toList(),
                       ),
