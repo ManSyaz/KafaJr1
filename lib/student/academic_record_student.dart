@@ -1,7 +1,8 @@
-// ignore_for_file: library_private_types_in_public_api
+// ignore_for_file: library_private_types_in_public_api, prefer_final_fields
 
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class ViewAcademicRecordPage extends StatefulWidget {
@@ -12,14 +13,12 @@ class ViewAcademicRecordPage extends StatefulWidget {
 }
 
 class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
-  final DatabaseReference _userRef = FirebaseDatabase.instance.ref().child('Student');
   final DatabaseReference _progressRef = FirebaseDatabase.instance.ref().child('Progress');
   final DatabaseReference _examRef = FirebaseDatabase.instance.ref().child('Exam');
   final DatabaseReference _subjectRef = FirebaseDatabase.instance.ref().child('Subject');
 
   String _selectedExam = 'Choose Exam';
   String _selectedStudentId = '';
-  Map<String, String> studentNames = {};
   Map<String, String> subjectCodes = {};
   List<Map<String, String>> exams = [];
   Map<String, Map<String, String>> studentsProgress = {};
@@ -28,9 +27,15 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
   @override
   void initState() {
     super.initState();
+    _selectedStudentId = _getLoggedInStudentId(); // Get the logged-in student's ID
     _fetchExams();
-    _fetchStudents();
     _fetchSubjects();
+  }
+
+  String _getLoggedInStudentId() {
+    // Get the current user from Firebase Authentication
+    User? user = FirebaseAuth.instance.currentUser;
+    return user?.uid ?? ''; // Return the user's ID or an empty string if not logged in
   }
 
   Future<void> _fetchExams() async {
@@ -55,33 +60,6 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
       }
     } catch (e) {
       print('Error fetching exams: $e');
-    }
-  }
-
-  Future<void> _fetchStudents() async {
-    try {
-      final snapshot = await _userRef.get();
-      if (snapshot.exists) {
-        final studentData = snapshot.value as Map<Object?, Object?>?;
-        if (studentData != null) {
-          setState(() {
-            studentNames = studentData.entries.fold<Map<String, String>>(
-              {},
-              (map, entry) {
-                final studentMap = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
-                final studentId = entry.key?.toString() ?? 'Unknown';
-                final studentName = studentMap['fullName']?.toString() ?? 'Unknown';
-                map[studentId] = studentName;
-                return map;
-              },
-            );
-            // Assuming the student is already logged in, set the selected student ID
-            _selectedStudentId = studentNames.keys.first; // Set to the first student for demonstration
-          });
-        }
-      }
-    } catch (e) {
-      print('Error fetching students: $e');
     }
   }
 
@@ -131,13 +109,15 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
             final subjectId = progress['subjectId'] ?? '-';
             final subjectCode = subjectCodes[subjectId] ?? 'Unknown';
 
-            if (!map.containsKey(studentId)) {
-              map[studentId] = {
-                'examDescription': examDescription ?? 'Unknown', // Ensure examDescription is set here
-              };
-            }
+            if (studentId == _selectedStudentId) { // Only include progress for the logged-in student
+              if (!map.containsKey(studentId)) {
+                map[studentId] = {
+                  'examDescription': examDescription ?? 'Unknown', // Ensure examDescription is set here
+                };
+              }
 
-            map[studentId]![subjectCode] = progress['percentage']?.toString() ?? '-';
+              map[studentId]![subjectCode] = progress['percentage']?.toString() ?? '-';
+            }
             return map;
           },
         );
@@ -168,7 +148,6 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
     final dataEntries = subjectList.asMap().entries.map((entry) {
       final index = entry.key;
       final code = entry.value;
-
       final yValue = double.tryParse(studentProgressByExam[_selectedExam]?[code] ?? '0') ?? 0;
 
       return BarChartGroupData(

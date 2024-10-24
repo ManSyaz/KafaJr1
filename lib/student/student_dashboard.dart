@@ -10,6 +10,7 @@ import 'view_notes_page.dart';
 import 'progress_student.dart';
 import 'academic_record_student.dart';
 import 'view_exam_page.dart';
+
 class StudentDashboard extends StatefulWidget {
   const StudentDashboard({super.key});
 
@@ -143,23 +144,18 @@ class _StudentDashboardState extends State<StudentDashboard> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  //_buildDashboardButton(context, 'Subjects', const Color.fromARGB(255, 236, 191, 57), const ViewProgressStudentPage()),
-                  _buildDashboardButton(context, 'Notes', const Color.fromARGB(255, 216, 127, 231), const ViewNotesPage()),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildDashboardButton(context, 'Examination', const Color.fromARGB(255, 120, 165, 241), const ViewExamPage()),
-                  _buildDashboardButton(context, 'Progress\nRecord', const Color.fromARGB(255, 72, 214, 181), const ViewProgressStudentPage())
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
+                  _buildDashboardButton(context, 'Progress\nRecord', const Color.fromARGB(255, 72, 214, 181), const ViewProgressStudentPage()),
                   _buildDashboardButton(context, 'Academic\nRecord', Colors.orangeAccent, const ViewAcademicRecordPage()),
                 ],
-              )
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildDashboardButton(context, 'Notes', const Color.fromARGB(255, 216, 127, 231), const ViewNotesPage()),
+                  _buildDashboardButton(context, 'Examination', const Color.fromARGB(255, 120, 165, 241), const ViewExamPage()),
+                  
+                ],
+              ),
             ],
           ),
         ),

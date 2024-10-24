@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class ViewProgressStudentPage extends StatefulWidget {
@@ -27,6 +28,13 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
     super.initState();
     _fetchSubjects();
     _fetchStudents();
+    _selectedStudentId = _getLoggedInStudentId(); // Set the selected student ID
+  }
+
+  String _getLoggedInStudentId() {
+    // Get the current user from Firebase Authentication
+    User? user = FirebaseAuth.instance.currentUser;
+    return user?.uid ?? ''; // Return the user's ID or an empty string if not logged in
   }
 
   Future<void> _fetchSubjects() async {
@@ -70,8 +78,6 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
                 return map;
               },
             );
-            // Assuming the student is already logged in, set the selected student ID
-            _selectedStudentId = studentNames.keys.first; // Set to the first student for demonstration
           });
         }
       }
@@ -95,7 +101,7 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
           {},
           (map, entry) {
             final progress = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
-            if (progress['subjectId'] == subjectId) {
+            if (progress['subjectId'] == subjectId) { // Compare subject ID
               final studentId = progress['studentId'] ?? '-';
               if (!map.containsKey(studentId)) {
                 map[studentId] = {
@@ -106,7 +112,6 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
                   'PUPK': '-',
                 };
               }
-
               // Update the progress for the corresponding exam description
               String examDescription = progress['examDescription'] ?? '';
               String percentage = progress['percentage']?.toString() ?? '0';
