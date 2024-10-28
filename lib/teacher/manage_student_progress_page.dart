@@ -334,6 +334,29 @@ class _ManageStudentProgressPageState
     }
   }
 
+  String _generateCommentForAll(Map<String, String> progress) {
+    String comments = '';
+
+    // Generate comments based on each subject's percentage
+    progress.forEach((key, value) {
+      if (value != '-') {
+        double percentage = double.tryParse(value) ?? -1; // Convert to double, handle invalid
+
+        if (percentage >= 1 && percentage <= 39) {
+          comments += 'For $key: The student is struggling. Recommend additional resources or tutoring.\n';
+        } else if (percentage >= 40 && percentage <= 59) {
+          comments += 'For $key: The student is passing, but could benefit from additional focus on key areas.\n';
+        } else if (percentage >= 60 && percentage <= 79) {
+          comments += 'For $key: The student is doing well. Consider advanced exercises to challenge them.\n';
+        } else if (percentage >= 80 && percentage <= 100) {
+          comments += 'For $key: The student is excelling. Consider more challenging material to keep them engaged.\n';
+        }
+      }
+    });
+
+    return comments.isNotEmpty ? comments : 'No valid percentage data available.';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -440,24 +463,35 @@ class _ManageStudentProgressPageState
                   Expanded(
                     child: LayoutBuilder(
                       builder: (context, constraints) {
-                        return DataTable(
-                          columnSpacing: constraints.maxWidth / 8,
-                          columns: const [
-                            DataColumn(label: Text('UP1', style: TextStyle(fontSize: 12))),
-                            DataColumn(label: Text('PPT', style: TextStyle(fontSize: 12))),
-                            DataColumn(label: Text('UP2', style: TextStyle(fontSize: 12))),
-                            DataColumn(label: Text('PAT', style: TextStyle(fontSize: 12))),
-                            DataColumn(label: Text('PUPK', style: TextStyle(fontSize: 12))),
-                          ],
-                          rows: [
-                            DataRow(cells: [
-                              DataCell(Text(studentProgress!['UP1'] ?? '-', style: const TextStyle(fontSize: 12))),
-                              DataCell(Text(studentProgress!['PPT'] ?? '-', style: const TextStyle(fontSize: 12))),
-                              DataCell(Text(studentProgress!['UP2'] ?? '-', style: const TextStyle(fontSize: 12))),
-                              DataCell(Text(studentProgress!['PAT'] ?? '-', style: const TextStyle(fontSize: 12))),
-                              DataCell(Text(studentProgress!['PUPK'] ?? '-', style: const TextStyle(fontSize: 12))),
-                            ]),
-                          ],
+                        return SingleChildScrollView( // Wrap in SingleChildScrollView
+                          child: Column( // Use Column to stack DataTable and comments
+                            children: [
+                              DataTable(
+                                columnSpacing: constraints.maxWidth / 8,
+                                columns: const [
+                                  DataColumn(label: Text('UP1', style: TextStyle(fontSize: 12))),
+                                  DataColumn(label: Text('PPT', style: TextStyle(fontSize: 12))),
+                                  DataColumn(label: Text('UP2', style: TextStyle(fontSize: 12))),
+                                  DataColumn(label: Text('PAT', style: TextStyle(fontSize: 12))),
+                                  DataColumn(label: Text('PUPK', style: TextStyle(fontSize: 12))),
+                                ],
+                                rows: [
+                                  DataRow(cells: [
+                                    DataCell(Text(studentProgress!['UP1'] ?? '-', style: const TextStyle(fontSize: 12))),
+                                    DataCell(Text(studentProgress!['PPT'] ?? '-', style: const TextStyle(fontSize: 12))),
+                                    DataCell(Text(studentProgress!['UP2'] ?? '-', style: const TextStyle(fontSize: 12))),
+                                    DataCell(Text(studentProgress!['PAT'] ?? '-', style: const TextStyle(fontSize: 12))),
+                                    DataCell(Text(studentProgress!['PUPK'] ?? '-', style: const TextStyle(fontSize: 12))),
+                                  ]),
+                                ],
+                              ),
+                              const SizedBox(height: 16.0), // Added space between DataTable and comments
+                              Text(
+                                _generateCommentForAll(studentProgress!),
+                                style: const TextStyle(fontSize: 14, fontStyle: FontStyle.italic), // Style for the comment
+                              ),
+                            ],
+                          ),
                         );
                       },
                     ),

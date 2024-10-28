@@ -22,6 +22,7 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
   Map<String, String> studentNames = {};
   List<Map<String, String>> subjects = [];
   Map<String, Map<String, String>> studentsProgress = {};
+  String _comment = ''; // Add a state variable to hold the comment
 
   @override
   void initState() {
@@ -125,6 +126,7 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
 
         setState(() {
           studentsProgress = filteredProgress; // Update state with fetched data
+          _comment = _generateComment(); // Generate comment after fetching progress
         });
       }
     } catch (e) {
@@ -303,6 +305,31 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
     );
   }
 
+  String _generateComment() {
+    String comment = '';
+
+    // Check each student's progress and generate comments based on percentage ranges
+    studentsProgress.forEach((_, progress) {
+      ['UP1', 'PPT', 'UP2', 'PAT', 'PUPK'].forEach((exam) {
+        String percentage = progress[exam] ?? '0';
+        int percentageValue = int.tryParse(percentage) ?? 0;
+
+        // Generate comment based on percentage range
+        if (percentageValue >= 1 && percentageValue <= 39) {
+          comment = 'Keep trying! Focus on your studies to improve your score.';
+        } else if (percentageValue >= 40 && percentageValue <= 59) {
+          comment = 'You’re doing okay, but there’s room for improvement.';
+        } else if (percentageValue >= 60 && percentageValue <= 79) {
+          comment = 'Good job! Keep up the steady effort to reach a higher score.';
+        } else if (percentageValue >= 80 && percentageValue <= 100) {
+          comment = 'Excellent work! Keep up the outstanding performance!';
+        }
+      });
+    });
+
+    return comment; // Return the last generated comment
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -343,6 +370,7 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
                     _fetchStudentProgressBySubject(_selectedSubject);
                   } else {
                     studentsProgress = {}; // Clear progress if no subject is selected
+                    _comment = ''; // Clear comment if no subject is selected
                   }
                 });
               },
@@ -351,6 +379,8 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
             if (studentsProgress.isNotEmpty) _buildGraph(),
             if (studentsProgress.isNotEmpty) _buildDataTable(),
             if (studentsProgress.isEmpty) const Center(child: Text('No data available for the selected subject.')),
+            const SizedBox(height: 16.0), // Add some space before the comment
+            if (_comment.isNotEmpty) Text(_comment), // Display the generated comment
           ],
         ),
       ),
