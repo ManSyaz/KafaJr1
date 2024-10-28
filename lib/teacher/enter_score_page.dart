@@ -146,7 +146,7 @@ class _EnterScorePageState extends State<EnterScorePage> {
 
   // Function to send email using SendGrid
   Future<void> _sendEmail(String toEmail, String subject, String body, String s) async {
-    const String apiKey = ''; // Your SendGrid API key
+    const String apiKey = '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'; // Your SendGrid API key
     const String url = 'https://api.sendgrid.com/v3/mail/send';
 
     final response = await http.post(
