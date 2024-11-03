@@ -152,11 +152,15 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
               ),
             ),
           ),
+          const Padding(
+            padding: EdgeInsets.only(left: 16.0),
+            child: Text('List of Students', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          ),
+          const SizedBox(height: 16),
+          
           Padding(
-
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: TextField(
-
               onChanged: _filterStudents,
               decoration: InputDecoration(
                 labelText: 'Search Student',
@@ -164,27 +168,16 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
                   borderRadius: BorderRadius.circular(10.0),
                 ),
                 prefixIcon: const Icon(Icons.search),
-
               ),
             ),
           ),
-
-          const Padding(
-
-            padding: EdgeInsets.only(left: 16.0),
-
-            child: Text('List of Students', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          ),
-          const SizedBox(height: 16),
+          
           Expanded(
             child: ListView.builder(
               itemCount: filteredStudents.length,
-
               itemBuilder: (context, index) {
                 final student = filteredStudents[index];
-
                 return Card(
-
                   color: const Color.fromARGB(255, 121, 108, 108),
                   margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                   child: ListTile(
@@ -199,32 +192,20 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-
                         IconButton(
-
                           icon: const Icon(Icons.edit, color: Colors.green),
-
                           onPressed: () => _navigateToEditStudent(student),
                         ),
-
                         IconButton(
-
                           icon: const Icon(Icons.delete, color: Color.fromARGB(255, 255, 17, 0)),
-
                           onPressed: () => _deleteStudent(student['uid']),
                         ),
                       ],
-
                     ),
-
                   ),
-
                 );
-
               },
-
             ),
-
           ),
 
         ],

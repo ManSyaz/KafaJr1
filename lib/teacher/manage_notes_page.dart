@@ -18,6 +18,8 @@ class _ManageNotesPageState extends State<ManageNotesPage> {
   final DatabaseReference _notesRef = FirebaseDatabase.instance.ref().child('Content');
   final FirebaseStorage _storage = FirebaseStorage.instance;
   List<Map<String, dynamic>> _notesList = [];
+  List<Map<String, dynamic>> filteredNotes = []; // List for filtered notes
+  String searchQuery = ''; // Search query
 
   @override
   void initState() {
@@ -39,12 +41,23 @@ class _ManageNotesPageState extends State<ManageNotesPage> {
                 ...noteMap,
               };
             }).toList();
+            filteredNotes = List.from(_notesList); // Initialize filtered list with all notes
           });
         }
       }
     } catch (e) {
       print('Error fetching notes: $e');
     }
+  }
+
+  void _filterNotes(String query) {
+    setState(() {
+      searchQuery = query;
+      filteredNotes = _notesList.where((note) {
+        final title = note['title']?.toLowerCase() ?? '';
+        return title.contains(query.toLowerCase());
+      }).toList();
+    });
   }
 
   Future<void> _deleteNoteWithFile(String noteId, String? fileUrl) async {
@@ -72,9 +85,9 @@ class _ManageNotesPageState extends State<ManageNotesPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
-        iconTheme: const IconThemeData(color: Colors.white), // {{ edit_1 }}
+        iconTheme: const IconThemeData(color: Colors.white),
         title: Container(
-          padding: const EdgeInsets.only(right:48.0),
+          padding: const EdgeInsets.only(right: 48.0),
           alignment: Alignment.center,
           child: const Text(
             'Manage Notes',
@@ -110,40 +123,60 @@ class _ManageNotesPageState extends State<ManageNotesPage> {
               ),
             ),
           ),
-          const SizedBox(height: 16.0),
-          const Align( // {{ edit_1 }}
-            alignment: Alignment.centerLeft, // Align to the left
-            child: Padding(
-              padding: EdgeInsets.only(left: 16.0), // Add left padding
-              child: Text(
-                'List of Notes',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
+
+          // Aligning the title and search filter to the left
+          const Padding(
+            padding: EdgeInsets.only(left: 16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Text(
+                  'List of Notes',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
           ),
           const SizedBox(height: 16),
+
+          // Search bar for filtering notes
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: TextField(
+              onChanged: _filterNotes,
+              decoration: InputDecoration(
+                labelText: 'Search Note',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                prefixIcon: const Icon(Icons.search),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 16),
           Expanded(
             child: ListView.builder(
-              itemCount: _notesList.length,
+              itemCount: filteredNotes.length,
               itemBuilder: (context, index) {
-                final note = _notesList[index];
-                return Card( // {{ edit_1 }}
-                  color: const Color.fromARGB(255, 121, 108, 108), // Change the card color here
-                  margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0), // Add margin for spacing
+                final note = filteredNotes[index];
+                return Card(
+                  color: const Color.fromARGB(255, 121, 108, 108),
+                  margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                   child: ListTile(
-                    title: Text( // {{ edit_2 }}
+                    title: Text(
                       note['title'] ?? 'No Title',
-                      style: const TextStyle( // Add your desired text style here
-                        fontSize: 16, // Example font size
-                        fontWeight: FontWeight.bold, // Example font weight
-                        color: Colors.white, // Example text color
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
-                    subtitle: Text( // {{ edit_3 }}
+                    subtitle: Text(
                       note['description'] ?? 'No Description',
-                      style: const TextStyle( // Add your desired text style here
-                        fontSize: 14, // Example font size
-                        color: Color.fromARGB(255, 255, 255, 255), // Example text color
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color.fromARGB(255, 255, 255, 255),
                       ),
                     ),
                     trailing: Row(

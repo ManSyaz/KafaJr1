@@ -15,6 +15,8 @@ class ManageSubjectPage extends StatefulWidget {
 class _ManageSubjectPageState extends State<ManageSubjectPage> {
   final DatabaseReference _subjectRef = FirebaseDatabase.instance.ref().child('Subject');
   List<Map<String, dynamic>> subjects = [];
+  List<Map<String, dynamic>> filteredSubjects = [];
+  String searchQuery = '';
 
   @override
   void initState() {
@@ -37,6 +39,7 @@ class _ManageSubjectPageState extends State<ManageSubjectPage> {
                 ...subjectMap,
               };
             }).toList();
+            filteredSubjects = List.from(subjects);
           });
         }
       }
@@ -73,14 +76,25 @@ class _ManageSubjectPageState extends State<ManageSubjectPage> {
     ).then((_) => _fetchSubjects());
   }
 
+  void _filterSubjects(String query) {
+    setState(() {
+      searchQuery = query;
+
+      filteredSubjects = subjects.where((subject) {
+        final subjectName = subject['name']?.toLowerCase() ?? '';
+        return subjectName.contains(query.toLowerCase());
+      }).toList();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
-        iconTheme: const IconThemeData(color: Colors.white), // {{ edit_1 }}
+        iconTheme: const IconThemeData(color: Colors.white),
         title: Container(
-          padding: const EdgeInsets.only(right:48.0),
+          padding: const EdgeInsets.only(right: 48.0),
           alignment: Alignment.center,
           child: const Text(
             'Manage Subjects',
@@ -89,6 +103,7 @@ class _ManageSubjectPageState extends State<ManageSubjectPage> {
         ),
       ),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -111,37 +126,49 @@ class _ManageSubjectPageState extends State<ManageSubjectPage> {
               ),
             ),
           ),
-          const SizedBox(height: 16.0),
-          const Align( // {{ edit_1 }}
-            alignment: Alignment.centerLeft, // Align to the left
-            child: Padding(
-              padding: EdgeInsets.only(left: 16.0), // Add left padding
-              child: Text('List of Subjects', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            ),
+          const Padding(
+            padding: EdgeInsets.only(left: 16.0),
+            child: Text('List of Subjects', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           ),
           const SizedBox(height: 16),
+
+          // Search bar for filtering subjects
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: TextField(
+              onChanged: _filterSubjects,
+              decoration: InputDecoration(
+                labelText: 'Search Subject',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                prefixIcon: const Icon(Icons.search),
+              ),
+            ),
+          ),
+
           Expanded(
             child: ListView.builder(
-              itemCount: subjects.length,
+              itemCount: filteredSubjects.length,
               itemBuilder: (context, index) {
-                final subject = subjects[index];
-                return Card( // {{ edit_1 }}
-                  color: const Color.fromARGB(255, 121, 108, 108), // Change the card color here
-                  margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0), // Add margin for spacing
+                final subject = filteredSubjects[index];
+                return Card(
+                  color: const Color.fromARGB(255, 121, 108, 108),
+                  margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                   child: ListTile(
-                    title: Text( // {{ edit_2 }}
+                    title: Text(
                       subject['name'],
-                      style: const TextStyle( // Add your desired text style here
-                        fontSize: 16, // Example font size
-                        fontWeight: FontWeight.bold, // Example font weight
-                        color: Color.fromARGB(255, 255, 255, 255), // Example text color
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Color.fromARGB(255, 255, 255, 255),
                       ),
                     ),
-                    subtitle: Text( // {{ edit_3 }}
+                    subtitle: Text(
                       subject['code'],
-                      style: const TextStyle( // Add your desired text style here
-                        fontSize: 14, // Example font size
-                        color: Color.fromARGB(255, 212, 212, 212), // Example text color
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color.fromARGB(255, 212, 212, 212),
                       ),
                     ),
                     trailing: Row(

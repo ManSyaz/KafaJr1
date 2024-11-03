@@ -96,12 +96,26 @@ class _EnterScorePageState extends State<EnterScorePage> {
           String studentId = student['id']!;
           double? score = double.tryParse(_scoreControllers[studentId]!.text);
           if (score != null) {
-            await _progressRef.push().set({
-              'studentId': studentId,
-              'subjectId': _selectedSubjectId,
-              'percentage': score,
-              'examDescription': _examDescription,
-            });
+            // Create a unique key for the progress entry
+            String progressKey = '$studentId-$_selectedSubjectId';
+
+            // Check if the entry already exists
+            final progressSnapshot = await _progressRef.child(progressKey).get();
+            if (progressSnapshot.exists) {
+              // Update the existing entry
+              await _progressRef.child(progressKey).update({
+                'percentage': score,
+                'examDescription': _examDescription,
+              });
+            } else {
+              // Create a new entry if it doesn't exist
+              await _progressRef.child(progressKey).set({
+                'studentId': studentId,
+                'subjectId': _selectedSubjectId,
+                'percentage': score,
+                'examDescription': _examDescription,
+              });
+            }
 
             // Fetch parent email
             String parentEmail = await _getParentEmail(studentId);
@@ -146,8 +160,10 @@ class _EnterScorePageState extends State<EnterScorePage> {
 
   // Function to send email using SendGrid
   Future<void> _sendEmail(String toEmail, String subject, String body, String s) async {
-    const String apiKey = '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'; // Your SendGrid API key
+    const String apiKey = ''; // Your SendGrid API key
     const String url = 'https://api.sendgrid.com/v3/mail/send';
+
+    await Future.delayed(const Duration(seconds: 1));
 
     final response = await http.post(
       Uri.parse(url),
