@@ -44,6 +44,10 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
                 ...studentInfo,
               };
             }).toList();
+
+            // Sort students alphabetically by fullName
+            students.sort((a, b) => (a['fullName'] ?? '').compareTo(b['fullName'] ?? ''));
+
             filteredStudents = students; // Initialize filtered list
           });
         }
@@ -99,7 +103,7 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
       filteredStudents = students.where((student) {
         final fullName = student['fullName']?.toLowerCase() ?? '';
         return fullName.contains(query.toLowerCase());
-      }).toList();
+      }).toList()..sort((a, b) => (a['fullName'] ?? '').compareTo(b['fullName'] ?? ''));
     });
   }
 
@@ -156,6 +160,10 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
             padding: EdgeInsets.only(left: 16.0),
             child: Text('List of Students', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           ),
+          Padding(
+            padding: const EdgeInsets.only(left: 16.0),
+            child: Text('Total Students: ${filteredStudents.length}', style: TextStyle(fontSize: 16)),
+          ),
           const SizedBox(height: 16),
           
           Padding(
@@ -181,13 +189,22 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
                   color: const Color.fromARGB(255, 121, 108, 108),
                   margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                   child: ListTile(
-                    title: Text(
-                      student['fullName'] ?? 'No Name',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 255, 255, 255),
-                      ),
+                    title: Row(
+                      children: [
+                        Text('${index + 1}. ', style: const TextStyle(color: Colors.white)),
+                        Expanded(
+                          child: Text(
+                            student['fullName'] ?? 'No Name',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color.fromARGB(255, 255, 255, 255),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
+                        ),
+                      ],
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,

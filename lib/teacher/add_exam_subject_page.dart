@@ -79,12 +79,15 @@ class _AddExamSubjectPageState extends State<AddExamSubjectPage> {
         'title': _titleController.text,
         'description': _descriptionController.text,
         'subject': _selectedSubject,
-        'fileUrl': downloadUrl, // Store the URL instead of the local path
+        'fileUrl': downloadUrl,
       });
 
       Navigator.pop(context);
     } catch (e) {
-      print('Error uploading file: $e');
+      print('Error uploading file: $e'); // Log the error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error uploading file: ${e.toString()}')), // Show error message
+      );
     }
   }
 
