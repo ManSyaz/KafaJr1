@@ -24,7 +24,6 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
   Map<String, Map<String, String>> studentsProgress = {};
 
   final TextEditingController _searchController = TextEditingController();
-  String _comment = ''; // State variable to hold the comment
 
   @override
   void initState() {
@@ -82,31 +81,6 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
     }
   }
 
-  String _generateComment() {
-    String comment = '';
-
-    // Check each student's progress and generate comments based on percentage ranges
-    studentsProgress.forEach((_, progress) {
-      ['UP1', 'PPT', 'UP2', 'PAT', 'PUPK'].forEach((exam) {
-        String percentage = progress[exam] ?? '0';
-        int percentageValue = int.tryParse(percentage) ?? 0;
-
-        // Generate comment based on percentage range
-        if (percentageValue >= 1 && percentageValue <= 39) {
-          comment = 'Your child may need extra help in this subject. Consider additional support.';
-        } else if (percentageValue >= 40 && percentageValue <= 59) {
-          comment = 'Your child is on the right track, but extra practice could help.';
-        } else if (percentageValue >= 60 && percentageValue <= 79) {
-          comment = 'Your child is performing well. Encouragement can help them reach an even higher score.';
-        } else if (percentageValue >= 80 && percentageValue <= 100) {
-          comment = 'Your child is excelling in this subject. Great job!';
-        }
-      });
-    });
-
-    return comment; // Return the last generated comment
-  }
-
   Future<void> _fetchStudentProgressBySubject(String subjectId) async {
     if (_selectedStudentId.isEmpty) return; // Ensure student ID is set
 
@@ -146,7 +120,6 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
 
         setState(() {
           studentsProgress = filteredProgress; // Update state with fetched data
-          _comment = _generateComment(); // Generate comment after fetching progress
         });
       }
     } catch (e) {
@@ -411,7 +384,6 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
                       _fetchStudentProgressBySubject(_selectedSubject);
                     } else {
                       studentsProgress = {}; // Clear progress if no subject is selected
-                      _comment = ''; // Clear comment if no subject is selected
                     }
                   });
                 },
@@ -420,8 +392,6 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
               if (studentsProgress.isNotEmpty) _buildGraph(),
               if (studentsProgress.isNotEmpty) _buildDataTable(),
               if (studentsProgress.isEmpty) const Center(child: Text('No data available for the selected subject.')),
-              const SizedBox(height: 16.0), // Add some space before the comment
-              if (_comment.isNotEmpty) Text(_comment), // Display the generated comment
             ],
           ],
         ),

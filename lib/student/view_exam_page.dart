@@ -15,7 +15,7 @@ class _ViewExamPageState extends State<ViewExamPage> {
   final DatabaseReference _examRef = FirebaseDatabase.instance.ref().child('Exam');
   List<Map<String, dynamic>> _exams = [];
   List<String> _examCategories = []; // List of exam categories for filtering
-  List<String> _selectedCategories = []; // List to hold selected categories
+  final List<String> _selectedCategories = []; // List to hold selected categories
 
   @override
   void initState() {
@@ -137,7 +137,7 @@ class _ViewExamPageState extends State<ViewExamPage> {
                     backgroundColor: Colors.grey[300],
                     labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
                   );
-                }).toList(),
+                }),
               ],
             ),
           ),
@@ -269,7 +269,7 @@ class _SubjectListPageState extends State<SubjectListPage> {
                     backgroundColor: Colors.grey[300],
                     labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
                   );
-                }).toList(),
+                }),
               ],
             ),
           ),

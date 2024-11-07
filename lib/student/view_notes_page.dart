@@ -123,7 +123,7 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
                   labelStyle: const TextStyle(color: Colors.black),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),
-                    side: BorderSide(color: Colors.pinkAccent),
+                    side: const BorderSide(color: Colors.pinkAccent),
                   ),
                 ),
                 // Chips for each subject
@@ -149,7 +149,7 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
                       side: BorderSide(color: isSelected ? Colors.white : Colors.pinkAccent),
                     ),
                   );
-                }).toList(),
+                }),
               ],
             ),
           ),

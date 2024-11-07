@@ -334,29 +334,6 @@ class _ManageStudentProgressPageState
     }
   }
 
-  String _generateCommentForAll(Map<String, String> progress) {
-    String comments = '';
-
-    // Generate comments based on each subject's percentage
-    progress.forEach((key, value) {
-      if (value != '-') {
-        double percentage = double.tryParse(value) ?? -1; // Convert to double, handle invalid
-
-        if (percentage >= 1 && percentage <= 39) {
-          comments += 'For $key: The student is struggling. Recommend additional resources or tutoring.\n';
-        } else if (percentage >= 40 && percentage <= 59) {
-          comments += 'For $key: The student is passing, but could benefit from additional focus on key areas.\n';
-        } else if (percentage >= 60 && percentage <= 79) {
-          comments += 'For $key: The student is doing well. Consider advanced exercises to challenge them.\n';
-        } else if (percentage >= 80 && percentage <= 100) {
-          comments += 'For $key: The student is excelling. Consider more challenging material to keep them engaged.\n';
-        }
-      }
-    });
-
-    return comments.isNotEmpty ? comments : 'No valid percentage data available.';
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -484,11 +461,6 @@ class _ManageStudentProgressPageState
                                     DataCell(Text(studentProgress!['PUPK'] ?? '-', style: const TextStyle(fontSize: 12))),
                                   ]),
                                 ],
-                              ),
-                              const SizedBox(height: 16.0), // Added space between DataTable and comments
-                              Text(
-                                _generateCommentForAll(studentProgress!),
-                                style: const TextStyle(fontSize: 14, fontStyle: FontStyle.italic), // Style for the comment
                               ),
                             ],
                           ),

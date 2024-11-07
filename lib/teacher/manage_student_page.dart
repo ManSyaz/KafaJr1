@@ -162,7 +162,7 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
           ),
           Padding(
             padding: const EdgeInsets.only(left: 16.0),
-            child: Text('Total Students: ${filteredStudents.length}', style: TextStyle(fontSize: 16)),
+            child: Text('Total Students: ${filteredStudents.length}', style: const TextStyle(fontSize: 16)),
           ),
           const SizedBox(height: 16),
           
