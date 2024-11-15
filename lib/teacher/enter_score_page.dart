@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert'; // For jsonEncode
+// ignore: unused_import
+import 'package:firebase_auth/firebase_auth.dart';
 
 class EnterScorePage extends StatefulWidget {
   final String examId;
@@ -27,6 +29,7 @@ class _EnterScorePageState extends State<EnterScorePage> {
   List<Map<String, dynamic>> _subjects = [];
   List<Map<String, dynamic>> _students = [];
   Map<String, TextEditingController> _scoreControllers = {};
+  String? _selectedExamId;
 
   @override
   void initState() {
@@ -42,6 +45,7 @@ class _EnterScorePageState extends State<EnterScorePage> {
       final examData = snapshot.value as Map<dynamic, dynamic>; // Cast snapshot.value as a map
       setState(() {
         _examDescription = examData['description'] ?? 'No description available';
+        _selectedExamId = widget.examId;
       });
     } else {
       setState(() {
@@ -90,54 +94,34 @@ class _EnterScorePageState extends State<EnterScorePage> {
   }
 
   void _submitScores() async {
-    if (_selectedSubjectId != null) {
-      try {
-        for (var student in _students) {
-          String studentId = student['id']!;
-          double? score = double.tryParse(_scoreControllers[studentId]!.text);
-          if (score != null) {
-            // Create a unique key for the progress entry
-            String progressKey = '$studentId-$_selectedSubjectId';
+    if (_selectedSubjectId != null && _selectedExamId != null) {
+        try {
+            for (var student in _students) {
+                String studentId = student['id']!;
+                double? score = double.tryParse(_scoreControllers[studentId]!.text);
+                if (score != null) {
+                    // Create a unique key for the progress entry
+                    String progressKey = '$studentId-$_selectedSubjectId';
 
-            // Check if the entry already exists
-            final progressSnapshot = await _progressRef.child(progressKey).get();
-            if (progressSnapshot.exists) {
-              // Update the existing entry
-              await _progressRef.child(progressKey).update({
-                'percentage': score,
-                'examDescription': _examDescription,
-              });
-            } else {
-              // Create a new entry if it doesn't exist
-              await _progressRef.child(progressKey).set({
-                'studentId': studentId,
-                'subjectId': _selectedSubjectId,
-                'percentage': score,
-                'examDescription': _examDescription,
-              });
+                    // Write to the Progress node
+                    await _progressRef.child(progressKey).set({
+                        'examId': _selectedExamId,
+                        'studentId': studentId,
+                        'score': score,
+                        'examDescription': _examDescription,
+                    });
+                }
             }
-
-            // Fetch parent email
-            String parentEmail = await _getParentEmail(studentId);
-            // Send email notification
-            await _sendEmail(
-              student['username'] ?? 'default_sender@example.com', // Use student's email as sender, with fallback
-              parentEmail, // Use parent's email as recipient
-              'Exam Results Updated',
-              'Your child ${student['name']} has received a score of $score for the exam.',
+            ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Scores saved successfully')),
             );
-          }
+            Navigator.pop(context);
+        } catch (e) {
+            print('Error saving scores: $e');
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error saving scores: $e')),
+            );
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Scores saved successfully')),
-        );
-        Navigator.pop(context);
-      } catch (e) {
-        print('Error saving scores: $e');
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error saving scores: $e')),
-        );
-      }
     }
   }
 

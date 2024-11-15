@@ -35,21 +35,32 @@ class _LoginPageState extends State<LoginPage> {
         String role = userData['role'];
         if (!mounted) return;
 
+        DatabaseReference? roleRef;
         if (role == 'Student') {
+          roleRef = FirebaseDatabase.instance.ref("Student/${userCredential.user?.uid}");
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const StudentDashboard()),
           );
         } else if (role == 'Teacher') {
+          roleRef = FirebaseDatabase.instance.ref("Teacher/${userCredential.user?.uid}");
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const TeacherDashboard()),
           );
         } else if (role == 'Parent') {
+          roleRef = FirebaseDatabase.instance.ref("Parent/${userCredential.user?.uid}");
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const ParentDashboard()),
           );
+        }
+
+        if (roleRef != null) {
+          DatabaseEvent roleEvent = await roleRef.once();
+          if (roleEvent.snapshot.exists) {
+            // Process role-specific data if needed
+          }
         }
       }
     } catch (e) {

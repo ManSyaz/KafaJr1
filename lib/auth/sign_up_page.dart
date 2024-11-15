@@ -16,74 +16,115 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _fullNameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _icNumberController = TextEditingController(); // New controller for IC Number
   final TextEditingController _studentEmailController = TextEditingController(); // New controller for Student Email
   String _role = 'Student'; // Default role
 
   Future<void> _signUp() async {
     try {
+      // Register user in Firebase Auth
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text,
         password: _passwordController.text,
       );
 
+      String userId = userCredential.user?.uid ?? '';
+
       // Add user details to "User" table
-      DatabaseReference userRef = FirebaseDatabase.instance.ref("User/${userCredential.user?.uid}");
+      DatabaseReference userRef = FirebaseDatabase.instance.ref("User/$userId");
       await userRef.set({
         'fullName': _fullNameController.text,
         'email': _emailController.text,
-        'phoneNumber': _phoneNumberController.text,
-        'icNumber': _icNumberController.text, // Store IC Number
+        'icNumber': _icNumberController.text,
         'role': _role,
       });
 
-      // Check if the student exists in the Student table
-      if (_role == 'Parent') {
-        DatabaseReference studentRef = FirebaseDatabase.instance.ref("Student");
-        DatabaseEvent event = await studentRef.once();
-        bool studentExists = false;
-        String studentId = '';
+      // Check if the role is 'Student'
+      if (_role == 'Student') {
+        // Add data to the "Student" table
+        DatabaseReference studentRef = FirebaseDatabase.instance.ref("Student/$userId");
+        await studentRef.set({
+          'fullName': _fullNameController.text,
+          'email': _emailController.text,
+          'icNumber': _icNumberController.text,
+          'parentEmail': _studentEmailController.text, // Store Parent Email
+        });
 
-        // Check if the student email exists
+        // Check if the parent email exists in the "Parent" table
+        DatabaseReference parentRef = FirebaseDatabase.instance.ref("Parent");
+        DatabaseEvent event = await parentRef.once();
+        bool parentExists = false;
+        String parentId = '';
+
+        // Check if the parent email exists
         if (event.snapshot.exists) {
-          final students = event.snapshot.value as Map;
-          for (var key in students.keys) {
-            if (students[key]['email'] == _studentEmailController.text) {
-              studentExists = true;
-              studentId = key; // Store the student ID
+          final parents = event.snapshot.value as Map;
+          for (var key in parents.keys) {
+            if (parents[key]['email'] == _studentEmailController.text) {
+              parentExists = true;
+              parentId = key;
               break;
             }
           }
         }
 
-        // If the student exists, store the relationship in StudentParent table
-        if (studentExists) {
-          DatabaseReference studentParentRef = FirebaseDatabase.instance.ref("StudentParent/${userCredential.user?.uid}");
+        // If parent exists, add entry to "StudentParent" table to create relationship
+        if (parentExists) {
+          DatabaseReference studentParentRef = FirebaseDatabase.instance.ref("StudentParent/$userId");
           await studentParentRef.set({
-            'studentId': studentId,
-            'parentId': userCredential.user?.uid,
+            'studentId': userId,
+            'parentId': parentId,
+            'parentEmail': _studentEmailController.text, // Store Parent Email
           });
         }
       }
 
-      // Add user details to the respective role table
-      DatabaseReference roleRef = FirebaseDatabase.instance.ref("$_role/${userCredential.user?.uid}");
-      await roleRef.set({
-        'fullName': _fullNameController.text,
-        'email': _emailController.text,
-        'phoneNumber': _phoneNumberController.text,
-        'icNumber': _icNumberController.text, // Store IC Number
-        if (_role == 'Parent') 'studEmail': _studentEmailController.text, // Store Student Email if Parent
-      });
-
+      // Show success dialog
       if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginPage()),
+
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Registration Successful'),
+            content: const Text('You have successfully registered.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                  );
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
       );
     } catch (e) {
-      debugPrint(e.toString());
+      // Print the error message for debugging
+      debugPrint('Error during sign up: ${e.toString()}');
+      // Optionally, show an error dialog to the user
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Registration Failed'),
+            content: Text('Error: ${e.toString()}'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 
@@ -233,18 +274,18 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
 
                 // Student Email field (only for Parent role)
-                if (_role == 'Parent') ...[
+                if (_role == 'Student') ...[
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Student Email',
+                        'Parent Email',
                         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       TextField(
-                        controller: _studentEmailController, // New controller for Student Email
+                        controller: _studentEmailController,
                         decoration: InputDecoration(
-                          hintText: 'Enter the student\'s email',
+                          hintText: 'Enter the parent\'s email',
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
