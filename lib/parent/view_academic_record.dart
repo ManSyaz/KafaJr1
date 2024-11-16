@@ -5,7 +5,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class ViewAcademicRecordPage extends StatefulWidget {
-  const ViewAcademicRecordPage({super.key});
+  const ViewAcademicRecordPage({super.key, String? studentId});
 
   @override
   _ViewAcademicRecordPageState createState() => _ViewAcademicRecordPageState();

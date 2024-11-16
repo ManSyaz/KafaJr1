@@ -19,12 +19,37 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
+  String? _errorMessage;
 
   Future<void> _signIn() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      setState(() {
+        _errorMessage = 'Please enter Email and Password';
+      });
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
+
     try {
       UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text,
         password: _passwordController.text,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Login successful!', style: TextStyle(color: Colors.white)),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
       );
 
       DatabaseReference ref = FirebaseDatabase.instance.ref("User/${userCredential.user?.uid}");
@@ -64,7 +89,14 @@ class _LoginPageState extends State<LoginPage> {
         }
       }
     } catch (e) {
+      setState(() {
+        _errorMessage = 'Wrong email or password';
+      });
       debugPrint(e.toString());
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -74,7 +106,6 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
-        title: const Text('KAFAJr'),
       ),
       body: Center(
         child: Padding(
@@ -82,6 +113,11 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              const Text(
+                  'KAFAJr',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.pinkAccent),
+              ),
+              const SizedBox(height: 8),
               const Text(
                 'Sign In',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
@@ -143,8 +179,17 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               const SizedBox(height: 16),
+              if (_errorMessage != null)
+                Text(
+                  _errorMessage!,
+                  style: TextStyle(color: Colors.red, fontSize: 16),
+                ),
+              const SizedBox(height: 16),
+              if (_isLoading)
+                CircularProgressIndicator(),
+              const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: _signIn,
+                onPressed: _isLoading ? null : _signIn,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.pinkAccent,
                   padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 16),

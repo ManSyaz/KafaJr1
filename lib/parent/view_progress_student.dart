@@ -5,7 +5,7 @@ import 'package:firebase_database/firebase_database.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class ViewProgressStudentPage extends StatefulWidget {
-  const ViewProgressStudentPage({super.key});
+  const ViewProgressStudentPage({super.key, String? studentId});
 
   @override
   _ViewProgressStudentPageState createState() => _ViewProgressStudentPageState();
