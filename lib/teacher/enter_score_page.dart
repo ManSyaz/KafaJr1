@@ -103,12 +103,13 @@ class _EnterScorePageState extends State<EnterScorePage> {
                     // Create a unique key for the progress entry
                     String progressKey = '$studentId-$_selectedSubjectId';
 
-                    // Write to the Progress node
+                    // Write to the Progress node, including subjectId
                     await _progressRef.child(progressKey).set({
                         'examId': _selectedExamId,
                         'studentId': studentId,
                         'score': score,
                         'examDescription': _examDescription,
+                        'subjectId': _selectedSubjectId,
                     });
                 }
             }

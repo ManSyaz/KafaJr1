@@ -26,7 +26,7 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
   Map<String, Map<String, String>> studentsProgress = {};
   Map<String, Map<String, String>> studentProgressByExam = {};
 
-  TextEditingController _searchController = TextEditingController();
+  TextEditingController _icSearchController = TextEditingController();
 
   @override
   void initState() {
@@ -139,7 +139,7 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
               };
             }
 
-            map[studentId]![subjectCode] = progress['percentage']?.toString() ?? '-';
+            map[studentId]![subjectCode] = progress['score']?.toString() ?? '-'; // Use score instead of percentage
             return map;
           },
         );
@@ -163,20 +163,19 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
     }
   }
 
-  Future<void> _searchStudentByName() async {
-    final name = _searchController.text;
+  Future<void> _searchStudentByIcNumber() async {
+    final icNumber = _icSearchController.text;
     try {
       final snapshot = await _userRef.get();
       if (snapshot.exists) {
         final userData = snapshot.value as Map<Object?, Object?>?;
         if (userData != null) {
           final Map<String, dynamic> userMap = Map<String, dynamic>.from(userData);
-          final lowerCaseName = name.toLowerCase();
           final matchedStudent = userMap.entries.firstWhere(
             (entry) {
               final studentMap = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
-              final fullName = studentMap['fullName']?.toString().toLowerCase() ?? '';
-              return fullName.contains(lowerCaseName);
+              final studentIcNumber = studentMap['icNumber']?.toString() ?? '';
+              return studentIcNumber == icNumber; // Match by IC number
             },
             orElse: () => const MapEntry('', {}),
           );
@@ -199,7 +198,7 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
         }
       }
     } catch (e) {
-      print('Error searching for student: $e');
+      print('Error searching for student by IC: $e');
       setState(() {
         _fullName = 'Error occurred';
         studentProgressByExam = {};
@@ -311,12 +310,12 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
         child: Column(
           children: [
             TextField(
-              controller: _searchController,
+              controller: _icSearchController,
               decoration: InputDecoration(
-                labelText: 'Search by Full Name',
+                labelText: 'Search by IC Number',
                 prefixIcon: IconButton(
                   icon: const Icon(Icons.search),
-                  onPressed: _searchStudentByName,
+                  onPressed: _searchStudentByIcNumber,
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),

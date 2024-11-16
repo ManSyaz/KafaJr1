@@ -67,9 +67,12 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
               {},
               (map, entry) {
                 final studentMap = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
-                final studentId = entry.key?.toString() ?? 'Unknown';
-                final studentName = studentMap['fullName']?.toString() ?? 'Unknown';
-                map[studentId] = studentName;
+                final studentId = entry.key?.toString() ?? 'Unknown'; // This is the unique ID
+                final studentIcNumber = studentMap['icNumber']?.toString() ?? 'Unknown'; // Use IC number for searching
+                // ignore: unused_local_variable
+                final studentNames = studentMap['fullName'];
+                map[studentIcNumber] = studentId; // Map IC number to student ID
+                map[studentId] = studentNames;
                 return map;
               },
             );
@@ -92,10 +95,15 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
 
       if (snapshot.exists) {
         final progressData = snapshot.value as Map<Object?, Object?>;
+        print('Progress Data for Student ID $_selectedStudentId: $progressData'); // Debugging output
+
         final filteredProgress = progressData.entries.fold<Map<String, Map<String, String>>>(
           {},
           (map, entry) {
             final progress = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
+            print('Checking progress entry: $progress'); // Debugging output
+
+            // Check if the progress entry matches the subjectId
             if (progress['subjectId'] == subjectId) {
               final studentId = progress['studentId'] ?? '-';
               if (!map.containsKey(studentId)) {
@@ -109,10 +117,10 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
               }
               // Update the progress for the corresponding exam description
               String examDescription = progress['examDescription'] ?? '';
-              String percentage = progress['percentage']?.toString() ?? '0';
+              String score = progress['score']?.toString() ?? '0'; // Use score instead of percentage
 
-              // Store the percentage for the exam description
-              map[studentId]![examDescription] = percentage;
+              // Store the score for the exam description
+              map[studentId]![examDescription] = score;
             }
             return map;
           },
@@ -120,23 +128,28 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
 
         setState(() {
           studentsProgress = filteredProgress; // Update state with fetched data
+          if (studentsProgress.isEmpty) {
+            print('No progress data available for the selected subject.'); // Debugging output
+          }
         });
+      } else {
+        print('No progress data found for student ID: $_selectedStudentId'); // Debugging output
       }
     } catch (e) {
       print('Error fetching student progress: $e');
     }
   }
 
-  void _searchStudentByName(String name) {
+  void _searchStudentByIcNumber(String icNumber) {
     final studentId = studentNames.entries.firstWhere(
-      (entry) => entry.value.toLowerCase() == name.toLowerCase(),
+      (entry) => entry.key.toLowerCase() == icNumber.toLowerCase(),
       orElse: () => const MapEntry('', ''),
-    ).key;
+    ).value;
 
     if (studentId.isNotEmpty) {
       setState(() {
         _selectedStudentId = studentId;
-        _fullName = studentNames[studentId] ?? '';
+        _fullName = studentNames[icNumber] ?? '';
       });
     } else {
       // Handle case where student is not found
@@ -340,14 +353,14 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
             TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                labelText: 'Search by Full Name',
+                labelText: 'Search by IC Number', // Updated label for IC number
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
               onSubmitted: (value) {
-                _searchStudentByName(value);
+                _searchStudentByIcNumber(value); // Call the search method for IC number
               },
             ),
             const SizedBox(height: 16.0),
@@ -356,7 +369,7 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
                 children: [
                   Expanded(
                     child: Text(
-                      'Full Name:\n$_fullName',
+                      'Full Name:\n${studentNames[_selectedStudentId] ?? ''}',
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
