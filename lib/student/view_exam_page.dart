@@ -35,8 +35,9 @@ class _ViewExamPageState extends State<ViewExamPage> {
               return {
                 'id': entry.key,
                 'description': examMap['description'] ?? 'No Description',
+                'title': examMap['title'] ?? 'No Description',
                 'subjects': examMap['subjects'] ?? {},
-                'category': examMap['subject'] ?? 'Unknown',
+                'category': examMap['description'] ?? 'Unknown',
               };
             }).toList();
 
@@ -153,7 +154,7 @@ class _ViewExamPageState extends State<ViewExamPage> {
                   margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                   child: ListTile(
                     title: Text(
-                      exam['description'] ?? 'No Description',
+                      exam['title'] ?? 'No Title',
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

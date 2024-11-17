@@ -33,6 +33,9 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
   final TextEditingController _newPasswordController = TextEditingController(); // Controller for new password
   final TextEditingController _confirmPasswordController = TextEditingController(); // Controller for confirm password
 
+  // Add a boolean to track if the user wants to change their password
+  bool _isChangingPassword = false;
+
   @override
   void initState() {
     super.initState();
@@ -151,163 +154,181 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Title for Full Name
-              Container(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Full Name',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-              TextFormField(
-                controller: _fullNameController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.pinkAccent),
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                // Full Name Title
+                Container(
+                  alignment: Alignment.centerLeft,
+                  child: const Text(
+                    'Full Name',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                 ),
-                onChanged: (value) => _fullName = value,
-                validator: (value) => value!.isEmpty ? 'Please enter your full name' : null,
-              ),
-              const SizedBox(height: 16),
+                TextFormField(
+                  controller: _fullNameController,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.pinkAccent),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                  ),
+                  validator: (value) => value!.isEmpty ? 'Please enter your full name' : null,
+                ),
+                const SizedBox(height: 16),
 
-              // Title for IC Number
-              Container(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'IC Number',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-              TextFormField(
-                controller: _icNumberController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.pinkAccent),
+                // IC Number Title
+                Container(
+                  alignment: Alignment.centerLeft,
+                  child: const Text(
+                    'IC Number',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                 ),
-                onChanged: (value) => _icNumber = value,
-                validator: (value) => value!.isEmpty ? 'Please enter your IC number' : null,
-              ),
-              const SizedBox(height: 16),
+                TextFormField(
+                  controller: _icNumberController,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.pinkAccent),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                  ),
+                  validator: (value) => value!.isEmpty ? 'Please enter your IC number' : null,
+                ),
+                const SizedBox(height: 16),
 
-              // Title for Email
-              Container(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Email',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-              TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.pinkAccent),
+                // Email Title
+                Container(
+                  alignment: Alignment.centerLeft,
+                  child: const Text(
+                    'Email',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
                 ),
-                onChanged: (value) => _email = value,
-                validator: (value) => value!.isEmpty ? 'Please enter your email' : null,
-              ),
-              const SizedBox(height: 20),
+                TextFormField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.pinkAccent),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                  ),
+                  validator: (value) => value!.isEmpty ? 'Please enter your email' : null,
+                ),
+                const SizedBox(height: 20),
 
-              // Title for Current Password
-              Container(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Current Password',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                // Toggle for changing password
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Change Password'),
+                    Switch(
+                      value: _isChangingPassword,
+                      onChanged: (value) {
+                        setState(() {
+                          _isChangingPassword = value;
+                        });
+                      },
+                    ),
+                  ],
                 ),
-              ),
-              TextFormField(
-                controller: _currentPasswordController,
-                obscureText: true, // Hide password input
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.pinkAccent),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                ),
-                validator: (value) => value!.isEmpty ? 'Please enter your current password' : null,
-              ),
-              const SizedBox(height: 16),
 
-              // Title for New Password
-              Container(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'New Password',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-              TextFormField(
-                controller: _newPasswordController,
-                obscureText: true, // Hide password input
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.pinkAccent),
+                // Password Fields (only shown if _isChangingPassword is true)
+                if (_isChangingPassword) ...[
+                  const SizedBox(height: 16),
+                  // Current Password Title
+                  Container(
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Current Password',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                ),
-                validator: (value) => value!.isEmpty ? 'Please enter your new password' : null,
-              ),
-              const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _currentPasswordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.pinkAccent),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                    ),
+                    validator: (value) => value!.isEmpty ? 'Please enter your current password' : null,
+                  ),
+                  const SizedBox(height: 16),
 
-              // Title for Confirm Password
-              Container(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Confirm New Password',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-              TextFormField(
-                controller: _confirmPasswordController,
-                obscureText: true, // Hide password input
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Colors.pinkAccent),
+                  // New Password Title
+                  Container(
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'New Password',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                ),
-                validator: (value) => value!.isEmpty ? 'Please confirm your new password' : null,
-              ),
-              const SizedBox(height: 20),
+                  TextFormField(
+                    controller: _newPasswordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.pinkAccent),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                    ),
+                    validator: (value) => value!.isEmpty ? 'Please enter your new password' : null,
+                  ),
+                  const SizedBox(height: 16),
 
-              ElevatedButton(
-                onPressed: () async {
-                  await _saveProfile(); // Save profile data
-                  await _changePassword(); // Change password
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pinkAccent,
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  // Confirm Password Title
+                  Container(
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Confirm New Password',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  TextFormField(
+                    controller: _confirmPasswordController,
+                    obscureText: true,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.pinkAccent),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+                    ),
+                    validator: (value) => value!.isEmpty ? 'Please confirm your new password' : null,
+                  ),
+                ],
+
+                const SizedBox(height: 20),
+
+                ElevatedButton(
+                  onPressed: () async {
+                    await _saveProfile(); // Save profile data
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.pinkAccent,
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Save',
+                    style: TextStyle(color: Colors.white),
                   ),
                 ),
-                child: const Text(
-                  'Save',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

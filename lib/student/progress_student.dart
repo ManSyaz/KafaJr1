@@ -89,6 +89,9 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
   Future<void> _fetchStudentProgressBySubject(String subjectId) async {
     if (_selectedStudentId.isEmpty) return; // Ensure student ID is set
 
+    print('Selected Student ID: $_selectedStudentId'); // Debugging line
+    print('Fetching progress for subject ID: $subjectId'); // Debugging line
+
     try {
       final snapshot = await _progressRef
           .orderByChild('studentId')
@@ -97,6 +100,8 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
 
       if (snapshot.exists) {
         final progressData = snapshot.value as Map<Object?, Object?>;
+        print('Progress Data: $progressData'); // Debugging line
+
         final filteredProgress = progressData.entries.fold<Map<String, Map<String, String>>>(
           {},
           (map, entry) {
@@ -114,10 +119,10 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
               }
               // Update the progress for the corresponding exam description
               String examDescription = progress['examDescription'] ?? '';
-              String percentage = progress['percentage']?.toString() ?? '0';
+              String score = progress['score']?.toString() ?? '0';
 
-              // Store the percentage for the exam description
-              map[studentId]![examDescription] = percentage;
+              // Store the score for the exam description
+              map[studentId]![examDescription] = score;
             }
             return map;
           },
@@ -126,6 +131,8 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
         setState(() {
           studentsProgress = filteredProgress; // Update state with fetched data
         });
+      } else {
+        print('No snapshot exists for student ID: $_selectedStudentId'); // Debugging line
       }
     } catch (e) {
       print('Error fetching student progress: $e');

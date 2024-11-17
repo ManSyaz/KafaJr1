@@ -116,7 +116,7 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
                 };
               }
 
-              map[studentId]![subjectCode] = progress['percentage']?.toString() ?? '-';
+              map[studentId]![subjectCode] = progress['score']?.toString() ?? '-';
             }
             return map;
           },
