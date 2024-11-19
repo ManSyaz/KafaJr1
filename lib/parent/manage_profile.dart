@@ -21,8 +21,8 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
   String _email = '';
   // ignore: unused_field
   final String _currentPassword = ''; // New variable for current password
-  String _newPassword = ''; // New variable for new password
-  String _confirmPassword = ''; // New variable for confirm password
+  final String _newPassword = ''; // New variable for new password
+  final String _confirmPassword = ''; // New variable for confirm password
   final _formKey = GlobalKey<FormState>();
 
   // Add TextEditingControllers
@@ -103,10 +103,10 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
       });
 
       // Assuming you have a reference to the User table
-      final DatabaseReference _userRef = FirebaseDatabase.instance.ref().child('User');
+      final DatabaseReference userRef = FirebaseDatabase.instance.ref().child('User');
 
       // Update the User table
-      await _userRef.child(_user.uid).update({
+      await userRef.child(_user.uid).update({
         'fullName': _fullNameController.text,
         'icNumber': _icNumberController.text,
         'email': _emailController.text,

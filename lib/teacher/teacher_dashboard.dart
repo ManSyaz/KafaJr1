@@ -146,24 +146,60 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildDashboardButton(context, 'Students\nProgress', const Color.fromARGB(255, 236, 191, 57), const ManageStudentProgressPage()),
-                  _buildDashboardButton(context, 'Academic\nRecord', const Color.fromARGB(255, 216, 127, 231), const ManageAcademicRecordPage()),
+                  _buildDashboardButton(
+                    context,
+                    'Students\nProgress',
+                    const Color.fromARGB(255, 236, 191, 57),
+                    const ManageStudentProgressPage(),
+                    Icons.trending_up,
+                  ),
+                  _buildDashboardButton(
+                    context,
+                    'Academic\nRecord',
+                    const Color.fromARGB(255, 216, 127, 231),
+                    const ManageAcademicRecordPage(),
+                    Icons.book,
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildDashboardButton(context, 'Student', const Color.fromARGB(255, 120, 165, 241), const ManageStudentPage()),
-                  _buildDashboardButton(context, 'Subject', const Color.fromARGB(255, 72, 214, 181), const ManageSubjectPage()),
+                  _buildDashboardButton(
+                    context,
+                    'Student',
+                    const Color.fromARGB(255, 120, 165, 241),
+                    const ManageStudentPage(),
+                    Icons.person,
+                  ),
+                  _buildDashboardButton(
+                    context,
+                    'Subject',
+                    const Color.fromARGB(255, 72, 214, 181),
+                    const ManageSubjectPage(),
+                    Icons.subject,
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildDashboardButton(context, 'Notes', const Color.fromARGB(255, 123, 184, 74), const ManageNotesPage()),
-                  _buildDashboardButton(context, 'Examination', Colors.orangeAccent, const ManageExaminationPage()),
+                  _buildDashboardButton(
+                    context,
+                    'Notes',
+                    const Color.fromARGB(255, 123, 184, 74),
+                    const ManageNotesPage(),
+                    Icons.note,
+                  ),
+                  _buildDashboardButton(
+                    context,
+                    'Examination',
+                    Colors.orangeAccent,
+                    const ManageExaminationPage(),
+                    Icons.assignment,
+                  ),
                 ],
               ),
             ],
@@ -173,7 +209,7 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
     );
   }
 
-  Widget _buildDashboardButton(BuildContext context, String title, Color color, Widget targetPage) {
+  Widget _buildDashboardButton(BuildContext context, String title, Color color, Widget targetPage, IconData icon) {
     return Expanded(
       child: GestureDetector(
         onTap: () {
@@ -190,10 +226,16 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
             borderRadius: BorderRadius.circular(12),
           ),
           child: Center(
-            child: Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.bold),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 32, color: Colors.white),
+                Text(
+                  title,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
           ),
         ),

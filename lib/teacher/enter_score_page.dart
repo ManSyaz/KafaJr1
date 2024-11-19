@@ -96,23 +96,52 @@ class _EnterScorePageState extends State<EnterScorePage> {
   void _submitScores() async {
     if (_selectedSubjectId != null && _selectedExamId != null) {
         try {
+            // First, get existing scores for this exam
+            final existingScoresSnapshot = await _progressRef
+                .orderByChild('examId')
+                .equalTo(_selectedExamId)
+                .once();
+
+            Map<String, String> existingScoreKeys = {};
+            if (existingScoresSnapshot.snapshot.value != null) {
+                final data = existingScoresSnapshot.snapshot.value as Map<dynamic, dynamic>;
+                data.forEach((key, value) {
+                    // Create a unique identifier for each student-subject combination
+                    String identifier = '${value['studentId']}-${value['subjectId']}';
+                    existingScoreKeys[identifier] = key;
+                });
+            }
+
             for (var student in _students) {
                 String studentId = student['id']!;
                 double? score = double.tryParse(_scoreControllers[studentId]!.text);
+                
                 if (score != null) {
-                    // Create a unique key for the progress entry
-                    String progressKey = '$studentId-$_selectedSubjectId';
-
-                    // Write to the Progress node, including subjectId
-                    await _progressRef.child(progressKey).set({
-                        'examId': _selectedExamId,
-                        'studentId': studentId,
-                        'score': score,
-                        'examDescription': _examDescription,
-                        'subjectId': _selectedSubjectId,
-                    });
+                    // Create identifier for current score
+                    String identifier = '$studentId-$_selectedSubjectId';
+                    
+                    // Check if an entry already exists for this student-subject-exam combination
+                    if (existingScoreKeys.containsKey(identifier)) {
+                        // Update existing score
+                        await _progressRef.child(existingScoreKeys[identifier]!).update({
+                            'score': score,
+                            'timestamp': ServerValue.timestamp,
+                        });
+                    } else {
+                        // Create new entry
+                        String newKey = _progressRef.push().key!;
+                        await _progressRef.child(newKey).set({
+                            'examId': _selectedExamId,
+                            'studentId': studentId,
+                            'score': score,
+                            'examDescription': _examDescription,
+                            'subjectId': _selectedSubjectId,
+                            'timestamp': ServerValue.timestamp,
+                        });
+                    }
                 }
             }
+
             ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Scores saved successfully')),
             );

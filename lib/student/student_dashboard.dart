@@ -144,15 +144,15 @@ class _StudentDashboardState extends State<StudentDashboard> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildDashboardButton(context, 'Progress\nRecord', const Color.fromARGB(255, 72, 214, 181), const ViewProgressStudentPage()),
-                  _buildDashboardButton(context, 'Academic\nRecord', Colors.orangeAccent, const ViewAcademicRecordPage()),
+                  _buildDashboardButton(context, 'Progress\nRecord', const Color.fromARGB(255, 72, 214, 181), const ViewProgressStudentPage(), Icons.trending_up),
+                  _buildDashboardButton(context, 'Academic\nRecord', Colors.orangeAccent, const ViewAcademicRecordPage(), Icons.book),
                 ],
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _buildDashboardButton(context, 'Notes', const Color.fromARGB(255, 216, 127, 231), const ViewNotesPage()),
-                  _buildDashboardButton(context, 'Examination', const Color.fromARGB(255, 120, 165, 241), const ViewExamPage()),
+                  _buildDashboardButton(context, 'Notes', const Color.fromARGB(255, 216, 127, 231), const ViewNotesPage(), Icons.note),
+                  _buildDashboardButton(context, 'Examination', const Color.fromARGB(255, 120, 165, 241), const ViewExamPage(), Icons.assignment),
                   
                 ],
               ),
@@ -163,7 +163,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
     );
   }
 
-  Widget _buildDashboardButton(BuildContext context, String title, Color color, Widget targetPage) {
+  Widget _buildDashboardButton(BuildContext context, String title, Color color, Widget targetPage, IconData icon) {
     return Expanded(
       child: GestureDetector(
         onTap: () {
@@ -179,12 +179,17 @@ class _StudentDashboardState extends State<StudentDashboard> {
             color: color,
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Center(
-            child: Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.bold),
-            ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 30, color: Colors.white),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.bold),
+              ),
+            ],
           ),
         ),
       ),

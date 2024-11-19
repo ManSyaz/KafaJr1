@@ -149,7 +149,7 @@ class _ManageAcademicRecordPageState
               };
             }
 
-            map[studentId]![subjectCode] = progress['percentage']?.toString() ?? '-';
+            map[studentId]![subjectCode] = progress['score']?.toString() ?? '-';
             return map;
           },
         );
@@ -173,53 +173,53 @@ class _ManageAcademicRecordPageState
     }
   }
 
-  Future<void> _searchStudentByName() async {
-    final name = _searchController.text;
+  Future<void> _searchStudentByIC() async {
+    final icNumber = _searchController.text;
     try {
-      final snapshot = await _userRef.get();
-      if (snapshot.exists) {
-        final userData = snapshot.value as Map<Object?, Object?>?;
-        if (userData != null) {
-          final Map<String, dynamic> userMap = Map<String, dynamic>.from(userData);
+        final snapshot = await _userRef.get();
+        if (snapshot.exists) {
+            final userData = snapshot.value as Map<Object?, Object?>?;
+            if (userData != null) {
+                final Map<String, dynamic> userMap = Map<String, dynamic>.from(userData);
 
-          final lowerCaseName = name.toLowerCase();
-          final matchedStudent = userMap.entries.firstWhere(
-            (entry) {
-              final studentMap = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
-              final fullName = studentMap['fullName']?.toString().toLowerCase() ?? '';
-              return fullName.contains(lowerCaseName);
-            },
-            orElse: () => const MapEntry('', {}),
-          );
+                // Find the student by IC number
+                final matchedStudent = userMap.entries.firstWhere(
+                    (entry) {
+                        final studentMap = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
+                        final studentIC = studentMap['icNumber']?.toString() ?? '';
+                        return studentIC == icNumber; // Match by IC number
+                    },
+                    orElse: () => const MapEntry('', {}),
+                );
 
-          if (matchedStudent.value.isNotEmpty) {
-            final studentId = matchedStudent.key;
-            final studentMap = Map<String, dynamic>.from(matchedStudent.value as Map<Object?, Object?>);
-            setState(() {
-              _fullName = studentMap['fullName'] ?? 'Unknown';
-              _selectedStudentId = studentId;
-              _selectedExam = 'Choose Exam'; // Reset exam selection
-              studentProgressByExam = {}; // Clear previous data
-            });
-          } else {
-            setState(() {
-              _fullName = 'Student not found';
-              studentProgressByExam = {};
-            });
-          }
+                if (matchedStudent.value.isNotEmpty) {
+                    final studentId = matchedStudent.key;
+                    final studentMap = Map<String, dynamic>.from(matchedStudent.value as Map<Object?, Object?>);
+                    setState(() {
+                        _fullName = studentMap['fullName'] ?? 'Unknown';
+                        _selectedStudentId = studentId;
+                        _selectedExam = 'Choose Exam'; // Reset exam selection
+                        studentProgressByExam = {}; // Clear previous data
+                    });
+                } else {
+                    setState(() {
+                        _fullName = 'Student not found';
+                        studentProgressByExam = {};
+                    });
+                }
+            }
         }
-      }
     } catch (e) {
-      print('Error searching for student: $e');
-      setState(() {
-        _fullName = 'Error occurred';
-        studentProgressByExam = {};
-      });
+        print('Error searching for student by IC: $e');
+        setState(() {
+            _fullName = 'Error occurred';
+            studentProgressByExam = {};
+        });
     }
   }
 
   Widget _buildGraph() {
-    if (studentProgressByExam.isEmpty) return Container(); // No data to display
+    if (studentProgressByExam.isEmpty) return Container();
 
     final subjectList = subjectCodes.values.toList();
     final dataEntries = subjectList.asMap().entries.map((entry) {
@@ -232,76 +232,180 @@ class _ManageAcademicRecordPageState
         barRods: [
           BarChartRodData(
             toY: yValue,
-            color: const Color.fromARGB(255, 222, 105, 243), // Light purple color
-            width: 50, // Reduced width of the bar
-            borderRadius: BorderRadius.zero, // Make the bars square
+            color: const Color(0xFF2196F3), // Blue color
+            width: 20,
+            borderRadius: BorderRadius.circular(4),
+            backDrawRodData: BackgroundBarChartRodData(
+              show: true,
+              toY: 100,
+              color: Colors.grey[200],
+            ),
           ),
         ],
       );
     }).toList();
 
-    // Debug prints
-    print('Subject Codes: ${subjectCodes.values}');
-    print('Student Progress by Exam: $studentProgressByExam');
-    print('Data Entries: $dataEntries');
-
-    return SizedBox(
-      height: 300,
-      child: BarChart(
-        BarChartData(
-          alignment: BarChartAlignment.start, // Align bars to the left
-          maxY: 100,
-          barGroups: dataEntries,
-          gridData: const FlGridData(show: false),
-          titlesData: FlTitlesData(
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) => Text(
-                  value.toInt().toString(),
-                  style: const TextStyle(fontSize: 10),
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Student Performance',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 400,
+              child: BarChart(
+                BarChartData(
+                  alignment: BarChartAlignment.spaceAround,
+                  maxY: 100,
+                  barGroups: dataEntries,
+                  gridData: FlGridData(
+                    show: true,
+                    drawHorizontalLine: true,
+                    horizontalInterval: 20,
+                    getDrawingHorizontalLine: (value) => FlLine(
+                      color: Colors.grey[300],
+                      strokeWidth: 1,
+                    ),
+                  ),
+                  titlesData: FlTitlesData(
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, meta) => Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: Text(
+                            value.toInt().toString(),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.black54,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        reservedSize: 40,
+                      ),
+                    ),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, meta) {
+                          final index = value.toInt();
+                          if (index >= 0 && index < subjectList.length) {
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Text(
+                                subjectList[index],
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black87,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            );
+                          }
+                          return const Text('');
+                        },
+                        reservedSize: 40,
+                      ),
+                    ),
+                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  ),
+                  borderData: FlBorderData(show: false),
+                  barTouchData: BarTouchData(
+                    enabled: true,
+                    touchTooltipData: BarTouchTooltipData(
+                      fitInsideHorizontally: true,
+                      fitInsideVertically: true,
+                      tooltipPadding: const EdgeInsets.all(8),
+                      tooltipMargin: 8,
+                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                        final subject = subjectList[group.x.toInt()];
+                        final value = rod.toY.round();
+                        return BarTooltipItem(
+                          '$subject\n$value%',
+                          const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
-                reservedSize: 30,
               ),
             ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) {
-                  final index = value.toInt();
-                  if (index >= 0 && index < subjectList.length) {
-                    return Text(
-                      subjectList[index],
-                      style: const TextStyle(fontSize: 10),
-                    );
-                  }
-                  return const Text('');
-                },
-                reservedSize: 30,
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getGradeText(String? scoreStr) {
+    final score = double.tryParse(scoreStr ?? '0') ?? 0;
+    if (score >= 80 && score <= 100) {
+      return 'A';
+    } else if (score >= 60 && score < 80) {
+      return 'B';
+    } else if (score >= 40 && score < 60) {
+      return 'C';
+    } else if (score >= 1 && score < 40) {
+      return 'D';
+    } else {
+      return 'N/A';
+    }
+  }
+
+  Color _getScoreColor(double score) {
+    if (score >= 80) return Colors.green;
+    if (score >= 60) return Colors.blue;
+    if (score >= 40) return Colors.orange;
+    return Colors.red;
+  }
+
+  Widget _buildScoreCell(String? score) {
+    return Container(
+      alignment: Alignment.center,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        decoration: BoxDecoration(
+          color: _getScoreColor(double.tryParse(score ?? '0') ?? 0),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              score ?? '-',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
               ),
             ),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          ),
-          borderData: FlBorderData(
-            show: true,
-            border: Border.all(color: const Color(0xff37434d), width: 1),
-          ),
-          barTouchData: BarTouchData(
-            enabled: true,
-            touchTooltipData: BarTouchTooltipData(
-              tooltipPadding: const EdgeInsets.all(8),
-              tooltipMargin: 8,
-              getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                final subjectCode = subjectList[group.x.toInt()];
-                final value = rod.toY.round();
-                return BarTooltipItem(
-                  '$subjectCode\n$value%',
-                  const TextStyle(color: Colors.white),
-                );
-              },
+            const SizedBox(width: 8),
+            Text(
+              _getGradeText(score),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -365,21 +469,24 @@ class _ManageAcademicRecordPageState
                 TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    labelText: 'Search by Full Name',
-                    prefixIcon: IconButton(
-                      icon: const Icon(Icons.search),
-                      onPressed: _searchStudentByName,
-                    ),
+                    labelText: 'Search by IC Number',
+                    prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.0),
                       borderSide: const BorderSide(color: Colors.pinkAccent),
                     ),
                   ),
+                  onSubmitted: (value) {
+                    _searchStudentByIC();
+                  },
                 ),
                 const SizedBox(height: 16.0),
                 if (_fullName.isNotEmpty && _selectedStudentId.isNotEmpty) ...[
-                  Text('Full Name: $_fullName'),
-                  const SizedBox(height: 16.0), // Added space here
+                  Text(
+                    'Full Name: \n$_fullName',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16.0),
                   DropdownButtonFormField<String>(
                     decoration: InputDecoration(
                       labelText: 'Choose Exam',
@@ -409,27 +516,67 @@ class _ManageAcademicRecordPageState
                   const SizedBox(height: 16.0),
                   if (studentProgressByExam.isNotEmpty) _buildGraph(),
                   if (studentProgressByExam.isNotEmpty) ...[
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: DataTable(
-                        columnSpacing: 16.0, // Reduced column spacing
-                        columns: [
-                          const DataColumn(label: Text('Subject', style: TextStyle(fontSize: 12))),
-                          ...exams.where((exam) => exam['id'] != 'Choose Exam').map((exam) => DataColumn(
-                            label: Text(exam['description'] ?? 'Unknown', style: const TextStyle(fontSize: 12)),
-                          )),
-                        ],
-                        rows: subjectCodes.values.map((code) {
-                          return DataRow(cells: [
-                            DataCell(Text(code, style: const TextStyle(fontSize: 12))),
-                            ...exams.where((exam) => exam['id'] != 'Choose Exam').map((exam) {
-                              final examId = exam['id']!;
-                              final progress = studentProgressByExam[examId]?[code] ?? '-';
-                              return DataCell(Text(progress, style: const TextStyle(fontSize: 12)));
-                            }),
-                          ]);
-                        }).toList(),
-                      ),
+                    const SizedBox(height: 24),
+                    Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                    const Text(
+                                        'Detailed Scores',
+                                        style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.black87,
+                                        ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: Theme(
+                                            data: Theme.of(context).copyWith(
+                                                dataTableTheme: DataTableThemeData(
+                                                    headingTextStyle: const TextStyle(
+                                                        fontWeight: FontWeight.bold,
+                                                        color: Colors.black87,
+                                                        fontSize: 14,
+                                                    ),
+                                                    dataTextStyle: const TextStyle(
+                                                        color: Colors.black87,
+                                                        fontSize: 14,
+                                                    ),
+                                                    headingRowColor: MaterialStateProperty.all(Colors.grey[100]),
+                                                ),
+                                            ),
+                                            child: DataTable(
+                                                columnSpacing: 24,
+                                                horizontalMargin: 12,
+                                                columns: subjectCodes.values.map((code) => DataColumn(
+                                                    label: SizedBox(
+                                                        width: 100,
+                                                        child: Text(
+                                                            code,
+                                                            textAlign: TextAlign.center,
+                                                            style: const TextStyle(fontSize: 14),
+                                                        ),
+                                                    ),
+                                                )).toList(),
+                                                rows: [
+                                                    DataRow(
+                                                        cells: subjectCodes.values.map((code) => 
+                                                            DataCell(_buildScoreCell(studentProgressByExam[_selectedExam]?[code]))
+                                                        ).toList(),
+                                                    ),
+                                                ],
+                                            ),
+                                        ),
+                                    ),
+                                ],
+                            ),
+                        ),
                     ),
                   ],
                 ],
@@ -463,25 +610,81 @@ class _ManageAcademicRecordPageState
                 ),
                 const SizedBox(height: 16.0),
                 if (studentsProgress.isNotEmpty) ...[
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                      columnSpacing: 16.0, // Reduced column spacing
-                      columns: [
-                        const DataColumn(label: Text('Name', style: TextStyle(fontSize: 12))),
-                        ...subjectCodes.values.map((code) => DataColumn(
-                          label: Text(code, style: const TextStyle(fontSize: 12)),
-                        )),
-                      ],
-                      rows: studentsProgress.entries.map((entry) {
-                        final studentName = entry.value['name'] ?? '-';
-                        return DataRow(cells: [
-                          DataCell(Text(studentName, style: const TextStyle(fontSize: 12))),
-                          ...subjectCodes.values.map((code) => DataCell(
-                            Text(entry.value[code] ?? '-', style: const TextStyle(fontSize: 12)),
-                          )),
-                        ]);
-                      }).toList(),
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'All Students Scores',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Theme(
+                              data: Theme.of(context).copyWith(
+                                dataTableTheme: DataTableThemeData(
+                                  headingTextStyle: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                    fontSize: 14,
+                                  ),
+                                  dataTextStyle: const TextStyle(
+                                    color: Colors.black87,
+                                    fontSize: 14,
+                                  ),
+                                  headingRowColor: MaterialStateProperty.all(Colors.grey[100]),
+                                ),
+                              ),
+                              child: DataTable(
+                                columnSpacing: 24,
+                                horizontalMargin: 12,
+                                columns: [
+                                  const DataColumn(
+                                    label: Text(
+                                      'Name',
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                  ),
+                                  ...subjectCodes.values.map((code) => DataColumn(
+                                    label: Container(
+                                      width: 100,
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        code,
+                                        style: const TextStyle(fontSize: 14),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  )).toList(),
+                                ],
+                                rows: studentsProgress.entries.map((entry) {
+                                  final progress = entry.value;
+                                  return DataRow(
+                                    cells: [
+                                      DataCell(Text(
+                                        progress['name'] ?? '-',
+                                        style: const TextStyle(fontSize: 14),
+                                      )),
+                                      ...subjectCodes.values.map((code) => 
+                                        DataCell(_buildScoreCell(progress[code]))
+                                      ).toList(),
+                                    ],
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ],

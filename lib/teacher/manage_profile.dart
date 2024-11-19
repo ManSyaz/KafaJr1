@@ -75,8 +75,8 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
       };
 
       // Assuming you have a reference to the User table
-      final DatabaseReference _userRef = FirebaseDatabase.instance.ref().child('User');
-      await _userRef.child(_user.uid).update(userUpdates);
+      final DatabaseReference userRef = FirebaseDatabase.instance.ref().child('User');
+      await userRef.child(_user.uid).update(userUpdates);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Profile updated successfully!')),

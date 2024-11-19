@@ -140,173 +140,272 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
   }
 
   Widget _buildGraph() {
-    if (studentsProgress.isEmpty) return Container(); // No data to display
+    if (studentsProgress.isEmpty) return Container();
 
-    // Define a single color for all bars
-    const Color barColor = Colors.orangeAccent; // Light purple color
+    // Define exam types and their indices
+    final examTypes = ['UP1', 'PPT', 'UP2', 'PAT', 'PUPK'];
+    final colors = [
+      const Color(0xFF2196F3), // Blue
+      const Color(0xFF4CAF50), // Green
+      const Color(0xFFFFC107), // Amber
+      const Color(0xFFE91E63), // Pink
+      const Color(0xFF9C27B0), // Purple
+    ];
 
-    final dataEntries = studentsProgress.entries.expand((entry) {
-      final progress = entry.value;
-      return [
-        BarChartGroupData(
-          x: _getExamIndex('UP1') ?? 0,
-          barRods: [
-            BarChartRodData(
-              toY: double.tryParse(progress['UP1'] ?? '0') ?? 0,
-              color: barColor, // Use the same color for all bars
-              width: 50,
-              borderRadius: BorderRadius.zero,
+    final dataEntries = examTypes.asMap().entries.map((entry) {
+      final index = entry.key;
+      final examType = entry.value;
+      
+      return BarChartGroupData(
+        x: index,
+        barRods: [
+          BarChartRodData(
+            toY: double.tryParse(studentsProgress.values.first[examType] ?? '0') ?? 0,
+            color: colors[index % colors.length],
+            width: 20,
+            borderRadius: BorderRadius.circular(4),
+            backDrawRodData: BackgroundBarChartRodData(
+              show: true,
+              toY: 100,
+              color: Colors.grey[200],
             ),
-          ],
-        ),
-        BarChartGroupData(
-          x: _getExamIndex('PPT') ?? 0,
-          barRods: [
-            BarChartRodData(
-              toY: double.tryParse(progress['PPT'] ?? '0') ?? 0,
-              color: barColor, // Use the same color for all bars
-              width: 50,
-              borderRadius: BorderRadius.zero,
-            ),
-          ],
-        ),
-        BarChartGroupData(
-          x: _getExamIndex('UP2') ?? 0,
-          barRods: [
-            BarChartRodData(
-              toY: double.tryParse(progress['UP2'] ?? '0') ?? 0,
-              color: barColor, // Use the same color for all bars
-              width: 50,
-              borderRadius: BorderRadius.zero,
-            ),
-          ],
-        ),
-        BarChartGroupData(
-          x: _getExamIndex('PAT') ?? 0,
-          barRods: [
-            BarChartRodData(
-              toY: double.tryParse(progress['PAT'] ?? '0') ?? 0,
-              color: barColor, // Use the same color for all bars
-              width: 50,
-              borderRadius: BorderRadius.zero,
-            ),
-          ],
-        ),
-        BarChartGroupData(
-          x: _getExamIndex('PUPK') ?? 0,
-          barRods: [
-            BarChartRodData(
-              toY: double.tryParse(progress['PUPK'] ?? '0') ?? 0,
-              color: barColor, // Use the same color for all bars
-              width: 50,
-              borderRadius: BorderRadius.zero,
-            ),
-          ],
-        ),
-      ];
+          ),
+        ],
+      );
     }).toList();
 
-    return SizedBox(
-      height: 300,
-      child: BarChart(
-        BarChartData(
-          alignment: BarChartAlignment.start,
-          barGroups: dataEntries,
-          titlesData: FlTitlesData(
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 40,
-                getTitlesWidget: (value, meta) {
-                  return Text(
-                    value.toInt().toString(),
-                    style: const TextStyle(fontSize: 10),
-                  );
-                },
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Exam Performance',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
               ),
             ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) => Text(_getExamDescription(value.toInt())),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 400,
+              child: BarChart(
+                BarChartData(
+                  alignment: BarChartAlignment.spaceAround,
+                  maxY: 100,
+                  barGroups: dataEntries,
+                  gridData: FlGridData(
+                    show: true,
+                    drawHorizontalLine: true,
+                    horizontalInterval: 20,
+                    getDrawingHorizontalLine: (value) => FlLine(
+                      color: Colors.grey[300],
+                      strokeWidth: 1,
+                    ),
+                  ),
+                  titlesData: FlTitlesData(
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, meta) => Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: Text(
+                            value.toInt().toString(),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.black54,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        reservedSize: 40,
+                      ),
+                    ),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, meta) {
+                          final index = value.toInt();
+                          if (index >= 0 && index < examTypes.length) {
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Text(
+                                examTypes[index],
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black87,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            );
+                          }
+                          return const Text('');
+                        },
+                        reservedSize: 40,
+                      ),
+                    ),
+                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  ),
+                  borderData: FlBorderData(show: false),
+                  barTouchData: BarTouchData(
+                    enabled: true,
+                    touchTooltipData: BarTouchTooltipData(
+                      fitInsideHorizontally: true,
+                      fitInsideVertically: true,
+                      tooltipPadding: const EdgeInsets.all(8),
+                      tooltipMargin: 8,
+                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                        final examType = examTypes[group.x.toInt()];
+                        final value = rod.toY.round();
+                        return BarTooltipItem(
+                          '$examType\n$value%',
+                          const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
               ),
             ),
-            rightTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-            topTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false),
-            ),
-          ),
-          borderData: FlBorderData(
-            show: true,
-            border: Border.all(
-              color: const Color(0xff37434d),
-              width: 1,
-            ),
-          ),
-          gridData: const FlGridData(show: false),
-          barTouchData: BarTouchData(enabled: true),
+          ],
         ),
       ),
     );
   }
 
-  String _getExamDescription(int index) {
-    switch (index) {
-      case 1:
-        return 'UP1';
-      case 2:
-        return 'PPT';
-      case 3:
-        return 'UP2';
-      case 4:
-        return 'PAT';
-      case 5:
-        return 'PUPK';
-      default:
-        return '';
+  // Add helper functions for grade and color
+  String _getGradeText(String? scoreStr) {
+    final score = double.tryParse(scoreStr ?? '0') ?? 0;
+    if (score >= 80 && score <= 100) {
+      return 'A';
+    } else if (score >= 60 && score < 80) {
+      return 'B';
+    } else if (score >= 40 && score < 60) {
+      return 'C';
+    } else if (score >= 1 && score < 40) {
+      return 'D';
+    } else {
+      return 'N/A';
     }
   }
 
-  int? _getExamIndex(String description) {
-    switch (description) {
-      case 'UP1':
-        return 1;
-      case 'PPT':
-        return 2;
-      case 'UP2':
-        return 3;
-      case 'PAT':
-        return 4;
-      case 'PUPK':
-        return 5;
-      default:
-        return null;
-    }
+  Color _getScoreColor(double score) {
+    if (score >= 80) return Colors.green;
+    if (score >= 60) return Colors.blue;
+    if (score >= 40) return Colors.orange;
+    return Colors.red;
   }
 
   Widget _buildDataTable() {
-    if (studentsProgress.isEmpty) return Container(); // No data to display
+    if (studentsProgress.isEmpty) return Container();
 
-    return DataTable(
-      columns: const [
-        DataColumn(label: Text('UP1')),
-        DataColumn(label: Text('PPT')),
-        DataColumn(label: Text('UP2')),
-        DataColumn(label: Text('PAT')),
-        DataColumn(label: Text('PUPK')),
-      ],
-      rows: studentsProgress.entries.map((entry) {
-        final progress = entry.value;
-        return DataRow(cells: [
-          DataCell(Text(progress['UP1'] ?? '-')),
-          DataCell(Text(progress['PPT'] ?? '-')),
-          DataCell(Text(progress['UP2'] ?? '-')),
-          DataCell(Text(progress['PAT'] ?? '-')),
-          DataCell(Text(progress['PUPK'] ?? '-')),
-        ]);
-      }).toList(),
+    final examTypes = ['UP1', 'PPT', 'UP2', 'PAT', 'PUPK'];
+
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Detailed Scores',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 16),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Theme(
+                data: Theme.of(context).copyWith(
+                  dataTableTheme: DataTableThemeData(
+                    headingTextStyle: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                      fontSize: 14,
+                    ),
+                    dataTextStyle: const TextStyle(
+                      color: Colors.black87,
+                      fontSize: 14,
+                    ),
+                    headingRowColor: MaterialStateProperty.all(Colors.grey[100]),
+                  ),
+                ),
+                child: DataTable(
+                  columnSpacing: 24,
+                  horizontalMargin: 12,
+                  columns: examTypes.map((type) => DataColumn(
+                    label: Container(
+                      alignment: Alignment.center,
+                      width: 100,
+                      child: Text(
+                        type,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  )).toList(),
+                  rows: studentsProgress.entries.map((entry) {
+                    return DataRow(
+                      cells: examTypes.map((type) => DataCell(
+                        Container(
+                          alignment: Alignment.center,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: _getScoreColor(double.tryParse(entry.value[type] ?? '0') ?? 0),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  entry.value[type] ?? '-',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _getGradeText(entry.value[type]),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )).toList(),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -349,16 +448,30 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
                   if (_selectedSubject != 'Choose Subject') {
                     _fetchStudentProgressBySubject(_selectedSubject);
                   } else {
-                    studentsProgress = {}; // Clear progress if no subject is selected
+                    studentsProgress = {};
                   }
                 });
               },
             ),
-            const SizedBox(height: 16.0),
-            if (studentsProgress.isNotEmpty) _buildGraph(),
-            if (studentsProgress.isNotEmpty) _buildDataTable(),
-            if (studentsProgress.isEmpty) const Center(child: Text('No data available for the selected subject.')),
-            const SizedBox(height: 16.0), // Add some space before the comment
+            const SizedBox(height: 24),
+            if (studentsProgress.isNotEmpty) ...[
+              _buildGraph(),
+              const SizedBox(height: 24),
+              _buildDataTable(),
+            ],
+            if (studentsProgress.isEmpty && _selectedSubject != 'Choose Subject')
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Text(
+                    'No data available for the selected subject.',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),

@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:fl_chart/fl_chart.dart';
+// ignore: unused_import
+import 'dart:math';
 
 class ManageStudentProgressPage extends StatefulWidget {
   const ManageStudentProgressPage({super.key});
@@ -118,7 +120,7 @@ class _ManageStudentProgressPageState
               };
             }
 
-            map[studentId]![progress['examDescription'] ?? ''] = progress['percentage']?.toString() ?? '-';
+            map[studentId]![progress['examDescription'] ?? ''] = progress['score']?.toString() ?? '-';
             return map;
           },
         );
@@ -136,7 +138,7 @@ class _ManageStudentProgressPageState
     }
   }
 
-  Future<void> _searchStudentByName(String name) async {
+  Future<void> _searchStudentByICNumber(String icNumber) async {
     try {
       final snapshot = await _userRef.get();
       if (snapshot.exists) {
@@ -144,12 +146,11 @@ class _ManageStudentProgressPageState
         if (userData != null) {
           final Map<String, dynamic> userMap = Map<String, dynamic>.from(userData);
 
-          final lowerCaseName = name.toLowerCase();
           final matchedStudent = userMap.entries.firstWhere(
             (entry) {
               final studentMap = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
-              final studentName = studentMap['fullName'] as String?;
-              return studentName != null && studentName.toLowerCase() == lowerCaseName;
+              final studentICNumber = studentMap['icNumber'] as String?;
+              return studentICNumber != null && studentICNumber == icNumber; // Match by IC Number
             },
             orElse: () => const MapEntry<String, dynamic>('none', {}),
           );
@@ -174,7 +175,7 @@ class _ManageStudentProgressPageState
         }
       }
     } catch (e) {
-      print('Error searching for student: $e');
+      print('Error searching for student by IC Number: $e');
       setState(() {
         _fullName = 'Error occurred';
         studentProgress = null;
@@ -202,7 +203,7 @@ class _ManageStudentProgressPageState
           (map, entry) {
             final progress = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
             if (progress['subjectId'] == _selectedSubject) {
-              map[progress['examDescription'] ?? ''] = progress['percentage']?.toString() ?? '-';
+              map[progress['examDescription'] ?? ''] = progress['score']?.toString() ?? '-';
             }
             return map;
           },
@@ -222,79 +223,143 @@ class _ManageStudentProgressPageState
   }
 
   Widget _buildGraph() {
-    if (studentProgress == null || studentProgress!.isEmpty) return Container(); // No data to display
+    if (studentProgress == null || studentProgress!.isEmpty) return Container();
 
-    final dataEntries = studentProgress!.entries.map((entry) {
-      final xValue = _getExamIndex(entry.key); // Convert exam description to an index
-      final yValue = double.tryParse(entry.value); // Assuming value is percentage for y-axis
+    final examTypes = ['UP1', 'PPT', 'UP2', 'PAT', 'PUPK'];
+    final colors = [
+      const Color(0xFF2196F3), // Blue
+      const Color(0xFF4CAF50), // Green
+      const Color(0xFFFFC107), // Amber
+      const Color(0xFFE91E63), // Pink
+      const Color(0xFF9C27B0), // Purple
+    ];
 
-      if (xValue != null && yValue != null) {
-        return BarChartGroupData(
-          x: xValue,
-          barRods: [
-            BarChartRodData(
-              toY: yValue,
-              color: const Color.fromARGB(255, 222, 105, 243), // Light purple color
-              width: 50, // Increase the width of the bar
-              borderRadius: BorderRadius.zero, // Make the bars square
+    final dataEntries = examTypes.asMap().entries.map((entry) {
+      final index = entry.key;
+      final examType = entry.value;
+      final yValue = double.tryParse(studentProgress![examType] ?? '0') ?? 0;
+
+      return BarChartGroupData(
+        x: index,
+        barRods: [
+          BarChartRodData(
+            toY: yValue,
+            color: colors[index % colors.length],
+            width: 20,
+            borderRadius: BorderRadius.circular(4),
+            backDrawRodData: BackgroundBarChartRodData(
+              show: true,
+              toY: 100,
+              color: Colors.grey[200],
+            ),
+          ),
+        ],
+      );
+    }).toList();
+
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Student Performance',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 400,
+              child: BarChart(
+                BarChartData(
+                  alignment: BarChartAlignment.spaceAround,
+                  maxY: 100,
+                  barGroups: dataEntries,
+                  gridData: FlGridData(
+                    show: true,
+                    drawHorizontalLine: true,
+                    horizontalInterval: 20,
+                    getDrawingHorizontalLine: (value) => FlLine(
+                      color: Colors.grey[300],
+                      strokeWidth: 1,
+                    ),
+                  ),
+                  titlesData: FlTitlesData(
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, meta) => Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: Text(
+                            value.toInt().toString(),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.black54,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        reservedSize: 40,
+                      ),
+                    ),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, meta) {
+                          final index = value.toInt();
+                          if (index >= 0 && index < examTypes.length) {
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Text(
+                                examTypes[index],
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black87,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            );
+                          }
+                          return const Text('');
+                        },
+                        reservedSize: 40,
+                      ),
+                    ),
+                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  ),
+                  borderData: FlBorderData(show: false),
+                  barTouchData: BarTouchData(
+                    enabled: true,
+                    touchTooltipData: BarTouchTooltipData(
+                      fitInsideHorizontally: true,
+                      fitInsideVertically: true,
+                      tooltipPadding: const EdgeInsets.all(8),
+                      tooltipMargin: 8,
+                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                        final examType = examTypes[group.x.toInt()];
+                        final value = rod.toY.round();
+                        return BarTooltipItem(
+                          '$examType\n$value%',
+                          const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
             ),
           ],
-          barsSpace: 4, // Add some space between bars
-        );
-      } else {
-        return null; // Skip invalid entries
-      }
-    }).where((group) => group != null).cast<BarChartGroupData>().toList();
-
-    // Debug prints
-    print('Data Entries: $dataEntries');
-
-    if (dataEntries.isEmpty) {
-      print('No valid data entries to display.');
-      return Container(); // No valid data to display
-    }
-
-    return SizedBox(
-      height: 300,
-      child: BarChart(
-        BarChartData(
-          alignment: BarChartAlignment.start, // Align bars to the start
-          barGroups: dataEntries,
-          titlesData: FlTitlesData(
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true, // Show left titles
-                reservedSize: 40, // Space reserved for left titles
-                getTitlesWidget: (value, meta) {
-                  return Text(
-                    value.toInt().toString(),
-                    style: const TextStyle(fontSize: 10),
-                  );
-                },
-              ),
-            ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) => Text(_getExamDescription(value.toInt())),
-              ),
-            ),
-            rightTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false), // Hide right titles
-            ),
-            topTitles: const AxisTitles(
-              sideTitles: SideTitles(showTitles: false), // Hide top titles
-            ),
-          ),
-          borderData: FlBorderData(
-            show: true,
-            border: Border.all(
-              color: const Color(0xff37434d),
-              width: 1,
-            ),
-          ),
-          gridData: const FlGridData(show: false),
-          barTouchData: BarTouchData(enabled: true),
         ),
       ),
     );
@@ -334,80 +399,250 @@ class _ManageStudentProgressPageState
     }
   }
 
+  // Add helper functions for grade and color
+  String _getGradeText(String? scoreStr) {
+    final score = double.tryParse(scoreStr ?? '0') ?? 0;
+    if (score >= 80 && score <= 100) {
+      return 'A';
+    } else if (score >= 60 && score < 80) {
+      return 'B';
+    } else if (score >= 40 && score < 60) {
+      return 'C';
+    } else if (score >= 1 && score < 40) {
+      return 'D';
+    } else {
+      return 'N/A';
+    }
+  }
+
+  Color _getScoreColor(double score) {
+    if (score >= 80) return Colors.green;
+    if (score >= 60) return Colors.blue;
+    if (score >= 40) return Colors.orange;
+    return Colors.red;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
         title: Container(
-          alignment: Alignment.center, // Center the title
-          padding: const EdgeInsets.only(right: 48.0), // Adjust right padding for space
+          alignment: Alignment.center,
+          padding: const EdgeInsets.only(right: 48.0),
           child: const Text(
             'Students Progress',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22), // Change text color
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white), // Change back icon color
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
             Navigator.pop(context);
           },
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            ToggleButtons(
-              isSelected: [_selectedFilter == 'All', _selectedFilter == 'Student'],
-              onPressed: (index) {
-                setState(() {
-                  _selectedFilter = index == 0 ? 'All' : 'Student';
-                  _fullName = '';
-                  _selectedStudentId = '';
-                  _selectedSubject = 'Choose Subject';
-                  studentProgress = null;
-                  studentsProgress = {};
-                });
-              },
-              selectedColor: Colors.white,
-              fillColor: Colors.pinkAccent,
-              color: Colors.black,
-              borderRadius: BorderRadius.circular(8.0),
-              children: const [
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-                  child: Text('All'),
-                ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-                  child: Text('Student'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16.0),
-            if (_selectedFilter == 'Student') ...[
-              TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  labelText: 'Search by Full Name',
-                  prefixIcon: const Icon(Icons.search), // Search icon inside the text field
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                ),
-                onSubmitted: (value) {
-                  _searchStudentByName(value); // Trigger search on submit
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Toggle Buttons
+              ToggleButtons(
+                isSelected: [_selectedFilter == 'All', _selectedFilter == 'Student'],
+                onPressed: (index) {
+                  setState(() {
+                    _selectedFilter = index == 0 ? 'All' : 'Student';
+                    _fullName = '';
+                    _selectedStudentId = '';
+                    _selectedSubject = 'Choose Subject';
+                    studentProgress = null;
+                    studentsProgress = {};
+                  });
                 },
+                selectedColor: Colors.white,
+                fillColor: Colors.pinkAccent,
+                color: Colors.black,
+                borderRadius: BorderRadius.circular(8.0),
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+                    child: Text('All'),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+                    child: Text('Student'),
+                  ),
+                ],
               ),
               const SizedBox(height: 16.0),
-              if (_fullName.isNotEmpty && _selectedStudentId.isNotEmpty) ...[
-                Text(
-                  'Full Name:\n$_fullName',
-                  style: const TextStyle(fontWeight: FontWeight.bold), // Make the text bold
+
+              // Student Filter Section
+              if (_selectedFilter == 'Student') ...[
+                TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    labelText: 'Search by IC Number',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                  onSubmitted: (value) {
+                    _searchStudentByICNumber(value);
+                  },
                 ),
-                const SizedBox(height: 16.0), // Added space here
+                const SizedBox(height: 16.0),
+                if (_fullName.isNotEmpty && _selectedStudentId.isNotEmpty) ...[
+                  Text(
+                    'Full Name:\n$_fullName',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16.0),
+                  DropdownButtonFormField<String>(
+                    decoration: InputDecoration(
+                      labelText: 'Choose Subject',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                    ),
+                    value: _selectedSubject,
+                    items: subjects.map((subject) {
+                      return DropdownMenuItem<String>(
+                        value: subject['id'],
+                        child: Text(subject['name'] ?? 'Unknown'),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedSubject = value!;
+                        if (_selectedSubject != 'Choose Subject') {
+                          _fetchStudentProgress();
+                        } else {
+                          studentProgress = null;
+                        }
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16.0),
+                  if (studentProgress != null) _buildGraph(),
+                  if (studentProgress != null) ...[
+                    const SizedBox(height: 24),
+                    Card(
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Detailed Scores',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Theme(
+                                data: Theme.of(context).copyWith(
+                                  dataTableTheme: DataTableThemeData(
+                                    headingTextStyle: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                      fontSize: 14,
+                                    ),
+                                    dataTextStyle: const TextStyle(
+                                      color: Colors.black87,
+                                      fontSize: 14,
+                                    ),
+                                    headingRowColor: MaterialStateProperty.all(Colors.grey[100]),
+                                  ),
+                                ),
+                                child: DataTable(
+                                  columnSpacing: 24,
+                                  horizontalMargin: 12,
+                                  columns: const [
+                                    DataColumn(
+                                      label: SizedBox(
+                                        width: 100,
+                                        child: Text(
+                                          'UP1',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: SizedBox(
+                                        width: 100,
+                                        child: Text(
+                                          'PPT',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: SizedBox(
+                                        width: 100,
+                                        child: Text(
+                                          'UP2',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: SizedBox(
+                                        width: 100,
+                                        child: Text(
+                                          'PAT',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                      ),
+                                    ),
+                                    DataColumn(
+                                      label: SizedBox(
+                                        width: 100,
+                                        child: Text(
+                                          'PUPK',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(fontSize: 14),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                  rows: [
+                                    DataRow(
+                                      cells: [
+                                        DataCell(_buildScoreCell(studentProgress!['UP1'])),
+                                        DataCell(_buildScoreCell(studentProgress!['PPT'])),
+                                        DataCell(_buildScoreCell(studentProgress!['UP2'])),
+                                        DataCell(_buildScoreCell(studentProgress!['PAT'])),
+                                        DataCell(_buildScoreCell(studentProgress!['PUPK'])),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ],
+
+              // All Students Section
+              if (_selectedFilter == 'All') ...[
                 DropdownButtonFormField<String>(
                   decoration: InputDecoration(
                     labelText: 'Choose Subject',
@@ -427,119 +662,133 @@ class _ManageStudentProgressPageState
                     setState(() {
                       _selectedSubject = value!;
                       if (_selectedSubject != 'Choose Subject') {
-                        _fetchStudentProgress(); // Fetch progress for the selected student
+                        _fetchStudentProgressBySubject(_selectedSubject);
                       } else {
-                        studentProgress = null; // Clear progress if no subject is selected
+                        studentsProgress = {};
                       }
                     });
                   },
                 ),
                 const SizedBox(height: 16.0),
-                if (studentProgress != null) _buildGraph(),
-                if (studentProgress != null) ...[
-                  Expanded(
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        return SingleChildScrollView( // Wrap in SingleChildScrollView
-                          child: Column( // Use Column to stack DataTable and comments
-                            children: [
-                              DataTable(
-                                columnSpacing: constraints.maxWidth / 8,
-                                columns: const [
-                                  DataColumn(label: Text('UP1', style: TextStyle(fontSize: 12))),
-                                  DataColumn(label: Text('PPT', style: TextStyle(fontSize: 12))),
-                                  DataColumn(label: Text('UP2', style: TextStyle(fontSize: 12))),
-                                  DataColumn(label: Text('PAT', style: TextStyle(fontSize: 12))),
-                                  DataColumn(label: Text('PUPK', style: TextStyle(fontSize: 12))),
-                                ],
-                                rows: [
-                                  DataRow(cells: [
-                                    DataCell(Text(studentProgress!['UP1'] ?? '-', style: const TextStyle(fontSize: 12))),
-                                    DataCell(Text(studentProgress!['PPT'] ?? '-', style: const TextStyle(fontSize: 12))),
-                                    DataCell(Text(studentProgress!['UP2'] ?? '-', style: const TextStyle(fontSize: 12))),
-                                    DataCell(Text(studentProgress!['PAT'] ?? '-', style: const TextStyle(fontSize: 12))),
-                                    DataCell(Text(studentProgress!['PUPK'] ?? '-', style: const TextStyle(fontSize: 12))),
-                                  ]),
-                                ],
-                              ),
-                            ],
+                if (studentsProgress.isNotEmpty)
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'All Students Scores',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
                           ),
-                        );
-                      },
+                          const SizedBox(height: 16),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Theme(
+                              data: Theme.of(context).copyWith(
+                                dataTableTheme: DataTableThemeData(
+                                  headingTextStyle: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                    fontSize: 14,
+                                  ),
+                                  dataTextStyle: const TextStyle(
+                                    color: Colors.black87,
+                                    fontSize: 14,
+                                  ),
+                                  headingRowColor: MaterialStateProperty.all(Colors.grey[100]),
+                                ),
+                              ),
+                              child: DataTable(
+                                columnSpacing: 24,
+                                horizontalMargin: 12,
+                                columns: [
+                                  const DataColumn(
+                                    label: Text(
+                                      'Full Name',
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                  ),
+                                  ...['UP1', 'PPT', 'UP2', 'PAT', 'PUPK'].map((type) => DataColumn(
+                                    label: Container(
+                                      width: 100,
+                                      alignment: Alignment.center,
+                                      child: Text(
+                                        type,
+                                        style: const TextStyle(fontSize: 14),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  )).toList(),
+                                ],
+                                rows: studentsProgress.entries.map((entry) {
+                                  final progress = entry.value;
+                                  return DataRow(
+                                    cells: [
+                                      DataCell(Text(
+                                        progress['name'] ?? '-',
+                                        style: const TextStyle(fontSize: 14),
+                                      )),
+                                      DataCell(_buildScoreCell(progress['UP1'])),
+                                      DataCell(_buildScoreCell(progress['PPT'])),
+                                      DataCell(_buildScoreCell(progress['UP2'])),
+                                      DataCell(_buildScoreCell(progress['PAT'])),
+                                      DataCell(_buildScoreCell(progress['PUPK'])),
+                                    ],
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ],
               ],
             ],
-            if (_selectedFilter == 'All') ...[
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: 'Choose Subject',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                ),
-                value: _selectedSubject,
-                items: subjects.map((subject) {
-                  return DropdownMenuItem<String>(
-                    value: subject['id'],
-                    child: Text(subject['name'] ?? 'Unknown'),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedSubject = value!;
-                    if (_selectedSubject != 'Choose Subject') {
-                      _fetchStudentProgressBySubject(_selectedSubject); // Fetch progress for the selected subject
-                    } else {
-                      studentsProgress = {}; // Clear progress if no subject is selected
-                    }
-                  });
-                },
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Add this helper method for building score cells
+  Widget _buildScoreCell(String? score) {
+    return Container(
+      alignment: Alignment.center,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+        decoration: BoxDecoration(
+          color: _getScoreColor(double.tryParse(score ?? '0') ?? 0),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              score ?? '-',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
               ),
-              const SizedBox(height: 16.0),
-              if (_selectedSubject != 'Choose Subject') ...[
-                const Text(
-                  'List of Students',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 8.0),
-                Expanded(
-                  child: studentsProgress.isNotEmpty
-                      ? LayoutBuilder(
-                          builder: (context, constraints) {
-                            return DataTable(
-                              columnSpacing: constraints.maxWidth / 12,
-                              columns: const [
-                                DataColumn(label: Text('Full Name', style: TextStyle(fontSize: 12))),
-                                DataColumn(label: Text('UP1', style: TextStyle(fontSize: 12))),
-                                DataColumn(label: Text('PPT', style: TextStyle(fontSize: 12))),
-                                DataColumn(label: Text('UP2', style: TextStyle(fontSize: 12))),
-                                DataColumn(label: Text('PAT', style: TextStyle(fontSize: 12))),
-                                DataColumn(label: Text('PUPK', style: TextStyle(fontSize: 12))),
-                              ],
-                              rows: studentsProgress.entries.map((entry) {
-                                final progress = entry.value;
-                                return DataRow(cells: [
-                                  DataCell(Text(progress['name'] ?? '-', style: const TextStyle(fontSize: 12))),
-                                  DataCell(Text(progress['UP1'] ?? '-', style: const TextStyle(fontSize: 12))),
-                                  DataCell(Text(progress['PPT'] ?? '-', style: const TextStyle(fontSize: 12))),
-                                  DataCell(Text(progress['UP2'] ?? '-', style: const TextStyle(fontSize: 12))),
-                                  DataCell(Text(progress['PAT'] ?? '-', style: const TextStyle(fontSize: 12))),
-                                  DataCell(Text(progress['PUPK'] ?? '-', style: const TextStyle(fontSize: 12))),
-                                ]);
-                              }).toList(),
-                            );
-                          },
-                        )
-                      : const Center(child: Text('No data available for the selected subject.')),
-                ),
-              ],
-            ],
+            ),
+            const SizedBox(width: 8),
+            Text(
+              _getGradeText(score),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
+              ),
+            ),
           ],
         ),
       ),

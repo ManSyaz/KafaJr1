@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'dart:math';
 
 class ViewAcademicRecordPage extends StatefulWidget {
   const ViewAcademicRecordPage({super.key, String? studentId});
@@ -206,8 +207,15 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
     }
   }
 
+  Color _getScoreColor(double score) {
+    if (score >= 80) return Colors.green;
+    if (score >= 60) return Colors.blue;
+    if (score >= 40) return Colors.orange;
+    return Colors.red;
+  }
+
   Widget _buildGraph() {
-    if (studentProgressByExam.isEmpty) return Container(); // No data to display
+    if (studentProgressByExam.isEmpty) return Container();
 
     final subjectList = subjectCodes.values.toList();
     final dataEntries = subjectList.asMap().entries.map((entry) {
@@ -215,79 +223,161 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
       final code = entry.value;
       final yValue = double.tryParse(studentProgressByExam[_selectedExam]?[code] ?? '0') ?? 0;
 
+      // Generate different colors for each bar
+      final colors = [
+        const Color(0xFF2196F3), // Blue
+        const Color(0xFF4CAF50), // Green
+        const Color(0xFFFFC107), // Amber
+        const Color(0xFFE91E63), // Pink
+        const Color(0xFF9C27B0), // Purple
+      ];
+
       return BarChartGroupData(
         x: index,
         barRods: [
           BarChartRodData(
             toY: yValue,
-            color: const Color.fromARGB(255, 105, 165, 243), // Light purple color
-            width: 50,
-            borderRadius: BorderRadius.zero,
+            color: colors[index % colors.length],
+            width: 20,
+            borderRadius: BorderRadius.circular(4),
+            backDrawRodData: BackgroundBarChartRodData(
+              show: true,
+              toY: 100,
+              color: Colors.grey[200],
+            ),
           ),
         ],
       );
     }).toList();
 
-    return SizedBox(
-      height: 300,
-      child: BarChart(
-        BarChartData(
-          alignment: BarChartAlignment.start,
-          maxY: 100,
-          barGroups: dataEntries,
-          gridData: const FlGridData(show: false),
-          titlesData: FlTitlesData(
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) => Text(
-                  value.toInt().toString(),
-                  style: const TextStyle(fontSize: 10),
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Subject Performance',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 400,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: SizedBox(
+                  width: max(MediaQuery.of(context).size.width - 32, subjectList.length * 80.0),
+                  child: BarChart(
+                    BarChartData(
+                      alignment: BarChartAlignment.spaceAround,
+                      maxY: 100,
+                      barGroups: dataEntries,
+                      gridData: FlGridData(
+                        show: true,
+                        drawHorizontalLine: true,
+                        horizontalInterval: 20,
+                        getDrawingHorizontalLine: (value) => FlLine(
+                          color: Colors.grey[300],
+                          strokeWidth: 1,
+                        ),
+                      ),
+                      titlesData: FlTitlesData(
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            getTitlesWidget: (value, meta) => Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: Text(
+                                value.toInt().toString(),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.black54,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            reservedSize: 40,
+                          ),
+                        ),
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            getTitlesWidget: (value, meta) {
+                              final index = value.toInt();
+                              if (index >= 0 && index < subjectList.length) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: Text(
+                                    subjectList[index],
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.black87,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                );
+                              }
+                              return const Text('');
+                            },
+                            reservedSize: 40,
+                          ),
+                        ),
+                        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      ),
+                      borderData: FlBorderData(show: false),
+                      barTouchData: BarTouchData(
+                        enabled: true,
+                        touchTooltipData: BarTouchTooltipData(
+                          fitInsideHorizontally: true,
+                          fitInsideVertically: true,
+                          tooltipPadding: const EdgeInsets.all(8),
+                          tooltipMargin: 8,
+                          getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                            final subjectCode = subjectList[group.x.toInt()];
+                            final value = rod.toY.round();
+                            return BarTooltipItem(
+                              '$subjectCode\n$value%',
+                              const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-                reservedSize: 30,
               ),
             ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                getTitlesWidget: (value, meta) {
-                  final index = value.toInt();
-                  if (index >= 0 && index < subjectList.length) {
-                    return Text(
-                      subjectList[index],
-                      style: const TextStyle(fontSize: 10),
-                    );
-                  }
-                  return const Text('');
-                },
-                reservedSize: 30,
-              ),
-            ),
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          ),
-          borderData: FlBorderData(
-            show: true,
-            border: Border.all(color: const Color(0xff37434d), width: 1),
-          ),
-          barTouchData: BarTouchData(
-            enabled: true,
-            touchTooltipData: BarTouchTooltipData(
-              tooltipPadding: const EdgeInsets.all(8),
-              tooltipMargin: 8,
-              getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                final subjectCode = subjectList[group.x.toInt()];
-                final value = rod.toY.round();
-                return BarTooltipItem(
-                  '$subjectCode\n$value%',
-                  const TextStyle(color: Colors.white),
-                );
-              },
-            ),
-          ),
+          ],
         ),
       ),
     );
+  }
+
+  // Add this helper function to get the grade
+  String _getGradeText(String? scoreStr) {
+    final score = double.tryParse(scoreStr ?? '0') ?? 0;
+    if (score >= 80 && score <= 100) {
+      return 'A';
+    } else if (score >= 60 && score < 80) {
+      return 'B';
+    } else if (score >= 40 && score < 60) {
+      return 'C';
+    } else if (score >= 1 && score < 40) {
+      return 'D';
+    } else {
+      return 'N/A';
+    }
   }
 
   @override
@@ -364,27 +454,118 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
               const SizedBox(height: 16.0),
               if (studentProgressByExam.isNotEmpty) _buildGraph(),
               if (studentProgressByExam.isNotEmpty) ...[
-                const SizedBox(height: 16.0), // Add some space before the DataTable
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0), // Match the padding of the search bar
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: DataTable(
-                      columns: [
-                        const DataColumn(label: Text('Exam Description', style: TextStyle(fontSize: 12))),
-                        ...subjectCodes.values.map((code) => DataColumn(
-                          label: Text(code, style: const TextStyle(fontSize: 12)),
-                        )),
+                const SizedBox(height: 24),
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: Container(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Detailed Scores',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Theme(
+                            data: Theme.of(context).copyWith(
+                              dataTableTheme: DataTableThemeData(
+                                headingTextStyle: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                  fontSize: 14,
+                                ),
+                                dataTextStyle: const TextStyle(
+                                  color: Colors.black87,
+                                  fontSize: 14,
+                                ),
+                                headingRowColor: MaterialStateProperty.all(Colors.grey[100]),
+                                dataRowColor: MaterialStateProperty.resolveWith<Color?>(
+                                  (Set<MaterialState> states) {
+                                    if (states.contains(MaterialState.selected)) {
+                                      return Theme.of(context).colorScheme.primary.withOpacity(0.08);
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                            ),
+                            child: DataTable(
+                              columnSpacing: 24,
+                              horizontalMargin: 12,
+                              columns: [
+                                const DataColumn(label: Text('')),
+                                ...subjectCodes.values.map((code) => DataColumn(
+                                  label: Container(
+                                    alignment: Alignment.center,
+                                    width: 100,
+                                    child: Text(
+                                      code,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ),
+                                )),
+                              ],
+                              rows: studentProgressByExam.entries.map((entry) {
+                                return DataRow(
+                                  cells: [
+                                    DataCell(Text(
+                                      entry.value['examDescription'] ?? 'Unknown',
+                                      style: const TextStyle(fontWeight: FontWeight.w500),
+                                    )),
+                                    ...subjectCodes.values.map((code) => DataCell(
+                                      Container(
+                                        alignment: Alignment.center,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                                          decoration: BoxDecoration(
+                                            color: _getScoreColor(double.tryParse(entry.value[code] ?? '0') ?? 0),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                entry.value[code] ?? '-',
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w500,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                _getGradeText(entry.value[code]),
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.w500,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    )),
+                                  ],
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ),
                       ],
-                      rows: studentProgressByExam.entries.map((entry) {
-                        final examDescription = entry.value['examDescription'] ?? 'Unknown';
-                        return DataRow(cells: [
-                          DataCell(Text(examDescription, style: const TextStyle(fontSize: 12))),
-                          ...subjectCodes.values.map((code) => DataCell(
-                            Text(entry.value[code] ?? '-', style: const TextStyle(fontSize: 12)),
-                          )),
-                        ]);
-                      }).toList(),
                     ),
                   ),
                 ),

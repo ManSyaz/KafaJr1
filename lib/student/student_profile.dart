@@ -73,8 +73,8 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
       };
 
       // Update the User table
-      final DatabaseReference _userRef = FirebaseDatabase.instance.ref().child('User');
-      await _userRef.child(_user.uid).update(userUpdates);
+      final DatabaseReference userRef = FirebaseDatabase.instance.ref().child('User');
+      await userRef.child(_user.uid).update(userUpdates);
 
       // Check if password change is needed
       if (_newPasswordController.text.isNotEmpty) {
