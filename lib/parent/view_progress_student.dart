@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ViewProgressStudentPage extends StatefulWidget {
   const ViewProgressStudentPage({super.key, String? studentId});
@@ -19,17 +20,17 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
   String _selectedSubject = 'Choose Subject';
   String _fullName = '';
   String _selectedStudentId = '';
+  String? _selectedStudentEmail;
   Map<String, String> studentNames = {};
   List<Map<String, String>> subjects = [];
   Map<String, Map<String, String>> studentsProgress = {};
-
-  final TextEditingController _searchController = TextEditingController();
+  List<String> studentEmails = [];
 
   @override
   void initState() {
     super.initState();
     _fetchSubjects();
-    _fetchStudents();
+    _fetchStudentEmails();
   }
 
   Future<void> _fetchSubjects() async {
@@ -56,32 +57,51 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
     }
   }
 
-  Future<void> _fetchStudents() async {
+  Future<void> _fetchStudentEmails() async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final snapshot = await _userRef.get();
+        if (snapshot.exists) {
+          final studentData = snapshot.value as Map<Object?, Object?>?;
+          if (studentData != null) {
+            List<String> emails = [];
+            studentData.forEach((key, value) {
+              final student = Map<String, dynamic>.from(value as Map<Object?, Object?>);
+              if (student['parentEmail'] == user.email) {
+                emails.add(student['email']);
+                studentNames[student['email']] = student['fullName'];
+              }
+            });
+            setState(() {
+              studentEmails = emails;
+            });
+          }
+        }
+      }
+    } catch (e) {
+      print('Error fetching student emails: $e');
+    }
+  }
+
+  Future<String?> _getStudentIdByEmail(String email) async {
     try {
       final snapshot = await _userRef.get();
       if (snapshot.exists) {
         final studentData = snapshot.value as Map<Object?, Object?>?;
         if (studentData != null) {
-          setState(() {
-            studentNames = studentData.entries.fold<Map<String, String>>(
-              {},
-              (map, entry) {
-                final studentMap = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
-                final studentId = entry.key?.toString() ?? 'Unknown'; // This is the unique ID
-                final studentIcNumber = studentMap['icNumber']?.toString() ?? 'Unknown'; // Use IC number for searching
-                // ignore: unused_local_variable
-                final studentNames = studentMap['fullName'];
-                map[studentIcNumber] = studentId; // Map IC number to student ID
-                map[studentId] = studentNames;
-                return map;
-              },
-            );
-          });
+          for (var entry in studentData.entries) {
+            final student = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
+            if (student['email'] == email) {
+              return entry.key.toString();
+            }
+          }
         }
       }
     } catch (e) {
-      print('Error fetching students: $e');
+      print('Error getting student ID: $e');
     }
+    return null;
   }
 
   Future<void> _fetchStudentProgressBySubject(String subjectId) async {
@@ -137,26 +157,6 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
       }
     } catch (e) {
       print('Error fetching student progress: $e');
-    }
-  }
-
-  void _searchStudentByIcNumber(String icNumber) {
-    final studentId = studentNames.entries.firstWhere(
-      (entry) => entry.key.toLowerCase() == icNumber.toLowerCase(),
-      orElse: () => const MapEntry('', ''),
-    ).value;
-
-    if (studentId.isNotEmpty) {
-      setState(() {
-        _selectedStudentId = studentId;
-        _fullName = studentNames[icNumber] ?? '';
-      });
-    } else {
-      // Handle case where student is not found
-      setState(() {
-        _fullName = 'Student not found';
-        _selectedStudentId = '';
-      });
     }
   }
 
@@ -449,17 +449,30 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextField(
-              controller: _searchController,
+            DropdownButtonFormField<String>(
               decoration: InputDecoration(
-                labelText: 'Search by IC Number', // Updated label for IC number
-                prefixIcon: const Icon(Icons.search),
+                labelText: 'Select Student Email',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),
               ),
-              onSubmitted: (value) {
-                _searchStudentByIcNumber(value); // Call the search method for IC number
+              value: _selectedStudentEmail,
+              items: studentEmails.map((String email) {
+                return DropdownMenuItem<String>(
+                  value: email,
+                  child: Text(email),
+                );
+              }).toList(),
+              onChanged: (String? newValue) async {
+                if (newValue != null) {
+                  final studentId = await _getStudentIdByEmail(newValue);
+                  setState(() {
+                    _selectedStudentEmail = newValue;
+                    _fullName = studentNames[newValue] ?? '';
+                    _selectedStudentId = studentId ?? '';
+                    studentsProgress = {}; // Clear previous progress
+                  });
+                }
               },
             ),
             const SizedBox(height: 16.0),
@@ -468,7 +481,7 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
                 children: [
                   Expanded(
                     child: Text(
-                      'Full Name:\n${studentNames[_selectedStudentId] ?? ''}',
+                      'Full Name:\n${studentNames[_selectedStudentEmail] ?? ''}',
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
