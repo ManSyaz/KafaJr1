@@ -561,7 +561,7 @@ class _ManageStudentProgressPageState
                                       color: Colors.black87,
                                       fontSize: 14,
                                     ),
-                                    headingRowColor: MaterialStateProperty.all(Colors.grey[100]),
+                                    headingRowColor: WidgetStateProperty.all(Colors.grey[100]),
                                   ),
                                 ),
                                 child: DataTable(
@@ -702,7 +702,7 @@ class _ManageStudentProgressPageState
                                     color: Colors.black87,
                                     fontSize: 14,
                                   ),
-                                  headingRowColor: MaterialStateProperty.all(Colors.grey[100]),
+                                  headingRowColor: WidgetStateProperty.all(Colors.grey[100]),
                                 ),
                               ),
                               child: DataTable(
@@ -725,7 +725,7 @@ class _ManageStudentProgressPageState
                                         textAlign: TextAlign.center,
                                       ),
                                     ),
-                                  )).toList(),
+                                  )),
                                 ],
                                 rows: studentsProgress.entries.map((entry) {
                                   final progress = entry.value;

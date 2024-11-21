@@ -479,10 +479,10 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
                                     color: Colors.black87,
                                     fontSize: 14,
                                   ),
-                                  headingRowColor: MaterialStateProperty.all(Colors.grey[100]),
-                                  dataRowColor: MaterialStateProperty.resolveWith<Color?>(
-                                    (Set<MaterialState> states) {
-                                      if (states.contains(MaterialState.selected)) {
+                                  headingRowColor: WidgetStateProperty.all(Colors.grey[100]),
+                                  dataRowColor: WidgetStateProperty.resolveWith<Color?>(
+                                    (Set<WidgetState> states) {
+                                      if (states.contains(WidgetState.selected)) {
                                         return Theme.of(context).colorScheme.primary.withOpacity(0.08);
                                       }
                                       return null;

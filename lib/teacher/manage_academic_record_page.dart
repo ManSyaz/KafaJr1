@@ -548,7 +548,7 @@ class _ManageAcademicRecordPageState
                                                         color: Colors.black87,
                                                         fontSize: 14,
                                                     ),
-                                                    headingRowColor: MaterialStateProperty.all(Colors.grey[100]),
+                                                    headingRowColor: WidgetStateProperty.all(Colors.grey[100]),
                                                 ),
                                             ),
                                             child: DataTable(
@@ -641,7 +641,7 @@ class _ManageAcademicRecordPageState
                                     color: Colors.black87,
                                     fontSize: 14,
                                   ),
-                                  headingRowColor: MaterialStateProperty.all(Colors.grey[100]),
+                                  headingRowColor: WidgetStateProperty.all(Colors.grey[100]),
                                 ),
                               ),
                               child: DataTable(
@@ -664,7 +664,7 @@ class _ManageAcademicRecordPageState
                                         textAlign: TextAlign.center,
                                       ),
                                     ),
-                                  )).toList(),
+                                  )),
                                 ],
                                 rows: studentsProgress.entries.map((entry) {
                                   final progress = entry.value;
@@ -676,7 +676,7 @@ class _ManageAcademicRecordPageState
                                       )),
                                       ...subjectCodes.values.map((code) => 
                                         DataCell(_buildScoreCell(progress[code]))
-                                      ).toList(),
+                                      ),
                                     ],
                                   );
                                 }).toList(),
