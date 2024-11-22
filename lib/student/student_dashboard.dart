@@ -182,7 +182,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 30, color: Colors.white),
+              Icon(icon, size: 30, color: Colors.black),
               const SizedBox(height: 8),
               Text(
                 title,

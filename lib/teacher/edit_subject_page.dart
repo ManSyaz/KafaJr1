@@ -64,11 +64,20 @@ class _EditSubjectPageState extends State<EditSubjectPage> {
           key: _formKey,
           child: Column(
             children: [
+              Container(
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  'Subject Code',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 8),
               TextFormField(
                 controller: _codeController,
-                decoration: const InputDecoration(
-                  labelText: 'Subject Code',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -78,11 +87,20 @@ class _EditSubjectPageState extends State<EditSubjectPage> {
                 },
               ),
               const SizedBox(height: 16.0),
+              Container(
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  'Subject Name',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 8),
               TextFormField(
                 controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Subject Name',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -92,8 +110,8 @@ class _EditSubjectPageState extends State<EditSubjectPage> {
                 },
               ),
               const SizedBox(height: 16.0),
-              SizedBox( // {{ edit_1 }}
-                width: double.infinity, // Make the button take the full width
+              SizedBox(
+                width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _updateSubject,
                   style: ElevatedButton.styleFrom(
@@ -103,9 +121,9 @@ class _EditSubjectPageState extends State<EditSubjectPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   ),
-                  child: const Text( // {{ edit_2 }}
+                  child: const Text(
                     'Save',
-                    style: TextStyle(color: Colors.white), // Change text color to white
+                    style: TextStyle(color: Colors.white),
                   ),
                 ),
               ),

@@ -39,10 +39,19 @@ class _AddExamPageState extends State<AddExamPage> {
           key: _formKey,
           child: ListView(
             children: [
+              Container(
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  'Title',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 8),
               TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'Title',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -55,10 +64,19 @@ class _AddExamPageState extends State<AddExamPage> {
                 },
               ),
               const SizedBox(height: 16.0),
+              Container(
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  'Description',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 8),
               TextFormField(
-                decoration: const InputDecoration(
-                  labelText: 'Description (optional)',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 onSaved: (value) {
                   _description = value!;

@@ -229,11 +229,11 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(icon, size: 32, color: Colors.white),
+                Icon(icon, size: 32, color: Colors.black),
                 Text(
                   title,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.bold),
                 ),
               ],
             ),

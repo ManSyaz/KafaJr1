@@ -139,6 +139,14 @@ class _EditNotePageState extends State<EditNotePage> {
           key: _formKey,
           child: ListView(
             children: [
+              Container(
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  'Select Subject',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 value: _selectedSubject,
                 onChanged: (String? newValue) {
@@ -152,9 +160,10 @@ class _EditNotePageState extends State<EditNotePage> {
                     child: Text(value),
                   );
                 }).toList(),
-                decoration: const InputDecoration(
-                  labelText: 'Select Subject',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -164,11 +173,20 @@ class _EditNotePageState extends State<EditNotePage> {
                 },
               ),
               const SizedBox(height: 16.0),
+              Container(
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  'Title',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 8),
               TextFormField(
                 initialValue: _title,
-                decoration: const InputDecoration(
-                  labelText: 'Title',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -181,11 +199,20 @@ class _EditNotePageState extends State<EditNotePage> {
                 },
               ),
               const SizedBox(height: 16.0),
+              Container(
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  'Description',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 8),
               TextFormField(
                 initialValue: _description,
-                decoration: const InputDecoration(
-                  labelText: 'Description',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -198,20 +225,107 @@ class _EditNotePageState extends State<EditNotePage> {
                 },
               ),
               const SizedBox(height: 16.0),
-              SizedBox( // {{ edit_1 }}
-                width: double.infinity, // Make the button take the full width
-                child: ElevatedButton(
-                  onPressed: _uploadFile,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.pinkAccent,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12), // Add border radius here
+              Container(
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  'Upload PDF File',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade50,
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.cloud_upload_outlined, 
+                              color: Colors.grey.shade600, size: 28),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _pickedFile != null 
+                                      ? _pickedFile!.path.split('/').last
+                                      : _fileUrl != null 
+                                          ? 'Current file: ${_fileUrl!.split('/').last}'
+                                          : 'No file chosen',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade700,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                if (_pickedFile == null && _fileUrl == null) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'PDF files only',
+                                    style: TextStyle(
+                                      color: Colors.grey.shade600,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: _uploadFile,
+                            child: Text(
+                              _pickedFile != null || _fileUrl != null ? 'Change' : 'Choose File',
+                              style: const TextStyle(color: Colors.pinkAccent),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  child: const Text( // {{ edit_2 }}
-                    'Upload File',
-                    style: TextStyle(color: Colors.white), // Change text color to white
-                  ),
+                    if (_pickedFile != null || _fileUrl != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          border: Border(top: BorderSide(color: Colors.grey.shade200)),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.check_circle, 
+                                color: Colors.green.shade400, size: 20),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                _pickedFile != null ? 'New file ready to upload' : 'Current file',
+                                style: TextStyle(
+                                  color: Colors.grey.shade600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                            if (_pickedFile != null || _fileUrl != null)
+                              IconButton(
+                                icon: const Icon(Icons.close, size: 20),
+                                color: Colors.grey.shade600,
+                                onPressed: () {
+                                  setState(() {
+                                    _pickedFile = null;
+                                    if (_fileUrl != null) _fileUrl = null;
+                                  });
+                                },
+                              ),
+                          ],
+                        ),
+                      ),
+                  ],
                 ),
               ),
               const SizedBox(height: 16.0),

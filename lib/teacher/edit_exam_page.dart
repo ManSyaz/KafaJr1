@@ -137,10 +137,18 @@ class _EditExamPageState extends State<EditExamPage> {
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            Container( // {{ edit_1 }}
+            Container(
+              alignment: Alignment.centerLeft,
+              child: const Text(
+                'Select Subject',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey), // Border color
-                borderRadius: BorderRadius.circular(8.0), // Rounded corners
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: DropdownButtonFormField<String>(
                 value: _selectedSubject,
@@ -157,47 +165,149 @@ class _EditExamPageState extends State<EditExamPage> {
                   });
                 },
                 decoration: const InputDecoration(
-                  border: InputBorder.none, // Remove default border
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0), // Padding inside the dropdown
+                  border: InputBorder.none,
+                  contentPadding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
                 ),
               ),
             ),
             const SizedBox(height: 16.0),
+            Container(
+              alignment: Alignment.centerLeft,
+              child: const Text(
+                'Title',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 8),
             TextField(
               controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Title',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 16.0),
+            Container(
+              alignment: Alignment.centerLeft,
+              child: const Text(
+                'Description',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 8),
             TextField(
               controller: _descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Description',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
             const SizedBox(height: 16.0),
-            SizedBox( // {{ edit_1 }}
-              width: double.infinity, // Make the button take the full width
-              child: ElevatedButton(
-                onPressed: _pickFile,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pinkAccent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0), // Add border radius here
+            const SizedBox(height: 16.0),
+            Container(
+              alignment: Alignment.centerLeft,
+              child: const Text(
+                'Upload PDF File',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey.shade300),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.cloud_upload_outlined, 
+                            color: Colors.grey.shade600, size: 28),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                _selectedFile != null 
+                                    ? _selectedFile!.path.split('/').last
+                                    : _currentFileUrl != null 
+                                        ? 'Current file: ${_currentFileUrl!.split('/').last}'
+                                        : 'No file chosen',
+                                style: TextStyle(
+                                  color: Colors.grey.shade700,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              if (_selectedFile == null && _currentFileUrl == null) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  'PDF files only',
+                                  style: TextStyle(
+                                    color: Colors.grey.shade600,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: _pickFile,
+                          child: Text(
+                            _selectedFile != null || _currentFileUrl != null ? 'Change' : 'Choose File',
+                            style: const TextStyle(color: Colors.pinkAccent),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                child: const Text( // Change text color to white
-                  'Upload New File',
-                  style: TextStyle(color: Colors.white), // Change text color to white
-                ),
+                  if (_selectedFile != null || _currentFileUrl != null)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        border: Border(top: BorderSide(color: Colors.grey.shade200)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.check_circle, 
+                              color: Colors.green.shade400, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _selectedFile != null ? 'New file ready to upload' : 'Current file',
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.close, size: 20),
+                            color: Colors.grey.shade600,
+                            onPressed: () {
+                              setState(() {
+                                _selectedFile = null;
+                                if (_currentFileUrl != null) _currentFileUrl = null;
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
               ),
             ),
-            const SizedBox(height: 16.0),
-            if (_selectedFile != null)
-              Text('Selected File: ${_selectedFile!.path}'),
             const SizedBox(height: 16.0),
             SizedBox( // {{ edit_2 }}
               width: double.infinity, // Make the button take the full width

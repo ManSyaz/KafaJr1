@@ -12,40 +12,79 @@ class AddStudentPage extends StatefulWidget {
 }
 
 class _AddStudentPageState extends State<AddStudentPage> {
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _fullNameController = TextEditingController();
-  final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _icNumberController = TextEditingController();
+  final TextEditingController _parentEmailController = TextEditingController();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   Future<void> _addStudent() async {
     try {
+      // First create the user in Firebase Authentication
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: _usernameController.text,
+        email: _emailController.text.trim(),
         password: _passwordController.text,
       );
 
       final String newUid = userCredential.user!.uid;
 
-      await FirebaseDatabase.instance.ref().child('Student').child(newUid).set({
-        'username': _usernameController.text,
-        'fullName': _fullNameController.text,
-        'phoneNumber': _phoneNumberController.text,
-      });
+      try {
+        // Try to write to Student collection
+        await FirebaseDatabase.instance.ref().child('Student').child(newUid).set({
+          'email': _emailController.text.trim(),
+          'fullName': _fullNameController.text,
+          'icNumber': _icNumberController.text,
+          'parentEmail': _parentEmailController.text.trim(),
+        });
 
-      await FirebaseDatabase.instance.ref().child('User').child(newUid).set({
-        'username': _usernameController.text,
-        'fullName': _fullNameController.text,
-        'phoneNumber': _phoneNumberController.text,
-        'role': 'Student',
-      });
+        // Try to write to User collection with email instead of username
+        await FirebaseDatabase.instance.ref().child('User').child(newUid).set({
+          'email': _emailController.text.trim(),
+          'fullName': _fullNameController.text,
+          'icNumber': _icNumberController.text,
+          'role': 'Student',
+        });
 
-      Navigator.pop(context);
+        // If both writes succeed, show success message and pop
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Student added successfully')),
+        );
+        Navigator.pop(context);
+        
+      } catch (dbError) {
+        print('Database Error: $dbError');
+        // Even if database write fails, the user was created in Authentication
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Student account created but some information may be incomplete. Please try editing the student details.'),
+            duration: Duration(seconds: 5),
+          ),
+        );
+        Navigator.pop(context);
+      }
+
     } catch (e) {
-      print('Error adding student: $e');
+      print('Auth Error: $e');
+      String errorMessage = 'Failed to add student';
+      if (e is FirebaseAuthException) {
+        switch (e.code) {
+          case 'email-already-in-use':
+            errorMessage = 'This email is already registered';
+            break;
+          case 'invalid-email':
+            errorMessage = 'Invalid email format';
+            break;
+          case 'weak-password':
+            errorMessage = 'Password should be at least 6 characters';
+            break;
+          default:
+            errorMessage = e.message ?? errorMessage;
+        }
+      }
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to add student: ${e.toString()}')),
+        SnackBar(content: Text(errorMessage)),
       );
     }
   }
@@ -67,67 +106,114 @@ class _AddStudentPageState extends State<AddStudentPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _usernameController,
-              decoration: InputDecoration(
-                labelText: 'Username (Email)',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              Container(
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  'Student Full Name',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _fullNameController,
-              decoration: InputDecoration(
-                labelText: 'Full Name',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _phoneNumberController,
-              decoration: InputDecoration(
-                labelText: 'Phone Number',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: 'Password',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox( // {{ edit_1 }}
-              width: double.infinity, // Make the button take the full width
-              child: ElevatedButton(
-                onPressed: _addStudent,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pinkAccent,
-                  padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 16),
-                  shape: RoundedRectangleBorder(
+              const SizedBox(height: 8),
+              TextField(
+                controller: _fullNameController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                alignment: Alignment.centerLeft,
                 child: const Text(
-                  'Add Student',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
+                  'Student IC Number',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              TextField(
+                controller: _icNumberController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  'Student Email',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  'Student Password',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  'Parent Email Address',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _parentEmailController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox( // {{ edit_1 }}
+                width: double.infinity, // Make the button take the full width
+                child: ElevatedButton(
+                  onPressed: _addStudent,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.pinkAccent,
+                    padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Add Student',
+                    style: TextStyle(fontSize: 16, color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

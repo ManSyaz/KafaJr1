@@ -14,10 +14,11 @@ class EditStudentPage extends StatefulWidget {
 }
 
 class _EditStudentPageState extends State<EditStudentPage> {
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _fullNameController = TextEditingController();
-  final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _icNumberController = TextEditingController();
+  final TextEditingController _parentEmailController = TextEditingController();
 
   final DatabaseReference _studentRef = FirebaseDatabase.instance.ref().child('Student');
   final DatabaseReference _userRef = FirebaseDatabase.instance.ref().child('User');
@@ -37,22 +38,18 @@ class _EditStudentPageState extends State<EditStudentPage> {
   Future<void> _fetchStudentInfo() async {
     try {
       DataSnapshot studentSnapshot = await _studentRef.child(widget.studentId).get();
-      DataSnapshot userSnapshot = await _userRef.child(widget.studentId).get();
 
-      if (studentSnapshot.exists && userSnapshot.exists) {
+      if (studentSnapshot.exists) {
         Map studentData = studentSnapshot.value as Map;
-        //Map userData = userSnapshot.value as Map;
 
         setState(() {
-          _usernameController.text = studentData['username'] ?? '';
+          _emailController.text = studentData['email'] ?? '';
           _fullNameController.text = studentData['fullName'] ?? '';
-          _phoneNumberController.text = studentData['phoneNumber'] ?? '';
-          // Password won't be fetched or shown for security reasons
+          _icNumberController.text = studentData['icNumber'] ?? '';
+          _parentEmailController.text = studentData['parentEmail'] ?? '';
         });
 
         _currentUser = _auth.currentUser;
-      } else {
-        print('Student or user data not found');
       }
     } catch (e) {
       print('Error fetching student info: $e');
@@ -61,7 +58,7 @@ class _EditStudentPageState extends State<EditStudentPage> {
 
   Future<void> _saveStudentInfo() async {
     try {
-      String newUsername = _usernameController.text;
+      String newUsername = _emailController.text;
       String newPassword = _passwordController.text;
 
       if (_currentUser != null) {
@@ -98,15 +95,17 @@ class _EditStudentPageState extends State<EditStudentPage> {
 
         // Update student information in the database
         await _studentRef.child(widget.studentId).update({
-          'username': newUsername,
+          'email': _emailController.text,
           'fullName': _fullNameController.text,
-          'phoneNumber': _phoneNumberController.text,
+          'icNumber': _icNumberController.text,
+          'parentEmail': _parentEmailController.text,
         });
 
         await _userRef.child(widget.studentId).update({
-          'username': newUsername,
+          'username': _emailController.text,
           'fullName': _fullNameController.text,
-          'phoneNumber': _phoneNumberController.text,
+          'icNumber': _icNumberController.text,
+          'parentEmail': _parentEmailController.text,
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -138,68 +137,115 @@ class _EditStudentPageState extends State<EditStudentPage> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _usernameController,
-              decoration: InputDecoration(
-                labelText: 'Username (Email)',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+        child: SingleChildScrollView(  // Added to prevent overflow
+          child: Column(
+            children: [
+              Container(
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  'Student Full Name',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _fullNameController,
-              decoration: InputDecoration(
-                labelText: 'Full Name',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _phoneNumberController,
-              decoration: InputDecoration(
-                labelText: 'Phone Number',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: 'Password',
-                hintText: 'Enter new password (leave blank to keep current password)',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox( // {{ edit_1 }}
-              width: double.infinity, // Make the button take the full width
-              child: ElevatedButton(
-                onPressed: _saveStudentInfo,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pinkAccent,
-                  padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 16),
-                  shape: RoundedRectangleBorder(
+              const SizedBox(height: 8),
+              TextField(
+                controller: _fullNameController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                alignment: Alignment.centerLeft,
                 child: const Text(
-                  'Save',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
+                  'Student IC Number',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              TextField(
+                controller: _icNumberController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  'Student Email',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _emailController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  'Student Password',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _passwordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  hintText: 'Enter new password (leave blank to keep current password)',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                alignment: Alignment.centerLeft,
+                child: const Text(
+                  'Parent Email Address',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _parentEmailController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox( // {{ edit_1 }}
+                width: double.infinity, // Make the button take the full width
+                child: ElevatedButton(
+                  onPressed: _saveStudentInfo,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.pinkAccent,
+                    padding: const EdgeInsets.symmetric(horizontal: 80, vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text(
+                    'Save',
+                    style: TextStyle(fontSize: 16, color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
