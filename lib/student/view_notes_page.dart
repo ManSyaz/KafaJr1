@@ -86,7 +86,7 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
         ),
       ),
       body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start, // Align children to the start (left)
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 16),
           const Align(
@@ -105,7 +105,7 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Wrap(
-              spacing: 8.0, // Space between chips
+              spacing: 8.0,
               children: [
                 // "All" chip
                 FilterChip(
@@ -155,46 +155,81 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: ListView.builder(
-              itemCount: filteredNotes.length,
-              itemBuilder: (context, index) {
-                final note = filteredNotes[index];
-                return Card(
-                  color: const Color.fromARGB(255, 121, 108, 108),
-                  margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                  child: ListTile(
-                    title: Text(
-                      note['title'] ?? 'No Title',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+            child: filteredNotes.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.note_outlined,
+                          size: 70,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          _selectedSubjects.isEmpty
+                              ? 'No Notes Found'
+                              : 'No Notes Found for Selected Subject${_selectedSubjects.length > 1 ? 's' : ''}',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (_selectedSubjects.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            _selectedSubjects.join(', '),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ],
                     ),
-                    subtitle: Text(
-                      note['description'] ?? 'No Description',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Color.fromARGB(255, 255, 255, 255),
-                      ),
-                    ),
-                    trailing: note['fileUrl'] != null && note['fileUrl'].isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.remove_red_eye, color: Colors.blue),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => PDFViewerPage(fileUrl: note['fileUrl']),
-                                ),
-                              );
-                            },
-                          )
-                        : null,
+                  )
+                : ListView.builder(
+                    itemCount: filteredNotes.length,
+                    itemBuilder: (context, index) {
+                      final note = filteredNotes[index];
+                      return Card(
+                        color: const Color.fromARGB(255, 121, 108, 108),
+                        margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                        child: ListTile(
+                          title: Text(
+                            note['title'] ?? 'No Title',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          subtitle: Text(
+                            note['description'] ?? 'No Description',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Color.fromARGB(255, 255, 255, 255),
+                            ),
+                          ),
+                          trailing: note['fileUrl'] != null && note['fileUrl'].isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.remove_red_eye, color: Colors.blue),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => PDFViewerPage(fileUrl: note['fileUrl']),
+                                      ),
+                                    );
+                                  },
+                                )
+                              : null,
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
         ],
       ),

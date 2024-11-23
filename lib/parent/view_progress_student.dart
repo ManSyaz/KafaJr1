@@ -16,6 +16,7 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
   final DatabaseReference _userRef = FirebaseDatabase.instance.ref().child('Student');
   final DatabaseReference _progressRef = FirebaseDatabase.instance.ref().child('Progress');
   final DatabaseReference _subjectRef = FirebaseDatabase.instance.ref().child('Subject');
+  final DatabaseReference _examRef = FirebaseDatabase.instance.ref().child('Exam');
 
   String _selectedSubject = 'Choose Subject';
   String _fullName = '';
@@ -25,12 +26,37 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
   List<Map<String, String>> subjects = [];
   Map<String, Map<String, String>> studentsProgress = {};
   List<String> studentEmails = [];
+  List<Map<String, dynamic>> examTypes = [];
 
   @override
   void initState() {
     super.initState();
+    _fetchExams();
     _fetchSubjects();
     _fetchStudentEmails();
+  }
+
+  Future<void> _fetchExams() async {
+    try {
+      final snapshot = await _examRef.get();
+      if (snapshot.exists) {
+        final examData = snapshot.value as Map<Object?, Object?>;
+        setState(() {
+          examTypes = examData.entries.map((entry) {
+            final exam = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
+            return {
+              'id': entry.key.toString(),
+              'description': exam['description'] ?? '',
+              'title': exam['title'] ?? '',
+            };
+          }).toList();
+          
+          examTypes.sort((a, b) => a['description'].compareTo(b['description']));
+        });
+      }
+    } catch (e) {
+      print('Error fetching exams: $e');
+    }
   }
 
   Future<void> _fetchSubjects() async {
@@ -163,27 +189,18 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
   Widget _buildGraph() {
     if (studentsProgress.isEmpty) return Container();
 
-    // Define exam types and their indices
-    final examTypes = ['UP1', 'PPT', 'UP2', 'PAT', 'PUPK'];
-    final colors = [
-      const Color(0xFF2196F3), // Blue
-      const Color(0xFF4CAF50), // Green
-      const Color(0xFFFFC107), // Amber
-      const Color(0xFFE91E63), // Pink
-      const Color(0xFF9C27B0), // Purple
-    ];
-
     final dataEntries = examTypes.asMap().entries.map((entry) {
       final index = entry.key;
-      final examType = entry.value;
-      
+      final examType = entry.value['description'];
+      final yValue = double.tryParse(studentsProgress.values.first[examType] ?? '0') ?? 0;
+
       return BarChartGroupData(
         x: index,
         barRods: [
           BarChartRodData(
-            toY: double.tryParse(studentsProgress.values.first[examType] ?? '0') ?? 0,
-            color: colors[index % colors.length],
-            width: 20,
+            toY: yValue,
+            color: _getScoreColor(yValue),
+            width: examTypes.length <= 3 ? 40 : (examTypes.length <= 5 ? 30 : 20),
             borderRadius: BorderRadius.circular(4),
             backDrawRodData: BackgroundBarChartRodData(
               show: true,
@@ -209,6 +226,18 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Wrap(
+                spacing: 16.0,
+                children: [
+                  _buildLegendItem('A (≥80)', const Color(0xFF4CAF50)),
+                  _buildLegendItem('B (≥60)', const Color(0xFF2196F3)),
+                  _buildLegendItem('C (≥40)', const Color(0xFFFFA726)),
+                  _buildLegendItem('D (<40)', const Color(0xFFE53935)),
+                ],
               ),
             ),
             const SizedBox(height: 16),
@@ -239,7 +268,6 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
                             style: const TextStyle(
                               fontSize: 12,
                               color: Colors.black54,
-                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
@@ -254,14 +282,16 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
                           if (index >= 0 && index < examTypes.length) {
                             return Padding(
                               padding: const EdgeInsets.only(top: 8.0),
-                              child: Text(
-                                examTypes[index],
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.black87,
+                              child: Tooltip(
+                                message: examTypes[index]['title'],
+                                child: Text(
+                                  examTypes[index]['description'],
+                                  style: TextStyle(
+                                    fontSize: examTypes.length <= 5 ? 12 : 10,
+                                    color: Colors.black87,
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
-                                textAlign: TextAlign.center,
                               ),
                             );
                           }
@@ -270,22 +300,23 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
                         reservedSize: 40,
                       ),
                     ),
-                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
                   ),
                   borderData: FlBorderData(show: false),
                   barTouchData: BarTouchData(
                     enabled: true,
                     touchTooltipData: BarTouchTooltipData(
-                      fitInsideHorizontally: true,
-                      fitInsideVertically: true,
-                      tooltipPadding: const EdgeInsets.all(8),
-                      tooltipMargin: 8,
                       getTooltipItem: (group, groupIndex, rod, rodIndex) {
                         final examType = examTypes[group.x.toInt()];
                         final value = rod.toY.round();
+                        final grade = _getGradeText(value.toString());
                         return BarTooltipItem(
-                          '$examType\n$value%',
+                          '${examType['title']}\n$value% (Grade $grade)',
                           const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -295,6 +326,95 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
                     ),
                   ),
                 ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDataTable() {
+    if (studentsProgress.isEmpty) return Container();
+
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Detailed Scores',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 16),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                columnSpacing: 24,
+                horizontalMargin: 12,
+                columns: examTypes.map((exam) => DataColumn(
+                  label: Container(
+                    alignment: Alignment.center,
+                    width: 100,
+                    child: Tooltip(
+                      message: exam['title'],
+                      child: Text(
+                        exam['description'],
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                )).toList(),
+                rows: studentsProgress.entries.map((entry) {
+                  return DataRow(
+                    cells: examTypes.map((exam) => DataCell(
+                      Container(
+                        alignment: Alignment.center,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: _getScoreColor(double.tryParse(entry.value[exam['description']] ?? '0') ?? 0),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                entry.value[exam['description']] ?? '-',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                _getGradeText(entry.value[exam['description']]),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )).toList(),
+                  );
+                }).toList(),
               ),
             ),
           ],
@@ -326,107 +446,24 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
     return Colors.red;
   }
 
-  Widget _buildDataTable() {
-    if (studentsProgress.isEmpty) return Container();
-
-    final examTypes = ['UP1', 'PPT', 'UP2', 'PAT', 'PUPK'];
-
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Detailed Scores',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 16),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Theme(
-                data: Theme.of(context).copyWith(
-                  dataTableTheme: DataTableThemeData(
-                    headingTextStyle: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                      fontSize: 14,
-                    ),
-                    dataTextStyle: const TextStyle(
-                      color: Colors.black87,
-                      fontSize: 14,
-                    ),
-                    headingRowColor: WidgetStateProperty.all(Colors.grey[100]),
-                  ),
-                ),
-                child: DataTable(
-                  columnSpacing: 24,
-                  horizontalMargin: 12,
-                  columns: examTypes.map((type) => DataColumn(
-                    label: Container(
-                      alignment: Alignment.center,
-                      width: 100,
-                      child: Text(
-                        type,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  )).toList(),
-                  rows: studentsProgress.entries.map((entry) {
-                    return DataRow(
-                      cells: examTypes.map((type) => DataCell(
-                        Container(
-                          alignment: Alignment.center,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                            decoration: BoxDecoration(
-                              color: _getScoreColor(double.tryParse(entry.value[type] ?? '0') ?? 0),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  entry.value[type] ?? '-',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  _getGradeText(entry.value[type]),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      )).toList(),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-          ],
+  Widget _buildLegendItem(String label, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 16,
+          height: 16,
+          color: color,
         ),
-      ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Colors.black87,
+          ),
+        ),
+      ],
     );
   }
 

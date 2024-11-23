@@ -145,30 +145,65 @@ class _ViewExamPageState extends State<ViewExamPage> {
 
           const SizedBox(height: 16),
           Expanded(
-            child: ListView.builder(
-              itemCount: filteredExams.length,
-              itemBuilder: (context, index) {
-                final exam = filteredExams[index];
-                return Card(
-                  color: const Color.fromARGB(255, 121, 108, 108),
-                  margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                  child: ListTile(
-                    title: Text(
-                      exam['title'] ?? 'No Title',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+            child: filteredExams.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.assignment_outlined,
+                          size: 70,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          _selectedCategories.isEmpty
+                              ? 'No Exams Found'
+                              : 'No Exams Found for Selected Category${_selectedCategories.length > 1 ? 'ies' : 'y'}',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (_selectedCategories.isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            _selectedCategories.join(', '),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ],
                     ),
-                    trailing: ElevatedButton(
-                      onPressed: () => _navigateToSubjects(exam),
-                      child: const Text('View Subjects'),
-                    ),
+                  )
+                : ListView.builder(
+                    itemCount: filteredExams.length,
+                    itemBuilder: (context, index) {
+                      final exam = filteredExams[index];
+                      return Card(
+                        color: const Color.fromARGB(255, 121, 108, 108),
+                        margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                        child: ListTile(
+                          title: Text(
+                            exam['title'] ?? 'No Title',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                          trailing: ElevatedButton(
+                            onPressed: () => _navigateToSubjects(exam),
+                            child: const Text('View Subjects'),
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           )
         ],
       ),

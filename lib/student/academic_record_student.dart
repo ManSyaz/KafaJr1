@@ -142,18 +142,23 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
     }
   }
 
+  // Add helper method to get color based on score
+  Color _getScoreColor(double score) {
+    if (score >= 80) {
+      return const Color(0xFF4CAF50); // Green for A
+    } else if (score >= 60) {
+      return const Color(0xFF2196F3); // Blue for B
+    } else if (score >= 40) {
+      return const Color(0xFFFFA726); // Orange for C
+    } else {
+      return const Color(0xFFE53935); // Red for D
+    }
+  }
+
   Widget _buildGraph() {
     if (studentProgressByExam.isEmpty) return Container();
 
     final subjectList = subjectCodes.values.toList();
-    final colors = [
-      const Color(0xFF2196F3), // Blue
-      const Color(0xFF4CAF50), // Green
-      const Color(0xFFFFC107), // Amber
-      const Color(0xFFE91E63), // Pink
-      const Color(0xFF9C27B0), // Purple
-    ];
-
     final dataEntries = subjectList.asMap().entries.map((entry) {
       final index = entry.key;
       final code = entry.value;
@@ -164,8 +169,8 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
         barRods: [
           BarChartRodData(
             toY: yValue,
-            color: colors[index % colors.length],
-            width: 20,
+            color: _getScoreColor(yValue), // Use grade color based on score
+            width: subjectList.length <= 3 ? 40 : (subjectList.length <= 5 ? 30 : 20),
             borderRadius: BorderRadius.circular(4),
             backDrawRodData: BackgroundBarChartRodData(
               show: true,
@@ -191,6 +196,19 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
+              ),
+            ),
+            // Add grade legend
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Wrap(
+                spacing: 16.0,
+                children: [
+                  _buildLegendItem('A (≥80)', const Color(0xFF4CAF50)),
+                  _buildLegendItem('B (≥60)', const Color(0xFF2196F3)),
+                  _buildLegendItem('C (≥40)', const Color(0xFFFFA726)),
+                  _buildLegendItem('D (<40)', const Color(0xFFE53935)),
+                ],
               ),
             ),
             const SizedBox(height: 16),
@@ -270,8 +288,9 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
                           getTooltipItem: (group, groupIndex, rod, rodIndex) {
                             final subjectCode = subjectList[group.x.toInt()];
                             final value = rod.toY.round();
+                            final grade = _getGradeText(value.toString());
                             return BarTooltipItem(
-                              '$subjectCode\n$value%',
+                              '$subjectCode\n$value% (Grade $grade)',
                               const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
@@ -291,6 +310,31 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
     );
   }
 
+  // Add helper widget for legend items
+  Widget _buildLegendItem(String text, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 16,
+          height: 16,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          text,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Colors.black87,
+          ),
+        ),
+      ],
+    );
+  }
+
   // Add helper functions for grade and color
   String _getGradeText(String? scoreStr) {
     final score = double.tryParse(scoreStr ?? '0') ?? 0;
@@ -305,13 +349,6 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
     } else {
       return 'N/A';
     }
-  }
-
-  Color _getScoreColor(double score) {
-    if (score >= 80) return Colors.green;
-    if (score >= 60) return Colors.blue;
-    if (score >= 40) return Colors.orange;
-    return Colors.red;
   }
 
   @override
