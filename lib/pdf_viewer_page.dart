@@ -47,7 +47,6 @@ class _PDFViewerPageState extends State<PDFViewerPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
-        title: const Text('PDF Viewer'),
       ),
       body: FutureBuilder<File>(
         future: _pdfFile,

@@ -623,50 +623,52 @@ class _ManageStudentProgressPageState
                               ),
                             ),
                             const SizedBox(height: 16),
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Theme(
-                                data: Theme.of(context).copyWith(
-                                  dataTableTheme: DataTableThemeData(
-                                    headingTextStyle: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black87,
-                                      fontSize: 14,
+                            Center(
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Theme(
+                                  data: Theme.of(context).copyWith(
+                                    dataTableTheme: DataTableThemeData(
+                                      headingTextStyle: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black87,
+                                        fontSize: 14,
+                                      ),
+                                      dataTextStyle: const TextStyle(
+                                        color: Colors.black87,
+                                        fontSize: 14,
+                                      ),
+                                      headingRowColor: MaterialStateProperty.all(Colors.grey[100]),
                                     ),
-                                    dataTextStyle: const TextStyle(
-                                      color: Colors.black87,
-                                      fontSize: 14,
-                                    ),
-                                    headingRowColor: WidgetStateProperty.all(Colors.grey[100]),
                                   ),
-                                ),
-                                child: DataTable(
-                                  columnSpacing: 24,
-                                  horizontalMargin: 12,
-                                  columns: [
-                                    ...examTypes.map((exam) => DataColumn(
-                                      label: SizedBox(
-                                        width: 100,
-                                        child: Tooltip(
-                                          message: exam['title'],
-                                          child: Text(
-                                            exam['description'],
-                                            textAlign: TextAlign.center,
-                                            style: const TextStyle(fontSize: 14),
+                                  child: DataTable(
+                                    columnSpacing: 24,
+                                    horizontalMargin: 12,
+                                    columns: [
+                                      ...examTypes.map((exam) => DataColumn(
+                                        label: SizedBox(
+                                          width: 100,
+                                          child: Tooltip(
+                                            message: exam['title'],
+                                            child: Text(
+                                              exam['description'],
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(fontSize: 14),
+                                            ),
                                           ),
                                         ),
+                                      )),
+                                    ],
+                                    rows: [
+                                      DataRow(
+                                        cells: [
+                                          ...examTypes.map((exam) => DataCell(
+                                            _buildScoreCell(studentProgress![exam['description']]),
+                                          )),
+                                        ],
                                       ),
-                                    )),
-                                  ],
-                                  rows: [
-                                    DataRow(
-                                      cells: [
-                                        ...examTypes.map((exam) => DataCell(
-                                          _buildScoreCell(studentProgress![exam['description']]),
-                                        )),
-                                      ],
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),

@@ -60,6 +60,7 @@ class _ManageAcademicRecordPageState
                     'id': entry.key?.toString() ?? 'Unknown',
                     'title': examMap['title']?.toString() ?? 'Unknown',
                     'description': examMap['description']?.toString() ?? 'Unknown',
+      
                   };
                 }).toList();
           });
@@ -124,97 +125,114 @@ class _ManageAcademicRecordPageState
 
   Future<void> _fetchStudentProgressByExam(String examId) async {
     try {
-      final exam = exams.firstWhere((exam) => exam['id'] == examId);
-      final examDescription = exam['description'];
-
       final snapshot = await _progressRef
-          .orderByChild('examDescription')
-          .equalTo(examDescription)
+          .orderByChild('examId')
+          .equalTo(examId)
           .get();
 
       if (snapshot.exists) {
         final progressData = snapshot.value as Map<Object?, Object?>;
 
-        final filteredProgress = progressData.entries.fold<Map<String, Map<String, String>>>(
+        final newProgress = progressData.entries.fold<Map<String, Map<String, String>>>(
           {},
           (map, entry) {
             final progress = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
-            final studentId = progress['studentId'] ?? '-';
-            final subjectId = progress['subjectId'] ?? '-';
+            final studentId = progress['studentId']?.toString() ?? '-';
+            final subjectId = progress['subjectId']?.toString() ?? '-';
             final subjectCode = subjectCodes[subjectId] ?? 'Unknown';
+            final score = progress['score']?.toString() ?? '-';
 
-            if (!map.containsKey(studentId)) {
-              map[studentId] = {
-                'name': studentNames[studentId] ?? 'Unknown',
+            if (_selectedFilter == 'Student' && studentId == _selectedStudentId) {
+              map[examId] = {
+                'examDescription': progress['examDescription']?.toString() ?? '',
+                'examTitle': exams.firstWhere((e) => e['id'] == examId)['title'] ?? '',
               };
+              map[examId]![subjectCode] = score;
+            } else if (_selectedFilter == 'All') {
+              if (!map.containsKey(studentId)) {
+                map[studentId] = {
+                  'name': studentNames[studentId] ?? 'Unknown',
+                };
+              }
+              map[studentId]![subjectCode] = score;
             }
-
-            map[studentId]![subjectCode] = progress['score']?.toString() ?? '-';
+            
             return map;
           },
         );
 
         setState(() {
-          studentsProgress = filteredProgress;
-          studentProgressByExam[examId] = studentsProgress[_selectedStudentId] ?? {};
+          if (_selectedFilter == 'Student') {
+            studentProgressByExam = {
+              ...studentProgressByExam,
+              ...newProgress,
+            };
+            studentsProgress = studentProgressByExam;
+          } else {
+            studentsProgress = newProgress;
+          }
         });
 
-        // Debug print
-        print('Students Progress: $studentsProgress');
-        print('Student Progress by Exam: $studentProgressByExam');
       } else {
-        setState(() {
-          studentsProgress = {};
-          studentProgressByExam = {};
-        });
+        if (_selectedFilter == 'All') {
+          setState(() {
+            studentsProgress = {};
+          });
+        }
       }
     } catch (e) {
       print('Error fetching student progress by exam: $e');
     }
   }
 
+  void _clearExamHistory() {
+    setState(() {
+      studentProgressByExam = {};
+      studentsProgress = {};
+    });
+  }
+
   Future<void> _searchStudentByIC() async {
     final icNumber = _searchController.text;
     try {
-        final snapshot = await _userRef.get();
-        if (snapshot.exists) {
-            final userData = snapshot.value as Map<Object?, Object?>?;
-            if (userData != null) {
-                final Map<String, dynamic> userMap = Map<String, dynamic>.from(userData);
+      final snapshot = await _userRef.get();
+      if (snapshot.exists) {
+        final userData = snapshot.value as Map<Object?, Object?>?;
+        if (userData != null) {
+          final Map<String, dynamic> userMap = Map<String, dynamic>.from(userData);
 
-                // Find the student by IC number
-                final matchedStudent = userMap.entries.firstWhere(
-                    (entry) {
-                        final studentMap = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
-                        final studentIC = studentMap['icNumber']?.toString() ?? '';
-                        return studentIC == icNumber; // Match by IC number
-                    },
-                    orElse: () => const MapEntry('', {}),
-                );
+          final matchedStudent = userMap.entries.firstWhere(
+            (entry) {
+              final studentMap = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
+              final studentIC = studentMap['icNumber']?.toString() ?? '';
+              return studentIC == icNumber;
+            },
+            orElse: () => const MapEntry('', {}),
+          );
 
-                if (matchedStudent.value.isNotEmpty) {
-                    final studentId = matchedStudent.key;
-                    final studentMap = Map<String, dynamic>.from(matchedStudent.value as Map<Object?, Object?>);
-                    setState(() {
-                        _fullName = studentMap['fullName'] ?? 'Unknown';
-                        _selectedStudentId = studentId;
-                        _selectedExam = 'Choose Exam'; // Reset exam selection
-                        studentProgressByExam = {}; // Clear previous data
-                    });
-                } else {
-                    setState(() {
-                        _fullName = 'Student not found';
-                        studentProgressByExam = {};
-                    });
-                }
-            }
+          if (matchedStudent.value.isNotEmpty) {
+            final studentId = matchedStudent.key;
+            final studentMap = Map<String, dynamic>.from(matchedStudent.value as Map<Object?, Object?>);
+            setState(() {
+              _fullName = studentMap['fullName'] ?? 'Unknown';
+              _selectedStudentId = studentId;
+              _selectedExam = 'Choose Exam';
+              _clearExamHistory(); // Clear history when new student is searched
+            });
+          } else {
+            setState(() {
+              _fullName = 'Student not found';
+              _clearExamHistory();
+            });
+          }
         }
+      }
     } catch (e) {
-        print('Error searching for student by IC: $e');
-        setState(() {
-            _fullName = 'Error occurred';
-            studentProgressByExam = {};
-        });
+      print('Error searching for student by IC: $e');
+      setState(() {
+        _fullName = 'Error occurred';
+        _clearExamHistory();
+      });
     }
   }
 
@@ -492,8 +510,7 @@ class _ManageAcademicRecordPageState
                     _fullName = '';
                     _selectedStudentId = '';
                     _selectedExam = 'Choose Exam';
-                    studentProgressByExam = {};
-                    studentsProgress = {};
+                    _clearExamHistory();
                   });
                 },
                 selectedColor: Colors.white,
@@ -555,7 +572,7 @@ class _ManageAcademicRecordPageState
                         if (_selectedExam != 'Choose Exam') {
                           _fetchStudentProgressByExam(_selectedExam);
                         } else {
-                          studentProgressByExam = {}; // Clear progress if no exam is selected
+                          _clearExamHistory(); // Clear history when "Choose Exam" is selected
                         }
                       });
                     },
@@ -597,65 +614,115 @@ class _ManageAcademicRecordPageState
                   if (studentProgressByExam.isNotEmpty) ...[
                     const SizedBox(height: 24),
                     Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        child: Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                    const Text(
-                                        'Detailed Scores',
-                                        style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.black87,
-                                        ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    SingleChildScrollView(
-                                        scrollDirection: Axis.horizontal,
-                                        child: Theme(
-                                            data: Theme.of(context).copyWith(
-                                                dataTableTheme: DataTableThemeData(
-                                                    headingTextStyle: const TextStyle(
-                                                        fontWeight: FontWeight.bold,
-                                                        color: Colors.black87,
-                                                        fontSize: 14,
-                                                    ),
-                                                    dataTextStyle: const TextStyle(
-                                                        color: Colors.black87,
-                                                        fontSize: 14,
-                                                    ),
-                                                    headingRowColor: WidgetStateProperty.all(Colors.grey[100]),
-                                                ),
-                                            ),
-                                            child: DataTable(
-                                                columnSpacing: 24,
-                                                horizontalMargin: 12,
-                                                columns: subjectCodes.values.map((code) => DataColumn(
-                                                    label: SizedBox(
-                                                        width: 100,
-                                                        child: Text(
-                                                            code,
-                                                            textAlign: TextAlign.center,
-                                                            style: const TextStyle(fontSize: 14),
-                                                        ),
-                                                    ),
-                                                )).toList(),
-                                                rows: [
-                                                    DataRow(
-                                                        cells: subjectCodes.values.map((code) => 
-                                                            DataCell(_buildScoreCell(studentProgressByExam[_selectedExam]?[code]))
-                                                        ).toList(),
-                                                    ),
-                                                ],
-                                            ),
-                                        ),
-                                    ),
-                                ],
+                      elevation: 4,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Detailed Scores',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
                             ),
+                            const SizedBox(height: 16),
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Theme(
+                                data: Theme.of(context).copyWith(
+                                  dataTableTheme: DataTableThemeData(
+                                    headingTextStyle: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                      fontSize: 14,
+                                    ),
+                                    dataTextStyle: const TextStyle(
+                                      color: Colors.black87,
+                                      fontSize: 14,
+                                    ),
+                                    headingRowColor: MaterialStateProperty.all(Colors.grey[100]),
+                                  ),
+                                ),
+                                child: DataTable(
+                                  columnSpacing: 24,
+                                  horizontalMargin: 12,
+                                  columns: [
+                                    const DataColumn(
+                                      label: Text(''),
+                                    ),
+                                    ...subjectCodes.values.map((code) => DataColumn(
+                                      label: Container(
+                                        alignment: Alignment.center,
+                                        width: 100,
+                                        child: Text(
+                                          code,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 14,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    )),
+                                  ],
+                                  rows: studentProgressByExam.entries.map((entry) {
+                                    return DataRow(
+                                      cells: [
+                                        DataCell(Text(
+                                          entry.value['examDescription'] ?? 'Unknown',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 14,
+                                          ),
+                                        )),
+                                        ...subjectCodes.values.map((code) => DataCell(
+                                          Container(
+                                            alignment: Alignment.center,
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                                              decoration: BoxDecoration(
+                                                color: _getScoreColor(double.tryParse(entry.value[code] ?? '0') ?? 0),
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  Text(
+                                                    entry.value[code] ?? '-',
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontWeight: FontWeight.w500,
+                                                      fontSize: 14,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Text(
+                                                    _getGradeText(entry.value[code]),
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontWeight: FontWeight.w500,
+                                                      fontSize: 14,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        )),
+                                      ],
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
+                      ),
                     ),
                   ],
                 ],
@@ -682,7 +749,7 @@ class _ManageAcademicRecordPageState
                       if (_selectedExam != 'Choose Exam') {
                         _fetchStudentProgressByExam(_selectedExam);
                       } else {
-                        studentsProgress = {}; // Clear progress if no exam is selected
+                        _clearExamHistory(); // Clear history when "Choose Exam" is selected
                       }
                     });
                   },
