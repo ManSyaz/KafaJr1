@@ -156,65 +156,89 @@ class _ManageNotesPageState extends State<ManageNotesPage> {
 
           const SizedBox(height: 16),
           Expanded(
-            child: ListView.builder(
-              itemCount: filteredNotes.length,
-              itemBuilder: (context, index) {
-                final note = filteredNotes[index];
-                return Card(
-                  color: const Color.fromARGB(255, 121, 108, 108),
-                  margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                  child: ListTile(
-                    title: Text(
-                      note['title'] ?? 'No Title',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+            child: filteredNotes.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.note_outlined,
+                        size: 70,
+                        color: Colors.grey,
                       ),
-                    ),
-                    subtitle: Text(
-                      note['description'] ?? 'No Description',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Color.fromARGB(255, 255, 255, 255),
+                      const SizedBox(height: 16),
+                      Text(
+                        searchQuery.isEmpty
+                          ? 'No Notes Added'
+                          : 'No Notes Found',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (note['fileUrl'] != null && note['fileUrl'].isNotEmpty)
-                          IconButton(
-                            icon: const Icon(Icons.remove_red_eye, color: Colors.blue),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => PDFViewerPage(fileUrl: note['fileUrl']),
-                                ),
-                              );
-                            },
-                          ),
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.green),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => EditNotePage(noteId: note['id']),
-                              ),
-                            ).then((_) => _fetchNotes());
-                          },
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _deleteNoteWithFile(note['id'], note['fileUrl']),
-                        ),
-                      ],
-                    ),
+                    ],
                   ),
-                );
-              },
-            ),
+                )
+              : ListView.builder(
+                  itemCount: filteredNotes.length,
+                  itemBuilder: (context, index) {
+                    final note = filteredNotes[index];
+                    return Card(
+                      color: const Color.fromARGB(255, 121, 108, 108),
+                      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                      child: ListTile(
+                        title: Text(
+                          note['title'] ?? 'No Title',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                        subtitle: Text(
+                          note['description'] ?? 'No Description',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color.fromARGB(255, 255, 255, 255),
+                          ),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (note['fileUrl'] != null && note['fileUrl'].isNotEmpty)
+                              IconButton(
+                                icon: const Icon(Icons.remove_red_eye, color: Colors.blue),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => PDFViewerPage(fileUrl: note['fileUrl']),
+                                    ),
+                                  );
+                                },
+                              ),
+                            IconButton(
+                              icon: const Icon(Icons.edit, color: Colors.green),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => EditNotePage(noteId: note['id']),
+                                  ),
+                                ).then((_) => _fetchNotes());
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => _deleteNoteWithFile(note['id'], note['fileUrl']),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
           ),
         ],
       ),

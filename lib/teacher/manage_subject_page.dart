@@ -148,46 +148,70 @@ class _ManageSubjectPageState extends State<ManageSubjectPage> {
           ),
 
           Expanded(
-            child: ListView.builder(
-              itemCount: filteredSubjects.length,
-              itemBuilder: (context, index) {
-                final subject = filteredSubjects[index];
-                return Card(
-                  color: const Color.fromARGB(255, 121, 108, 108),
-                  margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                  child: ListTile(
-                    title: Text(
-                      subject['name'],
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color.fromARGB(255, 255, 255, 255),
+            child: filteredSubjects.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.subject_outlined,
+                        size: 70,
+                        color: Colors.grey,
                       ),
-                    ),
-                    subtitle: Text(
-                      subject['code'],
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Color.fromARGB(255, 212, 212, 212),
+                      const SizedBox(height: 16),
+                      Text(
+                        searchQuery.isEmpty
+                          ? 'No Subjects Added'
+                          : 'No Subjects Found',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.green),
-                          onPressed: () => _navigateToEditSubjectPage(subject['key'], subject),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _deleteSubject(subject['key']),
-                        ),
-                      ],
-                    ),
+                    ],
                   ),
-                );
-              },
-            ),
+                )
+              : ListView.builder(
+                  itemCount: filteredSubjects.length,
+                  itemBuilder: (context, index) {
+                    final subject = filteredSubjects[index];
+                    return Card(
+                      color: const Color.fromARGB(255, 121, 108, 108),
+                      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                      child: ListTile(
+                        title: Text(
+                          subject['name'],
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color.fromARGB(255, 255, 255, 255),
+                          ),
+                        ),
+                        subtitle: Text(
+                          subject['code'],
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color.fromARGB(255, 212, 212, 212),
+                          ),
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit, color: Colors.green),
+                              onPressed: () => _navigateToEditSubjectPage(subject['key'], subject),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => _deleteSubject(subject['key']),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
           ),
         ],
       ),

@@ -181,48 +181,72 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
           ),
           
           Expanded(
-            child: ListView.builder(
-              itemCount: filteredStudents.length,
-              itemBuilder: (context, index) {
-                final student = filteredStudents[index];
-                return Card(
-                  color: const Color.fromARGB(255, 121, 108, 108),
-                  margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                  child: ListTile(
-                    title: Row(
-                      children: [
-                        Text('${index + 1}. ', style: const TextStyle(color: Colors.white)),
-                        Expanded(
-                          child: Text(
-                            student['fullName'] ?? 'No Name',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Color.fromARGB(255, 255, 255, 255),
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
-                          ),
+            child: filteredStudents.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.people_outline,
+                        size: 70,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        searchQuery.isEmpty
+                          ? 'No Students Added'
+                          : 'No Students Found',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.bold,
                         ),
-                      ],
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.green),
-                          onPressed: () => _navigateToEditStudent(student),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete, color: Color.fromARGB(255, 255, 17, 0)),
-                          onPressed: () => _deleteStudent(student['uid']),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                );
-              },
-            ),
+                )
+              : ListView.builder(
+                  itemCount: filteredStudents.length,
+                  itemBuilder: (context, index) {
+                    final student = filteredStudents[index];
+                    return Card(
+                      color: const Color.fromARGB(255, 121, 108, 108),
+                      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                      child: ListTile(
+                        title: Row(
+                          children: [
+                            Text('${index + 1}. ', style: const TextStyle(color: Colors.white)),
+                            Expanded(
+                              child: Text(
+                                student['fullName'] ?? 'No Name',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color.fromARGB(255, 255, 255, 255),
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                            ),
+                          ],
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit, color: Colors.green),
+                              onPressed: () => _navigateToEditStudent(student),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Color.fromARGB(255, 255, 17, 0)),
+                              onPressed: () => _deleteStudent(student['uid']),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
           ),
 
         ],

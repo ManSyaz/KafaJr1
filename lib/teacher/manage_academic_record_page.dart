@@ -218,6 +218,18 @@ class _ManageAcademicRecordPageState
     }
   }
 
+  Color _getScoreColor(double score) {
+    if (score >= 80) {
+      return const Color(0xFF4CAF50); // Green for A
+    } else if (score >= 60) {
+      return const Color(0xFF2196F3); // Blue for B
+    } else if (score >= 40) {
+      return const Color(0xFFFFA726); // Orange for C
+    } else {
+      return const Color(0xFFE53935); // Red for D
+    }
+  }
+
   Widget _buildGraph() {
     if (studentProgressByExam.isEmpty) return Container();
 
@@ -232,8 +244,8 @@ class _ManageAcademicRecordPageState
         barRods: [
           BarChartRodData(
             toY: yValue,
-            color: const Color(0xFF2196F3), // Blue color
-            width: 20,
+            color: _getScoreColor(yValue), // Use grade color based on score
+            width: subjectList.length <= 3 ? 40 : (subjectList.length <= 5 ? 30 : 20),
             borderRadius: BorderRadius.circular(4),
             backDrawRodData: BackgroundBarChartRodData(
               show: true,
@@ -261,87 +273,105 @@ class _ManageAcademicRecordPageState
                 color: Colors.black87,
               ),
             ),
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Wrap(
+                spacing: 16.0,
+                children: [
+                  _buildLegendItem('A (≥80)', const Color(0xFF4CAF50)),
+                  _buildLegendItem('B (≥60)', const Color(0xFF2196F3)),
+                  _buildLegendItem('C (≥40)', const Color(0xFFFFA726)),
+                  _buildLegendItem('D (<40)', const Color(0xFFE53935)),
+                ],
+              ),
+            ),
             const SizedBox(height: 16),
             SizedBox(
               height: 400,
-              child: BarChart(
-                BarChartData(
-                  alignment: BarChartAlignment.spaceAround,
-                  maxY: 100,
-                  barGroups: dataEntries,
-                  gridData: FlGridData(
-                    show: true,
-                    drawHorizontalLine: true,
-                    horizontalInterval: 20,
-                    getDrawingHorizontalLine: (value) => FlLine(
-                      color: Colors.grey[300],
-                      strokeWidth: 1,
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: subjectList.length <= 3 ? 40.0 : 16.0,
+                ),
+                child: BarChart(
+                  BarChartData(
+                    alignment: BarChartAlignment.spaceAround,
+                    maxY: 100,
+                    barGroups: dataEntries,
+                    gridData: FlGridData(
+                      show: true,
+                      drawHorizontalLine: true,
+                      horizontalInterval: 20,
+                      getDrawingHorizontalLine: (value) => FlLine(
+                        color: Colors.grey[300],
+                        strokeWidth: 1,
+                      ),
                     ),
-                  ),
-                  titlesData: FlTitlesData(
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) => Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: Text(
-                            value.toInt().toString(),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.black54,
-                              fontWeight: FontWeight.w500,
+                    titlesData: FlTitlesData(
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          getTitlesWidget: (value, meta) => Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: Text(
+                              value.toInt().toString(),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.black54,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
+                          reservedSize: 40,
                         ),
-                        reservedSize: 40,
                       ),
-                    ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          final index = value.toInt();
-                          if (index >= 0 && index < subjectList.length) {
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Text(
-                                subjectList[index],
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.black87,
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          getTitlesWidget: (value, meta) {
+                            final index = value.toInt();
+                            if (index >= 0 && index < subjectList.length) {
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: Text(
+                                  subjectList[index],
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black87,
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
-                                textAlign: TextAlign.center,
-                              ),
-                            );
-                          }
-                          return const Text('');
-                        },
-                        reservedSize: 40,
+                              );
+                            }
+                            return const Text('');
+                          },
+                          reservedSize: 40,
+                        ),
                       ),
+                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     ),
-                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  ),
-                  borderData: FlBorderData(show: false),
-                  barTouchData: BarTouchData(
-                    enabled: true,
-                    touchTooltipData: BarTouchTooltipData(
-                      fitInsideHorizontally: true,
-                      fitInsideVertically: true,
-                      tooltipPadding: const EdgeInsets.all(8),
-                      tooltipMargin: 8,
-                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                        final subject = subjectList[group.x.toInt()];
-                        final value = rod.toY.round();
-                        return BarTooltipItem(
-                          '$subject\n$value%',
-                          const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        );
-                      },
+                    borderData: FlBorderData(show: false),
+                    barTouchData: BarTouchData(
+                      enabled: true,
+                      touchTooltipData: BarTouchTooltipData(
+                        fitInsideHorizontally: true,
+                        fitInsideVertically: true,
+                        tooltipPadding: const EdgeInsets.all(8),
+                        tooltipMargin: 8,
+                        getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                          final subject = subjectList[group.x.toInt()];
+                          final value = rod.toY.round();
+                          final grade = _getGradeText(value.toString());
+                          return BarTooltipItem(
+                            '$subject\n$value% (Grade $grade)',
+                            const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),
@@ -350,6 +380,30 @@ class _ManageAcademicRecordPageState
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildLegendItem(String text, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 16,
+          height: 16,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          text,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Colors.black87,
+          ),
+        ),
+      ],
     );
   }
 
@@ -366,13 +420,6 @@ class _ManageAcademicRecordPageState
     } else {
       return 'N/A';
     }
-  }
-
-  Color _getScoreColor(double score) {
-    if (score >= 80) return Colors.green;
-    if (score >= 60) return Colors.blue;
-    if (score >= 40) return Colors.orange;
-    return Colors.red;
   }
 
   Widget _buildScoreCell(String? score) {
@@ -514,7 +561,39 @@ class _ManageAcademicRecordPageState
                     },
                   ),
                   const SizedBox(height: 16.0),
-                  if (studentProgressByExam.isNotEmpty) _buildGraph(),
+                  if (_selectedExam != 'Choose Exam' && studentProgressByExam.isEmpty)
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.assessment_outlined,
+                            size: 70,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'No Academic Record Found',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'No exam scores recorded for ${exams.firstWhere((exam) => exam['id'] == _selectedExam)['title']}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    )
+                  else if (studentProgressByExam.isNotEmpty)
+                    _buildGraph(),
                   if (studentProgressByExam.isNotEmpty) ...[
                     const SizedBox(height: 24),
                     Card(
@@ -609,7 +688,38 @@ class _ManageAcademicRecordPageState
                   },
                 ),
                 const SizedBox(height: 16.0),
-                if (studentsProgress.isNotEmpty) ...[
+                if (_selectedExam != 'Choose Exam' && studentsProgress.isEmpty)
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.school_outlined,
+                          size: 70,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'No Academic Records Found',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'No exam scores recorded for ${exams.firstWhere((exam) => exam['id'] == _selectedExam)['title']}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  )
+                else if (studentsProgress.isNotEmpty) ...[
                   Card(
                     elevation: 4,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

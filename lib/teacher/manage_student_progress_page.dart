@@ -22,6 +22,7 @@ class _ManageStudentProgressPageState
       FirebaseDatabase.instance.ref().child('Progress');
   final DatabaseReference _subjectRef =
       FirebaseDatabase.instance.ref().child('Subject');
+  final DatabaseReference _examRef = FirebaseDatabase.instance.ref().child('Exam');
 
   String _selectedFilter = 'All';
   String _selectedSubject = 'Choose Subject';
@@ -31,14 +32,40 @@ class _ManageStudentProgressPageState
   List<Map<String, String>> subjects = [];
   Map<String, Map<String, String>> studentsProgress = {};
   Map<String, String>? studentProgress;
+  List<Map<String, dynamic>> examTypes = [];
 
   final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    _fetchExams();
     _fetchSubjects();
     _fetchStudents();
+  }
+
+  Future<void> _fetchExams() async {
+    try {
+      final snapshot = await _examRef.get();
+      if (snapshot.exists) {
+        final examData = snapshot.value as Map<Object?, Object?>;
+        setState(() {
+          examTypes = examData.entries.map((entry) {
+            final exam = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
+            return {
+              'id': entry.key.toString(),
+              'description': exam['description'] ?? '',
+              'title': exam['title'] ?? '',
+            };
+          }).toList();
+          
+          // Sort by description to maintain consistent order
+          examTypes.sort((a, b) => a['description'].compareTo(b['description']));
+        });
+      }
+    } catch (e) {
+      print('Error fetching exams: $e');
+    }
   }
 
   Future<void> _fetchSubjects() async {
@@ -225,18 +252,25 @@ class _ManageStudentProgressPageState
   Widget _buildGraph() {
     if (studentProgress == null || studentProgress!.isEmpty) return Container();
 
-    final examTypes = ['UP1', 'PPT', 'UP2', 'PAT', 'PUPK'];
-    final colors = [
-      const Color(0xFF2196F3), // Blue
-      const Color(0xFF4CAF50), // Green
-      const Color(0xFFFFC107), // Amber
-      const Color(0xFFE91E63), // Pink
-      const Color(0xFF9C27B0), // Purple
-    ];
+    // Define grade colors
+    final gradeColors = {
+      'A': const Color(0xFF4CAF50), // Green for >= 80
+      'B': const Color(0xFF2196F3), // Blue for >= 60
+      'C': const Color(0xFFFFA726), // Orange for >= 40
+      'D': const Color(0xFFE53935), // Red for < 40
+    };
+
+    // Helper function to get color based on score
+    Color getGradeColor(double score) {
+      if (score >= 80) return gradeColors['A']!;
+      if (score >= 60) return gradeColors['B']!;
+      if (score >= 40) return gradeColors['C']!;
+      return gradeColors['D']!;
+    }
 
     final dataEntries = examTypes.asMap().entries.map((entry) {
       final index = entry.key;
-      final examType = entry.value;
+      final examType = entry.value['description'];
       final yValue = double.tryParse(studentProgress![examType] ?? '0') ?? 0;
 
       return BarChartGroupData(
@@ -244,8 +278,8 @@ class _ManageStudentProgressPageState
         barRods: [
           BarChartRodData(
             toY: yValue,
-            color: colors[index % colors.length],
-            width: 20,
+            color: getGradeColor(yValue), // Use grade color based on score
+            width: examTypes.length <= 3 ? 40 : (examTypes.length <= 5 ? 30 : 20),
             borderRadius: BorderRadius.circular(4),
             backDrawRodData: BackgroundBarChartRodData(
               show: true,
@@ -273,87 +307,115 @@ class _ManageStudentProgressPageState
                 color: Colors.black87,
               ),
             ),
+            // Add grade legend
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Wrap(
+                spacing: 16.0,
+                children: [
+                  _buildLegendItem('A (≥80)', gradeColors['A']!),
+                  _buildLegendItem('B (≥60)', gradeColors['B']!),
+                  _buildLegendItem('C (≥40)', gradeColors['C']!),
+                  _buildLegendItem('D (<40)', gradeColors['D']!),
+                ],
+              ),
+            ),
             const SizedBox(height: 16),
             SizedBox(
               height: 400,
-              child: BarChart(
-                BarChartData(
-                  alignment: BarChartAlignment.spaceAround,
-                  maxY: 100,
-                  barGroups: dataEntries,
-                  gridData: FlGridData(
-                    show: true,
-                    drawHorizontalLine: true,
-                    horizontalInterval: 20,
-                    getDrawingHorizontalLine: (value) => FlLine(
-                      color: Colors.grey[300],
-                      strokeWidth: 1,
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: examTypes.length <= 3 ? 40.0 : 16.0,
+                ),
+                child: BarChart(
+                  BarChartData(
+                    alignment: BarChartAlignment.spaceAround,
+                    maxY: 100,
+                    minY: 0,
+                    barGroups: dataEntries,
+                    gridData: FlGridData(
+                      show: true,
+                      drawHorizontalLine: true,
+                      horizontalInterval: 20,
+                      getDrawingHorizontalLine: (value) => FlLine(
+                        color: Colors.grey[300],
+                        strokeWidth: 1,
+                      ),
                     ),
-                  ),
-                  titlesData: FlTitlesData(
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) => Padding(
-                          padding: const EdgeInsets.only(right: 8.0),
-                          child: Text(
-                            value.toInt().toString(),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.black54,
-                              fontWeight: FontWeight.w500,
+                    titlesData: FlTitlesData(
+                      show: true,
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          getTitlesWidget: (value, meta) => Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: Text(
+                              value.toInt().toString(),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.black54,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
+                          reservedSize: 40,
                         ),
-                        reservedSize: 40,
                       ),
-                    ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          final index = value.toInt();
-                          if (index >= 0 && index < examTypes.length) {
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Text(
-                                examTypes[index],
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.black87,
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          getTitlesWidget: (value, meta) {
+                            final index = value.toInt();
+                            if (index >= 0 && index < examTypes.length) {
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: Tooltip(
+                                  message: examTypes[index]['title'],
+                                  child: Text(
+                                    examTypes[index]['description'],
+                                    style: TextStyle(
+                                      fontSize: examTypes.length <= 5 ? 12 : 10,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.black87,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
-                                textAlign: TextAlign.center,
-                              ),
-                            );
-                          }
-                          return const Text('');
-                        },
-                        reservedSize: 40,
+                              );
+                            }
+                            return const Text('');
+                          },
+                          reservedSize: 40,
+                        ),
+                      ),
+                      rightTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
                       ),
                     ),
-                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  ),
-                  borderData: FlBorderData(show: false),
-                  barTouchData: BarTouchData(
-                    enabled: true,
-                    touchTooltipData: BarTouchTooltipData(
-                      fitInsideHorizontally: true,
-                      fitInsideVertically: true,
-                      tooltipPadding: const EdgeInsets.all(8),
-                      tooltipMargin: 8,
-                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                        final examType = examTypes[group.x.toInt()];
-                        final value = rod.toY.round();
-                        return BarTooltipItem(
-                          '$examType\n$value%',
-                          const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        );
-                      },
+                    borderData: FlBorderData(show: false),
+                    barTouchData: BarTouchData(
+                      enabled: true,
+                      touchTooltipData: BarTouchTooltipData(
+                        fitInsideHorizontally: true,
+                        fitInsideVertically: true,
+                        tooltipPadding: const EdgeInsets.all(8),
+                        tooltipMargin: 8,
+                        getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                          final examType = examTypes[group.x.toInt()];
+                          final value = rod.toY.round();
+                          final grade = _getGradeText(value.toString());
+                          return BarTooltipItem(
+                            '${examType['title']}\n$value% (Grade $grade)',
+                            const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ),
@@ -365,20 +427,44 @@ class _ManageStudentProgressPageState
     );
   }
 
-  String _getExamDescription(int index) {
-    switch (index) {
-      case 1:
-        return 'UP1';
-      case 2:
-        return 'PPT';
-      case 3:
-        return 'UP2';
-      case 4:
-        return 'PAT';
-      case 5:
-        return 'PUPK';
-      default:
-        return '';
+  // Helper widget for legend items
+  Widget _buildLegendItem(String text, Color color) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 16,
+          height: 16,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
+        const SizedBox(width: 4),
+        Text(
+          text,
+          style: const TextStyle(
+            fontSize: 12,
+            color: Colors.black87,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Helper function to get grade text
+  String _getGradeText(String? scoreStr) {
+    final score = double.tryParse(scoreStr ?? '0') ?? 0;
+    if (score >= 80 && score <= 100) {
+      return 'A';
+    } else if (score >= 60 && score < 80) {
+      return 'B';
+    } else if (score >= 40 && score < 60) {
+      return 'C';
+    } else if (score >= 1 && score < 40) {
+      return 'D';
+    } else {
+      return 'N/A';
     }
   }
 
@@ -399,27 +485,17 @@ class _ManageStudentProgressPageState
     }
   }
 
-  // Add helper functions for grade and color
-  String _getGradeText(String? scoreStr) {
-    final score = double.tryParse(scoreStr ?? '0') ?? 0;
-    if (score >= 80 && score <= 100) {
-      return 'A';
-    } else if (score >= 60 && score < 80) {
-      return 'B';
-    } else if (score >= 40 && score < 60) {
-      return 'C';
-    } else if (score >= 1 && score < 40) {
-      return 'D';
-    } else {
-      return 'N/A';
-    }
-  }
-
+  // Add this method to get colors based on score
   Color _getScoreColor(double score) {
-    if (score >= 80) return Colors.green;
-    if (score >= 60) return Colors.blue;
-    if (score >= 40) return Colors.orange;
-    return Colors.red;
+    if (score >= 80) {
+      return const Color(0xFF4CAF50); // Green for A
+    } else if (score >= 60) {
+      return const Color(0xFF2196F3); // Blue for B
+    } else if (score >= 40) {
+      return const Color(0xFFFFA726); // Orange for C
+    } else {
+      return const Color(0xFFE53935); // Red for D
+    }
   }
 
   @override
@@ -567,66 +643,27 @@ class _ManageStudentProgressPageState
                                 child: DataTable(
                                   columnSpacing: 24,
                                   horizontalMargin: 12,
-                                  columns: const [
-                                    DataColumn(
+                                  columns: [
+                                    ...examTypes.map((exam) => DataColumn(
                                       label: SizedBox(
                                         width: 100,
-                                        child: Text(
-                                          'UP1',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(fontSize: 14),
+                                        child: Tooltip(
+                                          message: exam['title'],
+                                          child: Text(
+                                            exam['description'],
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(fontSize: 14),
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                    DataColumn(
-                                      label: SizedBox(
-                                        width: 100,
-                                        child: Text(
-                                          'PPT',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                      ),
-                                    ),
-                                    DataColumn(
-                                      label: SizedBox(
-                                        width: 100,
-                                        child: Text(
-                                          'UP2',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                      ),
-                                    ),
-                                    DataColumn(
-                                      label: SizedBox(
-                                        width: 100,
-                                        child: Text(
-                                          'PAT',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                      ),
-                                    ),
-                                    DataColumn(
-                                      label: SizedBox(
-                                        width: 100,
-                                        child: Text(
-                                          'PUPK',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(fontSize: 14),
-                                        ),
-                                      ),
-                                    ),
+                                    )),
                                   ],
                                   rows: [
                                     DataRow(
                                       cells: [
-                                        DataCell(_buildScoreCell(studentProgress!['UP1'])),
-                                        DataCell(_buildScoreCell(studentProgress!['PPT'])),
-                                        DataCell(_buildScoreCell(studentProgress!['UP2'])),
-                                        DataCell(_buildScoreCell(studentProgress!['PAT'])),
-                                        DataCell(_buildScoreCell(studentProgress!['PUPK'])),
+                                        ...examTypes.map((exam) => DataCell(
+                                          _buildScoreCell(studentProgress![exam['description']]),
+                                        )),
                                       ],
                                     ),
                                   ],
@@ -635,6 +672,38 @@ class _ManageStudentProgressPageState
                             ),
                           ],
                         ),
+                      ),
+                    ),
+                  ] else if (_selectedSubject != 'Choose Subject') ...[
+                    const SizedBox(height: 24),
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.assessment_outlined,
+                            size: 70,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(height: 16),
+                          const Text(
+                            'No Progress Found',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'No exam scores recorded for ${subjects.firstWhere((subject) => subject['id'] == _selectedSubject)['name']}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -670,7 +739,38 @@ class _ManageStudentProgressPageState
                   },
                 ),
                 const SizedBox(height: 16.0),
-                if (studentsProgress.isNotEmpty)
+                if (_selectedSubject != 'Choose Subject' && studentsProgress.isEmpty)
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.people_outline,
+                          size: 70,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'No Student Progress Found',
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'No exam scores recorded for ${subjects.firstWhere((subject) => subject['id'] == _selectedSubject)['name']}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  )
+                else if (studentsProgress.isNotEmpty)
                   Card(
                     elevation: 4,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -715,14 +815,17 @@ class _ManageStudentProgressPageState
                                       style: TextStyle(fontSize: 14),
                                     ),
                                   ),
-                                  ...['UP1', 'PPT', 'UP2', 'PAT', 'PUPK'].map((type) => DataColumn(
+                                  ...examTypes.map((exam) => DataColumn(
                                     label: Container(
                                       width: 100,
                                       alignment: Alignment.center,
-                                      child: Text(
-                                        type,
-                                        style: const TextStyle(fontSize: 14),
-                                        textAlign: TextAlign.center,
+                                      child: Tooltip(
+                                        message: exam['title'],
+                                        child: Text(
+                                          exam['description'],
+                                          style: const TextStyle(fontSize: 14),
+                                          textAlign: TextAlign.center,
+                                        ),
                                       ),
                                     ),
                                   )),
@@ -735,11 +838,9 @@ class _ManageStudentProgressPageState
                                         progress['name'] ?? '-',
                                         style: const TextStyle(fontSize: 14),
                                       )),
-                                      DataCell(_buildScoreCell(progress['UP1'])),
-                                      DataCell(_buildScoreCell(progress['PPT'])),
-                                      DataCell(_buildScoreCell(progress['UP2'])),
-                                      DataCell(_buildScoreCell(progress['PAT'])),
-                                      DataCell(_buildScoreCell(progress['PUPK'])),
+                                      ...examTypes.map((exam) => DataCell(
+                                        _buildScoreCell(progress[exam['description']]),
+                                      )),
                                     ],
                                   );
                                 }).toList(),
