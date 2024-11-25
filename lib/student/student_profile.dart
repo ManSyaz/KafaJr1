@@ -61,9 +61,6 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
 
       // Update the Student table
       await _studentRef.child(_user!.uid).update(studentUpdates);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully!')),
-      );
 
       // Prepare data to update for User table
       Map<String, dynamic> userUpdates = {
@@ -76,35 +73,87 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
       final DatabaseReference userRef = FirebaseDatabase.instance.ref().child('User');
       await userRef.child(_user.uid).update(userUpdates);
 
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Profile updated successfully!',
+            style: TextStyle(color: Colors.white),
+            textAlign: TextAlign.center,
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(
+            bottom: 20,
+            right: 20,
+            left: 20,
+            top: 20,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+
       // Check if password change is needed
-      if (_newPasswordController.text.isNotEmpty) {
-        // Only check for current password if a new password is provided
+      if (_isChangingPassword && _newPasswordController.text.isNotEmpty) {
         if (_currentPasswordController.text.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Please enter your current password to change it.')),
+            SnackBar(
+              content: const Text(
+                'Please enter your current password to change it.',
+                style: TextStyle(color: Colors.white),
+                textAlign: TextAlign.center,
+              ),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.only(
+                bottom: 20,
+                right: 20,
+                left: 20,
+                top: 20,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
           );
-          return; // Exit if current password is not provided
+          return;
         }
 
-        if (_newPasswordController.text == _confirmPasswordController.text) {
-          await _changePassword(); // Call change password if new password is provided
-        } else {
+        if (_newPasswordController.text != _confirmPasswordController.text) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('New password and confirm password do not match.')),
+            SnackBar(
+              content: const Text(
+                'New password and confirm password do not match.',
+                style: TextStyle(color: Colors.white),
+                textAlign: TextAlign.center,
+              ),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.only(
+                bottom: 20,
+                right: 20,
+                left: 20,
+                top: 20,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
           );
+          return;
         }
+        
+        await _changePassword();
       }
     }
   }
 
   Future<void> _changePassword() async {
-    if (_newPasswordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('New password and confirm password do not match.')),
-      );
-      return;
-    }
-
     try {
       // Re-authenticate the user
       UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
@@ -114,8 +163,28 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
 
       // Change the password
       await userCredential.user!.updatePassword(_newPasswordController.text);
+      
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password changed successfully!')),
+        SnackBar(
+          content: const Text(
+            'Password changed successfully!',
+            style: TextStyle(color: Colors.white),
+            textAlign: TextAlign.center,
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(
+            bottom: 20,
+            right: 20,
+            left: 20,
+            top: 20,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
       );
 
       // Clear the password fields
@@ -124,7 +193,25 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
       _confirmPasswordController.clear();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error changing password: $e')),
+        SnackBar(
+          content: Text(
+            'Error changing password: $e',
+            style: const TextStyle(color: Colors.white),
+            textAlign: TextAlign.center,
+          ),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(
+            bottom: 20,
+            right: 20,
+            left: 20,
+            top: 20,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
       );
     }
   }
@@ -142,195 +229,181 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
-        title: Text(
-          'Welcome! ${_fullNameController.text}',
-          style: const TextStyle(color: Colors.white),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
-            onPressed: _logout,
-          ),
-        ],
+        elevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.pinkAccent, Colors.white],
+            stops: [0.0, 0.3],
+          ),
+        ),
         child: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: [
-                // Full Name Title
-                Container(
-                  alignment: Alignment.centerLeft,
-                  child: const Text(
-                    'Full Name',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+              const Text(
+                'My Profile',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
-                TextFormField(
-                  controller: _fullNameController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.pinkAccent),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                  ),
-                  validator: (value) => value!.isEmpty ? 'Please enter your full name' : null,
-                ),
-                const SizedBox(height: 16),
-
-                // IC Number Title
-                Container(
-                  alignment: Alignment.centerLeft,
-                  child: const Text(
-                    'Identity Card Number',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                TextFormField(
-                  controller: _icNumberController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.pinkAccent),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                  ),
-                  validator: (value) => value!.isEmpty ? 'Please enter your IC number' : null,
-                ),
-                const SizedBox(height: 16),
-
-                // Email Title
-                Container(
-                  alignment: Alignment.centerLeft,
-                  child: const Text(
-                    'Email',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ),
-                TextFormField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.pinkAccent),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                  ),
-                  validator: (value) => value!.isEmpty ? 'Please enter your email' : null,
-                ),
-                const SizedBox(height: 20),
-
-                // Toggle for changing password
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Change Password'),
-                    Switch(
-                      value: _isChangingPassword,
-                      onChanged: (value) {
-                        setState(() {
-                          _isChangingPassword = value;
-                        });
-                      },
+              ),
+              const SizedBox(height: 30),
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.2),
+                      spreadRadius: 2,
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
                     ),
                   ],
                 ),
-
-                // Password Fields (only shown if _isChangingPassword is true)
-                if (_isChangingPassword) ...[
-                  const SizedBox(height: 16),
-                  // Current Password Title
-                  Container(
-                    alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'Current Password',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  TextFormField(
-                    controller: _currentPasswordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.pinkAccent),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildInputField(
+                        title: 'Full Name',
+                        controller: _fullNameController,
+                        icon: Icons.person_outline,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                    ),
-                    validator: (value) => value!.isEmpty ? 'Please enter your current password' : null,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // New Password Title
-                  Container(
-                    alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'New Password',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  TextFormField(
-                    controller: _newPasswordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.pinkAccent),
+                      _buildInputField(
+                        title: 'Identity Card Number',
+                        controller: _icNumberController,
+                        icon: Icons.assignment_ind,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                    ),
-                    validator: (value) => value!.isEmpty ? 'Please enter your new password' : null,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Confirm Password Title
-                  Container(
-                    alignment: Alignment.centerLeft,
-                    child: const Text(
-                      'Confirm New Password',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  TextFormField(
-                    controller: _confirmPasswordController,
-                    obscureText: true,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.pinkAccent),
+                      _buildInputField(
+                        title: 'Email',
+                        controller: _emailController,
+                        icon: Icons.email_outlined,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-                    ),
-                    validator: (value) => value!.isEmpty ? 'Please confirm your new password' : null,
-                  ),
-                ],
+                      
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'Change Password',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Switch(
+                            value: _isChangingPassword,
+                            onChanged: (value) {
+                              setState(() {
+                                _isChangingPassword = value;
+                              });
+                            },
+                            activeColor: Colors.pinkAccent,
+                          ),
+                        ],
+                      ),
 
-                const SizedBox(height: 20),
+                      if (_isChangingPassword) ...[
+                        _buildInputField(
+                          title: 'Current Password',
+                          controller: _currentPasswordController,
+                          icon: Icons.lock_outline,
+                          isPassword: true,
+                        ),
+                        _buildInputField(
+                          title: 'New Password',
+                          controller: _newPasswordController,
+                          icon: Icons.lock_outline,
+                          isPassword: true,
+                        ),
+                        _buildInputField(
+                          title: 'Confirm New Password',
+                          controller: _confirmPasswordController,
+                          icon: Icons.lock_outline,
+                          isPassword: true,
+                        ),
+                      ],
 
-                ElevatedButton(
-                  onPressed: () async {
-                    await _saveProfile(); // Save profile data
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.pinkAccent,
-                    minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'Save',
-                    style: TextStyle(color: Colors.white),
+                      const SizedBox(height: 30),
+                      ElevatedButton(
+                        onPressed: _saveProfile,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.pinkAccent,
+                          minimumSize: const Size(double.infinity, 55),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                          elevation: 2,
+                        ),
+                        child: const Text(
+                          'Save Changes',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 30),
+            ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildInputField({
+    required String title,
+    required TextEditingController controller,
+    required IconData icon,
+    bool isPassword = false,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 15),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          obscureText: isPassword,
+          decoration: InputDecoration(
+            prefixIcon: Icon(icon, color: Colors.pinkAccent),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: const BorderSide(color: Colors.pinkAccent),
+            ),
+            filled: true,
+            fillColor: Colors.grey.shade50,
+            contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+          ),
+          validator: (value) => value!.isEmpty ? 'This field is required' : null,
+        ),
+      ],
     );
   }
 }
