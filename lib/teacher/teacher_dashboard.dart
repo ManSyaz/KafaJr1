@@ -21,6 +21,35 @@ class TeacherDashboard extends StatefulWidget {
 }
 
 class _TeacherDashboardState extends State<TeacherDashboard> {
+  @override
+  void initState() {
+    super.initState();
+    // Show floating welcome message when dashboard loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Login successful!', 
+            style: TextStyle(color: Colors.white),
+            textAlign: TextAlign.center,
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(
+            bottom: 20,
+            right: 20,
+            left: 20,
+            top: 20,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    });
+  }
+
   final DatabaseReference _userRef = FirebaseDatabase.instance.ref().child('User');
   int _selectedIndex = 0; // Track the selected index for bottom navigation
 
@@ -39,11 +68,37 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
     });
   }
 
-  Future<void> _logout() async {
+  void _handleLogout() async {
     await FirebaseAuth.instance.signOut();
-    // Navigate to login page after logout
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const LoginPage()), // Adjust the route as needed
+    if (!mounted) return;
+    
+    // Show logout message
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          'Logout successful!', 
+          style: TextStyle(color: Colors.white),
+          textAlign: TextAlign.center,
+        ),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.only(
+          bottom: 20,
+          right: 20,
+          left: 20,
+          top: 20,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+
+    // Navigate to login page
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+      (Route<dynamic> route) => false,
     );
   }
 
@@ -109,12 +164,27 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
                           } else {
                             var userData = snapshot.data!;
                             String userFullName = userData['fullName'] ?? 'User';
-                            return Text(
-                              'Welcome! $userFullName',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                            return Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Welcome!',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  Text(
+                                    userFullName,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
                               ),
                             );
                           }
@@ -122,7 +192,7 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
                       ),
                       IconButton(
                         icon: const Icon(Icons.logout, size: 35, color: Colors.white),
-                        onPressed: _logout, // Call logout function
+                        onPressed: _handleLogout,  // Changed from _logout to _handleLogout
                       ),
                     ],
                   ),

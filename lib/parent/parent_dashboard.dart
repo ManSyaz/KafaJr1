@@ -17,6 +17,35 @@ class ParentDashboard extends StatefulWidget {
 }
 
 class _ParentDashboardState extends State<ParentDashboard> {
+  @override
+  void initState() {
+    super.initState();
+    // Show floating welcome message when dashboard loads
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Login successful!', 
+            style: TextStyle(color: Colors.white),
+            textAlign: TextAlign.center,
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(
+            bottom: 20,
+            right: 20,
+            left: 20,
+            top: 20,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    });
+  }
+
   final DatabaseReference _userRef = FirebaseDatabase.instance.ref().child('User');
   int _selectedIndex = 0; // Track the selected index for bottom navigation
   String? _selectedStudentEmail; // Track the selected student email
@@ -36,11 +65,37 @@ class _ParentDashboardState extends State<ParentDashboard> {
     });
   }
 
-  Future<void> _logout() async {
+  void _handleLogout() async {
     await FirebaseAuth.instance.signOut();
-    // Navigate to login page after logout
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const LoginPage()), // Adjust the route as needed
+    if (!mounted) return;
+    
+    // Show logout message
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          'Logout successful!', 
+          style: TextStyle(color: Colors.white),
+          textAlign: TextAlign.center,
+        ),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.only(
+          bottom: 20,
+          right: 20,
+          left: 20,
+          top: 20,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+
+    // Navigate to login page
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+      (Route<dynamic> route) => false,
     );
   }
 
@@ -106,12 +161,27 @@ class _ParentDashboardState extends State<ParentDashboard> {
                           } else {
                             var userData = snapshot.data!;
                             String userFullName = userData['fullName'] ?? 'User';
-                            return Text(
-                              'Welcome! \n$userFullName',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                            return Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Welcome!',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  Text(
+                                    userFullName,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
                               ),
                             );
                           }
@@ -119,7 +189,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
                       ),
                       IconButton(
                         icon: const Icon(Icons.logout, size: 35, color: Colors.white),
-                        onPressed: _logout, // Call logout function
+                        onPressed: _handleLogout, // Call logout function
                       ),
                     ],
                   ),
@@ -137,7 +207,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
         ),
         Column(
           children: [
-            const SizedBox(height: 100),
+            const SizedBox(height: 115),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
@@ -160,7 +230,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
                 ],
               ),
             ),
-            const SizedBox(height: 80),
+            const SizedBox(height: 75),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Column(
@@ -178,7 +248,10 @@ class _ParentDashboardState extends State<ParentDashboard> {
                     future: _getStudentEmails(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const CircularProgressIndicator();
+                        return const Align(
+                          alignment: Alignment.centerLeft,
+                          child: CircularProgressIndicator(),
+                        );
                       } else if (snapshot.hasError) {
                         return const Text('Error fetching emails');
                       } else {

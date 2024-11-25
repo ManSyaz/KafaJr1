@@ -102,51 +102,60 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
           const SizedBox(height: 8),
 
           // Subject filter chips
-          Padding(
+          Container(
+            height: 50, // Fixed height for the chips container
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Wrap(
-              spacing: 8.0,
+            child: ListView(
+              scrollDirection: Axis.horizontal,
               children: [
                 // "All" chip
-                FilterChip(
-                  label: const Text('All'),
-                  selected: _selectedSubjects.isEmpty,
-                  onSelected: (selected) {
-                    setState(() {
-                      if (selected) {
-                        _selectedSubjects.clear(); // Clear selected subjects to show all notes
-                      }
-                    });
-                  },
-                  selectedColor: Colors.pinkAccent,
-                  backgroundColor: Colors.grey[300],
-                  labelStyle: const TextStyle(color: Colors.black),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                    side: const BorderSide(color: Colors.pinkAccent),
-                  ),
-                ),
-                // Chips for each subject
-                ..._subjects.map((subject) {
-                  final isSelected = _selectedSubjects.contains(subject);
-                  return FilterChip(
-                    label: Text(subject),
-                    selected: isSelected,
+                Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: FilterChip(
+                    label: const Text('All'),
+                    selected: _selectedSubjects.isEmpty,
                     onSelected: (selected) {
                       setState(() {
                         if (selected) {
-                          _selectedSubjects.add(subject); // Add subject to selected list
-                        } else {
-                          _selectedSubjects.remove(subject); // Remove subject from selected list
+                          _selectedSubjects.clear();
                         }
                       });
                     },
                     selectedColor: Colors.pinkAccent,
                     backgroundColor: Colors.grey[300],
-                    labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
+                    labelStyle: TextStyle(
+                      color: _selectedSubjects.isEmpty ? Colors.white : Colors.black,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8.0),
-                      side: BorderSide(color: isSelected ? Colors.white : Colors.pinkAccent),
+                      side: const BorderSide(color: Colors.pinkAccent),
+                    ),
+                  ),
+                ),
+                // Chips for each subject
+                ..._subjects.map((subject) {
+                  final isSelected = _selectedSubjects.contains(subject);
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8.0),
+                    child: FilterChip(
+                      label: Text(subject),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) {
+                            _selectedSubjects.add(subject); // Add subject to selected list
+                          } else {
+                            _selectedSubjects.remove(subject); // Remove subject from selected list
+                          }
+                        });
+                      },
+                      selectedColor: Colors.pinkAccent,
+                      backgroundColor: Colors.grey[300],
+                      labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        side: BorderSide(color: isSelected ? Colors.white : Colors.pinkAccent),
+                      ),
                     ),
                   );
                 }),
@@ -192,40 +201,122 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
                   )
                 : ListView.builder(
                     itemCount: filteredNotes.length,
+                    padding: const EdgeInsets.all(16.0),
                     itemBuilder: (context, index) {
                       final note = filteredNotes[index];
-                      return Card(
-                        color: const Color.fromARGB(255, 121, 108, 108),
-                        margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-                        child: ListTile(
-                          title: Text(
-                            note['title'] ?? 'No Title',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 16.0),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [
+                              Color(0xFFFF69B4), // Pink
+                              Color(0xFFFF1493), // Deep Pink
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                          subtitle: Text(
-                            note['description'] ?? 'No Description',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Color.fromARGB(255, 255, 255, 255),
+                          borderRadius: BorderRadius.circular(15),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.3),
+                              spreadRadius: 2,
+                              blurRadius: 5,
+                              offset: const Offset(0, 3),
                             ),
-                          ),
-                          trailing: note['fileUrl'] != null && note['fileUrl'].isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.remove_red_eye, color: Colors.blue),
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => PDFViewerPage(fileUrl: note['fileUrl']),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: note['fileUrl'] != null && note['fileUrl'].isNotEmpty
+                                  ? () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => PDFViewerPage(fileUrl: note['fileUrl']),
+                                        ),
+                                      );
+                                    }
+                                  : null,
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
-                                    );
-                                  },
-                                )
-                              : null,
+                                      child: const Icon(
+                                        Icons.description_outlined,
+                                        color: Colors.white,
+                                        size: 24,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            note['title'] ?? 'No Title',
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            note['description'] ?? 'No Description',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.white.withOpacity(0.9),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white.withOpacity(0.2),
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            child: Text(
+                                              note['subject'] ?? 'No Subject',
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    if (note['fileUrl'] != null && note['fileUrl'].isNotEmpty)
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: const Icon(
+                                          Icons.remove_red_eye,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
                       );
                     },

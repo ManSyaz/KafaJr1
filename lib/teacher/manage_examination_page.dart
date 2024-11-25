@@ -194,139 +194,231 @@ class _ManageExaminationPageState extends State<ManageExaminationPage> {
                 )
               : ListView.builder(
                   itemCount: filteredExaminations.length,
+                  padding: const EdgeInsets.all(16.0),
                   itemBuilder: (context, index) {
                     final exam = filteredExaminations[index];
-                    return Card(
-                      color: const Color.fromARGB(255, 255, 255, 255),
-                      margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 16.0),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFFFF69B4),
+                            Color(0xFFFF1493),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(15),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.3),
+                            spreadRadius: 2,
+                            blurRadius: 5,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
                       child: Theme(
-                        data: Theme.of(context).copyWith(dividerColor: Colors.transparent), // This removes the line
-                        child: ExpansionTile(
-                          tilePadding: const EdgeInsets.symmetric(horizontal: 16.0), // Add padding here
-                          childrenPadding: EdgeInsets.zero, // Remove padding around children
-                          title: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  exam['title'] ?? 'No Title',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color.fromARGB(255, 32, 32, 32),
+                        data: Theme.of(context).copyWith(
+                          dividerColor: Colors.transparent,
+                          colorScheme: ColorScheme.fromSwatch().copyWith(
+                            secondary: Colors.white,
+                          ),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(15),
+                          child: ExpansionTile(
+                            backgroundColor: Colors.transparent,
+                            collapsedBackgroundColor: Colors.transparent,
+                            leading: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(
+                                Icons.quiz_outlined,
+                                color: Colors.white,
+                              ),
+                            ),
+                            title: Text(
+                              exam['title'] ?? 'No Title',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 8),
+                                Text(
+                                  exam['description'] ?? 'No Description',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.white.withOpacity(0.9),
                                   ),
                                 ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.delete, color: Colors.red),
-                                onPressed: () {
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        title: const Text('Delete Exam'),
-                                        content: const Text('Are you sure you want to delete this exam?'),
-                                        actions: [
-                                          TextButton(
-                                            child: const Text('Cancel'),
-                                            onPressed: () => Navigator.of(context).pop(),
-                                          ),
-                                          TextButton(
-                                            child: const Text('Delete', style: TextStyle(color: Colors.red)),
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                              _deleteExam(exam['key']);
-                                            },
-                                          ),
-                                        ],
+                              ],
+                            ),
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.only(right: 8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: IconButton(
+                                    icon: const Icon(
+                                      Icons.delete,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                    onPressed: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            title: const Text('Delete Exam'),
+                                            content: const Text('Are you sure you want to delete this exam?'),
+                                            actions: [
+                                              TextButton(
+                                                child: const Text('Cancel'),
+                                                onPressed: () => Navigator.of(context).pop(),
+                                              ),
+                                              TextButton(
+                                                child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                  _deleteExam(exam['key']);
+                                                },
+                                              ),
+                                            ],
+                                          );
+                                        },
                                       );
                                     },
-                                  );
-                                },
+                                  ),
+                                ),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(
+                                    Icons.expand_more,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            children: [
+                              Container(
+                                color: Colors.white.withOpacity(0.1),
+                                child: Column(
+                                  children: [
+                                    ListTile(
+                                      leading: const Icon(Icons.edit, color: Colors.white),
+                                      title: const Text(
+                                        'Enter Scores',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => EnterScorePage(examId: exam['key']),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    if (exam['subjects'] != null)
+                                      ...exam['subjects'].entries.map((entry) {
+                                        final subjectKey = entry.key;
+                                        final subjectData = entry.value as Map<dynamic, dynamic>?;
+                                        final subjectTitle = subjectData?['title'] as String? ?? 'No Title';
+                                        final fileUrl = subjectData?['fileUrl'] as String? ?? '';
+
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withOpacity(0.1),
+                                            border: Border(
+                                              top: BorderSide(color: Colors.white.withOpacity(0.1)),
+                                            ),
+                                          ),
+                                          child: ListTile(
+                                            title: Text(
+                                              subjectTitle,
+                                              style: const TextStyle(color: Colors.white),
+                                            ),
+                                            trailing: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                IconButton(
+                                                  icon: const Icon(Icons.remove_red_eye, color: Colors.white),
+                                                  onPressed: () {
+                                                    if (fileUrl.isNotEmpty) {
+                                                      Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (context) => PDFViewerPage(fileUrl: fileUrl),
+                                                        ),
+                                                      );
+                                                    }
+                                                  },
+                                                ),
+                                                IconButton(
+                                                  icon: const Icon(Icons.edit, color: Colors.white),
+                                                  onPressed: () {
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) => EditExamPage(
+                                                          examId: exam['key'],
+                                                          subjectId: subjectKey,
+                                                        ),
+                                                      ),
+                                                    );
+                                                  },
+                                                ),
+                                                IconButton(
+                                                  icon: const Icon(Icons.delete, color: Colors.white),
+                                                  onPressed: () {
+                                                    _examRef
+                                                        .child(exam['key'])
+                                                        .child('subjects')
+                                                        .child(subjectKey)
+                                                        .remove();
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      }),
+                                    ListTile(
+                                      leading: const Icon(Icons.add, color: Colors.white),
+                                      title: const Text(
+                                        'Add Subject',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => AddExamSubjectPage(examId: exam['key']),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
                             ],
                           ),
-                          subtitle: Padding(
-                            padding: const EdgeInsets.only(top: 4.0), // Add a little space between title and subtitle
-                            child: Text(
-                              exam['description'] ?? 'No Description',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Color.fromARGB(179, 63, 61, 61),
-                              ),
-                            ),
-                          ),
-                          children: [
-                            ListTile(
-                              title: const Text('Enter Scores'),
-                              trailing: const Icon(Icons.edit),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => EnterScorePage(examId: exam['key']),
-                                  ),
-                                );
-                              },
-                            ),
-                            if (exam['subjects'] != null)
-                              ...exam['subjects'].entries.map((entry) {
-                                final subjectKey = entry.key;
-                                final subjectData = entry.value as Map<dynamic, dynamic>?;
-                                final subjectTitle = subjectData?['title'] as String? ?? 'No Title';
-                                final fileUrl = subjectData?['fileUrl'] as String? ?? '';
-
-                                return ListTile(
-                                  title: Text(subjectTitle),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.remove_red_eye, color: Colors.blue),
-                                        onPressed: () {
-                                          if (fileUrl.isNotEmpty) {
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) => PDFViewerPage(fileUrl: fileUrl),
-                                              ),
-                                            );
-                                          }
-                                        },
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.edit, color: Colors.green),
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => EditExamPage(examId: exam['key'], subjectId: subjectKey),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete, color: Colors.red),
-                                        onPressed: () {
-                                          _examRef.child(exam['key']).child('subjects').child(subjectKey).remove();
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              }),
-                            ListTile(
-                              title: const Text('Add Subject'),
-                              trailing: const Icon(Icons.add),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => AddExamSubjectPage(examId: exam['key']),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
                         ),
                       ),
                     );
