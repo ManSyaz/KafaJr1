@@ -376,7 +376,7 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
                                       ),
                                       const SizedBox(height: 8),
                                       _buildInfoRow(
-                                        icon: Icons.email_outlined,
+                                        icon: Icons.assignment_ind_outlined,
                                         label: 'Identity Card Number:',
                                         value: student['icNumber'] ?? 'Not provided',
                                       ),
