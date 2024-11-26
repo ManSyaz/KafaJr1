@@ -644,7 +644,7 @@ class _ManageAcademicRecordPageState
                                       color: Colors.black87,
                                       fontSize: 14,
                                     ),
-                                    headingRowColor: MaterialStateProperty.all(Colors.grey[100]),
+                                    headingRowColor: WidgetStateProperty.all(Colors.grey[100]),
                                   ),
                                 ),
                                 child: DataTable(
