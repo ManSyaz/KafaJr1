@@ -132,34 +132,44 @@ class _ManageAcademicRecordPageState
 
       if (snapshot.exists) {
         final progressData = snapshot.value as Map<Object?, Object?>;
+        Map<String, Map<String, String>> newProgress = {};
 
-        final newProgress = progressData.entries.fold<Map<String, Map<String, String>>>(
-          {},
-          (map, entry) {
-            final progress = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
-            final studentId = progress['studentId']?.toString() ?? '-';
-            final subjectId = progress['subjectId']?.toString() ?? '-';
-            final subjectCode = subjectCodes[subjectId] ?? 'Unknown';
-            final score = progress['score']?.toString() ?? '-';
+        // Initialize the map for the selected exam with all subject codes
+        if (_selectedFilter == 'Student') {
+          newProgress[examId] = {
+            'examDescription': '',
+            'examTitle': exams.firstWhere((e) => e['id'] == examId)['title'] ?? '',
+          };
+          // Initialize all subject scores to '0'
+          for (var code in subjectCodes.values) {
+            newProgress[examId]![code] = '0';
+          }
+        }
 
-            if (_selectedFilter == 'Student' && studentId == _selectedStudentId) {
-              map[examId] = {
-                'examDescription': progress['examDescription']?.toString() ?? '',
-                'examTitle': exams.firstWhere((e) => e['id'] == examId)['title'] ?? '',
+        // Process each progress entry
+        for (var entry in progressData.entries) {
+          final progress = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
+          final studentId = progress['studentId']?.toString() ?? '-';
+          final subjectId = progress['subjectId']?.toString() ?? '-';
+          final subjectCode = subjectCodes[subjectId] ?? 'Unknown';
+          final score = progress['score']?.toString() ?? '-';
+
+          if (_selectedFilter == 'Student' && studentId == _selectedStudentId) {
+            newProgress[examId]!['examDescription'] = progress['examDescription']?.toString() ?? '';
+            newProgress[examId]![subjectCode] = score;
+          } else if (_selectedFilter == 'All') {
+            if (!newProgress.containsKey(studentId)) {
+              newProgress[studentId] = {
+                'name': studentNames[studentId] ?? 'Unknown',
               };
-              map[examId]![subjectCode] = score;
-            } else if (_selectedFilter == 'All') {
-              if (!map.containsKey(studentId)) {
-                map[studentId] = {
-                  'name': studentNames[studentId] ?? 'Unknown',
-                };
+              // Initialize all subject scores to '0'
+              for (var code in subjectCodes.values) {
+                newProgress[studentId]![code] = '0';
               }
-              map[studentId]![subjectCode] = score;
             }
-            
-            return map;
-          },
-        );
+            newProgress[studentId]![subjectCode] = score;
+          }
+        }
 
         setState(() {
           if (_selectedFilter == 'Student') {
