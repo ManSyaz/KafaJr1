@@ -53,52 +53,7 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
 
   Future<void> _saveProfile() async {
     if (_formKey.currentState!.validate()) {
-      // Prepare data to update for Teacher table
-      Map<String, dynamic> teacherUpdates = {
-        'fullName': _fullNameController.text,
-        'icNumber': _icNumberController.text, // Save IC Number
-        'email': _emailController.text, // Save Email
-      };
-
-      // Update the Teacher table
-      await _teacherRef.child(_user!.uid).update(teacherUpdates);
-      
-      // Prepare data to update for User table
-      Map<String, dynamic> userUpdates = {
-        'fullName': _fullNameController.text,
-        'email': _emailController.text, // Update email in User table
-        'icNumber': _icNumberController.text, // Update IC Number in User table
-      };
-
-      // Assuming you have a reference to the User table
-      final DatabaseReference userRef = FirebaseDatabase.instance.ref().child('User');
-      await userRef.child(_user.uid).update(userUpdates);
-
-      // Show success message
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Profile updated successfully!',
-            style: TextStyle(color: Colors.white),
-            textAlign: TextAlign.center,
-          ),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.only(
-            bottom: 20,
-            right: 20,
-            left: 20,
-            top: 20,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
-
-      // Check if password change is needed
+      // Check password change first if needed
       if (_isChangingPassword && _newPasswordController.text.isNotEmpty) {
         if (_currentPasswordController.text.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -149,9 +104,55 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
           );
           return;
         }
-        
-        await _changePassword();
+
+        try {
+          await _changePassword();
+        } catch (e) {
+          return; // Exit the method if password change fails
+        }
       }
+
+      // If we get here, either no password change was requested or it was successful
+      // Now proceed with profile updates
+      Map<String, dynamic> teacherUpdates = {
+        'fullName': _fullNameController.text,
+        'icNumber': _icNumberController.text,
+        'email': _emailController.text,
+      };
+
+      await _teacherRef.child(_user!.uid).update(teacherUpdates);
+      
+      Map<String, dynamic> userUpdates = {
+        'fullName': _fullNameController.text,
+        'email': _emailController.text,
+        'icNumber': _icNumberController.text,
+      };
+
+      final DatabaseReference userRef = FirebaseDatabase.instance.ref().child('User');
+      await userRef.child(_user.uid).update(userUpdates);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Profile updated successfully!',
+            style: TextStyle(color: Colors.white),
+            textAlign: TextAlign.center,
+          ),
+          backgroundColor: Colors.green,
+          duration: const Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(
+            bottom: 20,
+            right: 20,
+            left: 20,
+            top: 20,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
     }
   }
 
@@ -194,10 +195,11 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
       _newPasswordController.clear();
       _confirmPasswordController.clear();
     } catch (e) {
+      String errorMessage = 'The current password does not match';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Error changing password: $e',
+            errorMessage,
             style: const TextStyle(color: Colors.white),
             textAlign: TextAlign.center,
           ),
@@ -215,6 +217,7 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
           ),
         ),
       );
+      throw Exception('Password change failed');
     }
   }
 
