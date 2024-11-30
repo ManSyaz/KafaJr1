@@ -63,97 +63,94 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            children: [
-              // Icon Section
-              const SizedBox(height: 24),
-
-              // Title Section
-              const Text(
-                'KAFAJr',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.pinkAccent,
-                  letterSpacing: 1.5,
+      body: Center(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              children: [
+                
+                // Replace the Title Section with Logo Section
+                Image.asset(
+                  'assets/kafalogo.png',
+                  height: 155,
+                  width: 155,
+                  fit: BoxFit.contain,
                 ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 0),
 
-              // Forgot Password Title and Description
-              const Text(
-                'Forgot Password?',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 12),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24.0),
-                child: Text(
-                  'Enter your email address below to receive password reset instructions',
+                // Forgot Password Title and Description
+                const Text(
+                  'Forgot Password?',
                   style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.black,
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    height: 1.5,
+                    color: Colors.black87,
                   ),
-                  textAlign: TextAlign.center,
                 ),
-              ),
-              const SizedBox(height: 32),
-
-              // Email Input Field
-              _buildInputField(
-                controller: _emailController,
-                label: 'Email',
-                hint: 'Enter your email address',
-                icon: Icons.email_outlined,
-              ),
-              const SizedBox(height: 32),
-
-              // Reset Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _resetPassword,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.pinkAccent,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 2,
-                  ),
-                  child: const Text(
-                    'Send Reset Link',
+                const SizedBox(height: 12),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Text(
+                    'Enter your email address below to receive password reset instructions',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 14,
+                      color: Colors.black,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      height: 1.5,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                // Email Input Field
+                _buildInputField(
+                  controller: _emailController,
+                  label: 'Email',
+                  hint: 'Enter your email address',
+                  icon: Icons.email_outlined,
+                ),
+                const SizedBox(height: 32),
+
+                // Reset Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _resetPassword,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.pinkAccent,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 2,
+                    ),
+                    child: const Text(
+                      'Send Reset Link',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
+                const SizedBox(height: 24),
 
-              // Back to Login
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text(
-                  'Back to Login',
-                  style: TextStyle(
-                    color: Colors.pinkAccent,
-                    fontWeight: FontWeight.bold,
+                // Back to Login
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    'Back to Login',
+                    style: TextStyle(
+                      color: Colors.pinkAccent,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

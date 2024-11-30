@@ -414,7 +414,7 @@ class _AddExamSubjectPageState extends State<AddExamSubjectPage> {
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      Icon(Icons.cloud_upload_outlined, 
+                      const Icon(Icons.cloud_upload_outlined, 
                           color: Colors.pinkAccent, size: 28),
                       const SizedBox(width: 12),
                       Expanded(

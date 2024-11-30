@@ -30,7 +30,7 @@ class _EnterScorePageState extends State<EnterScorePage> {
   List<Map<String, dynamic>> _filteredStudents = [];
   Map<String, TextEditingController> _scoreControllers = {};
   String? _selectedExamId;
-  TextEditingController _searchController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {

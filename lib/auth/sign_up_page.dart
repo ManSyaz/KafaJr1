@@ -280,19 +280,14 @@ class _SignUpPageState extends State<SignUpPage> {
           padding: const EdgeInsets.all(24.0),
           child: Column(
             children: [
-              // Logo and Title Section
-              
-              const SizedBox(height: 16),
-              const Text(
-                'KAFAJr',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.pinkAccent,
-                  letterSpacing: 1.5,
-                ),
+              // Replace Logo and Title Section
+              Image.asset(
+                'assets/kafalogo.png',
+                height: 120,
+                width: 120,
+                fit: BoxFit.contain,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 0),
               const Text(
                 'Create your account',
                 style: TextStyle(

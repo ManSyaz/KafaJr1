@@ -134,134 +134,130 @@ class _LoginPageState extends State<LoginPage> {
       appBar: AppBar(
         backgroundColor: Colors.pinkAccent,
         elevation: 0,
-        
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // Logo Section
-                
-                const SizedBox(height: 16),
-                const Text(
-                  'KAFAJr',
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.pinkAccent,
-                    letterSpacing: 1.5,
+        child: Center(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Logo Section
+                  Image.asset(
+                    'assets/kafalogo.png', // Make sure to add your logo image to this path
+                    height: 155, // Adjust height as needed
+                    width: 155,  // Adjust width as needed
+                    fit: BoxFit.contain,
                   ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Welcome!',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.black,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: 32),
-
-                // Email Field
-                _buildInputField(
-                  controller: _emailController,
-                  label: 'Email',
-                  hint: 'Enter your email',
-                  icon: Icons.email_outlined,
-                ),
-
-                // Password Field
-                _buildInputField(
-                  controller: _passwordController,
-                  label: 'Password',
-                  hint: 'Enter your password',
-                  icon: Icons.lock_outline,
-                  isPassword: true,
-                ),
-
-                const SizedBox(height: 16),
-
-                // Forgot Password Button
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const ResetPasswordPage()),
-                      );
-                    },
-                    child: const Text(
-                      'Forgot Password?',
-                      style: TextStyle(
-                        color: Colors.pinkAccent,
-                        fontWeight: FontWeight.bold,
-                      ),
+                  const SizedBox(height: 0),
+                  const Text(
+                    'Welcome!',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
                     ),
                   ),
-                ),
+                  const SizedBox(height: 32),
 
-                const SizedBox(height: 24),
+                  // Email Field
+                  _buildInputField(
+                    controller: _emailController,
+                    label: 'Email',
+                    hint: 'Enter your email',
+                    icon: Icons.email_outlined,
+                  ),
 
-                // Sign In Button
-                if (_isLoading)
-                  const CircularProgressIndicator(color: Colors.pinkAccent)
-                else
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _signIn,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.pinkAccent,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        elevation: 2,
-                      ),
+                  // Password Field
+                  _buildInputField(
+                    controller: _passwordController,
+                    label: 'Password',
+                    hint: 'Enter your password',
+                    icon: Icons.lock_outline,
+                    isPassword: true,
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Forgot Password Button
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const ResetPasswordPage()),
+                        );
+                      },
                       child: const Text(
-                        'Sign In',
+                        'Forgot Password?',
                         style: TextStyle(
-                          fontSize: 18,
+                          color: Colors.pinkAccent,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
                         ),
                       ),
                     ),
                   ),
 
-                const SizedBox(height: 24),
+                  const SizedBox(height: 24),
 
-                // Sign Up Link
-                TextButton(
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => const SignUpPage()),
-                    );
-                  },
-                  child: RichText(
-                    text: const TextSpan(
-                      text: "Don't have an account? ",
-                      style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-                      children: [
-                        TextSpan(
-                          text: "Sign Up",
+                  // Sign In Button
+                  if (_isLoading)
+                    const CircularProgressIndicator(color: Colors.pinkAccent)
+                  else
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _signIn,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.pinkAccent,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 2,
+                        ),
+                        child: const Text(
+                          'Sign In',
                           style: TextStyle(
-                            color: Colors.pinkAccent,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
-                      ],
+                      ),
+                    ),
+
+                  const SizedBox(height: 24),
+
+                  // Sign Up Link
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => const SignUpPage()),
+                      );
+                    },
+                    child: RichText(
+                      text: const TextSpan(
+                        text: "Don't have an account? ",
+                        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                        children: [
+                          TextSpan(
+                            text: "Sign Up",
+                            style: TextStyle(
+                              color: Colors.pinkAccent,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
