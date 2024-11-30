@@ -33,6 +33,15 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
   // Add a boolean to track if the user wants to change their password
   bool _isChangingPassword = false;
 
+  // Add state variables for validation errors and password visibility
+  String? _passwordError;
+  String? _emailError;
+  String? _icError;
+  String? _currentPasswordError;
+  bool _obscureCurrentPassword = true;
+  bool _obscureNewPassword = true;
+  bool _obscureConfirmPassword = true;
+
   @override
   void initState() {
     super.initState();
@@ -61,13 +70,15 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
   Future<void> _changePassword() async {
     try {
       // Re-authenticate the user
-      UserCredential userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+      AuthCredential credential = EmailAuthProvider.credential(
         email: _emailController.text,
         password: _currentPasswordController.text,
       );
 
+      await _user!.reauthenticateWithCredential(credential);
+
       // Change the password
-      await userCredential.user!.updatePassword(_newPasswordController.text);
+      await _user.updatePassword(_newPasswordController.text);
       
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -96,8 +107,13 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
       _currentPasswordController.clear();
       _newPasswordController.clear();
       _confirmPasswordController.clear();
+      
+      // Turn off password change mode
+      setState(() {
+        _isChangingPassword = false;
+      });
     } catch (e) {
-      String errorMessage = 'The current password does not match';
+      String errorMessage = 'Failed to change password. Please check your current password.';
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -123,106 +139,186 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
     }
   }
 
+  // Add validation functions
+  bool _validateCurrentPassword(String password) {
+    if (password.isEmpty) {
+      setState(() => _currentPasswordError = 'Current password is required');
+      return false;
+    }
+    setState(() => _currentPasswordError = null);
+    return true;
+  }
+
+  bool _validatePassword(String password) {
+    if (password.length < 8) {
+      setState(() => _passwordError = 'Password must be at least 8 characters long');
+      return false;
+    }
+    if (!password.contains(RegExp(r'[A-Z]'))) {
+      setState(() => _passwordError = 'Password must contain at least one uppercase letter');
+      return false;
+    }
+    if (!password.contains(RegExp(r'[a-z]'))) {
+      setState(() => _passwordError = 'Password must contain at least one lowercase letter');
+      return false;
+    }
+    if (!password.contains(RegExp(r'[!@#$%^&*(),.?":{}|<>]'))) {
+      setState(() => _passwordError = 'Password must contain at least one special character');
+      return false;
+    }
+    setState(() => _passwordError = null);
+    return true;
+  }
+
+  bool _validateEmail(String email) {
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    
+    if (email.isEmpty) {
+      setState(() => _emailError = 'Email is required');
+      return false;
+    }
+    
+    if (!emailRegex.hasMatch(email)) {
+      setState(() => _emailError = 'Please enter a valid email address');
+      return false;
+    }
+    
+    setState(() => _emailError = null);
+    return true;
+  }
+
+  bool _validateIC(String ic) {
+    ic = ic.replaceAll(RegExp(r'[-\s]'), '');
+    
+    if (ic.length != 12) {
+      setState(() => _icError = 'IC number must be 12 digits');
+      return false;
+    }
+
+    if (!RegExp(r'^[0-9]+$').hasMatch(ic)) {
+      setState(() => _icError = 'IC number must contain only numbers');
+      return false;
+    }
+
+    int year = int.parse(ic.substring(0, 2));
+    int month = int.parse(ic.substring(2, 4));
+    int day = int.parse(ic.substring(4, 6));
+
+    year += (year >= 0 && year <= DateTime.now().year % 100) ? 2000 : 1900;
+
+    try {
+      final date = DateTime(year, month, day);
+      if (date.isAfter(DateTime.now())) {
+        setState(() => _icError = 'Invalid date of birth');
+        return false;
+      }
+    } catch (e) {
+      setState(() => _icError = 'Invalid date of birth');
+      return false;
+    }
+
+    int stateCode = int.parse(ic.substring(6, 8));
+    List<int> validStateCodes = [
+      01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15, 16, 21, 22, 23, 24
+    ];
+    if (!validStateCodes.contains(stateCode)) {
+      setState(() => _icError = 'Invalid state code');
+      return false;
+    }
+
+    setState(() => _icError = null);
+    return true;
+  }
+
   Future<void> _saveProfile() async {
-    if (_formKey.currentState!.validate()) {
-      // Check password change first if needed
-      if (_isChangingPassword && _newPasswordController.text.isNotEmpty) {
-        if (_currentPasswordController.text.isEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text(
-                'Please enter your current password to change it.',
-                style: TextStyle(color: Colors.white),
-                textAlign: TextAlign.center,
-              ),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 2),
-              behavior: SnackBarBehavior.floating,
-              margin: const EdgeInsets.only(
-                bottom: 20,
-                right: 20,
-                left: 20,
-                top: 20,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          );
-          return;
-        }
+    bool isValid = true;
 
-        if (_newPasswordController.text != _confirmPasswordController.text) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text(
-                'New password and confirm password do not match.',
-                style: TextStyle(color: Colors.white),
-                textAlign: TextAlign.center,
-              ),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 2),
-              behavior: SnackBarBehavior.floating,
-              margin: const EdgeInsets.only(
-                bottom: 20,
-                right: 20,
-                left: 20,
-                top: 20,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          );
-          return;
-        }
+    // Validate email and IC
+    if (!_validateEmail(_emailController.text)) isValid = false;
+    if (!_validateIC(_icNumberController.text)) isValid = false;
 
-        try {
-          await _changePassword();
-        } catch (e) {
-          return; // Exit the method if password change fails
-        }
+    // Validate password if changing
+    if (_isChangingPassword && _newPasswordController.text.isNotEmpty) {
+      if (!_validateCurrentPassword(_currentPasswordController.text)) isValid = false;
+      if (!_validatePassword(_newPasswordController.text)) isValid = false;
+
+      if (_newPasswordController.text != _confirmPasswordController.text) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'New password and confirm password do not match.',
+              style: TextStyle(color: Colors.white),
+              textAlign: TextAlign.center,
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.only(
+              bottom: 20,
+              right: 20,
+              left: 20,
+              top: 20,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+        return;
       }
 
-      // If we get here, either no password change was requested or it was successful
-      // Now proceed with profile updates
-      await _parentRef.child(_user!.uid).update({
-        'fullName': _fullNameController.text,
-        'icNumber': _icNumberController.text,
-        'email': _emailController.text,
-      });
-
-      // Update the User table
-      final DatabaseReference userRef = FirebaseDatabase.instance.ref().child('User');
-      await userRef.child(_user.uid).update({
-        'fullName': _fullNameController.text,
-        'icNumber': _icNumberController.text,
-        'email': _emailController.text,
-      });
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text(
-            'Profile updated successfully!',
-            style: TextStyle(color: Colors.white),
-            textAlign: TextAlign.center,
-          ),
-          backgroundColor: Colors.green,
-          duration: const Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.only(
-            bottom: 20,
-            right: 20,
-            left: 20,
-            top: 20,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-      );
+      try {
+        // Change password first if requested
+        await _changePassword();
+      } catch (e) {
+        // If password change fails, stop the profile update
+        return;
+      }
     }
+
+    if (!isValid) return;
+
+    // If we get here, either no password change was requested or it was successful
+    // Now proceed with profile updates
+    Map<String, dynamic> parentUpdates = {
+      'fullName': _fullNameController.text,
+      'icNumber': _icNumberController.text,
+      'email': _emailController.text,
+    };
+
+    await _parentRef.child(_user!.uid).update(parentUpdates);
+    
+    Map<String, dynamic> userUpdates = {
+      'fullName': _fullNameController.text,
+      'email': _emailController.text,
+      'icNumber': _icNumberController.text,
+    };
+
+    final DatabaseReference userRef = FirebaseDatabase.instance.ref().child('User');
+    await userRef.child(_user.uid).update(userUpdates);
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text(
+          'Profile updated successfully!',
+          style: TextStyle(color: Colors.white),
+          textAlign: TextAlign.center,
+        ),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 2),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.only(
+          bottom: 20,
+          right: 20,
+          left: 20,
+          top: 20,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
   }
 
   void _logout() async {
@@ -303,11 +399,13 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
                         title: 'Identity Card Number',
                         controller: _icNumberController,
                         icon: Icons.assignment_ind,
+                        isIC: true,
                       ),
                       _buildInputField(
                         title: 'Email',
                         controller: _emailController,
                         icon: Icons.email_outlined,
+                        isEmail: true,
                       ),
                       
                       const SizedBox(height: 20),
@@ -338,19 +436,19 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
                           title: 'Current Password',
                           controller: _currentPasswordController,
                           icon: Icons.lock_outline,
-                          isPassword: true,
+                          isCurrentPassword: true,
                         ),
                         _buildInputField(
                           title: 'New Password',
                           controller: _newPasswordController,
                           icon: Icons.lock_outline,
-                          isPassword: true,
+                          isNewPassword: true,
                         ),
                         _buildInputField(
                           title: 'Confirm New Password',
                           controller: _confirmPasswordController,
                           icon: Icons.lock_outline,
-                          isPassword: true,
+                          isConfirmPassword: true,
                         ),
                       ],
 
@@ -391,6 +489,11 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
     required TextEditingController controller,
     required IconData icon,
     bool isPassword = false,
+    bool isEmail = false,
+    bool isIC = false,
+    bool isNewPassword = false,
+    bool isConfirmPassword = false,
+    bool isCurrentPassword = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -407,9 +510,39 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
-          obscureText: isPassword,
+          obscureText: isCurrentPassword ? _obscureCurrentPassword :
+                      isNewPassword ? _obscureNewPassword :
+                      isConfirmPassword ? _obscureConfirmPassword : false,
+          onChanged: (value) {
+            if (isCurrentPassword) {
+              _validateCurrentPassword(value);
+            } else if (isNewPassword || isConfirmPassword) {
+              _validatePassword(value);
+            } else if (isEmail) {
+              _validateEmail(value);
+            } else if (isIC) {
+              _validateIC(value);
+            }
+          },
           decoration: InputDecoration(
             prefixIcon: Icon(icon, color: Colors.pinkAccent),
+            suffixIcon: (isPassword || isNewPassword || isConfirmPassword || isCurrentPassword) ? IconButton(
+              icon: Icon(
+                (isCurrentPassword && _obscureCurrentPassword) ||
+                (isNewPassword && _obscureNewPassword) ||
+                (isConfirmPassword && _obscureConfirmPassword)
+                    ? Icons.visibility_off
+                    : Icons.visibility,
+                color: Colors.pinkAccent,
+              ),
+              onPressed: () {
+                setState(() {
+                  if (isCurrentPassword) _obscureCurrentPassword = !_obscureCurrentPassword;
+                  if (isNewPassword) _obscureNewPassword = !_obscureNewPassword;
+                  if (isConfirmPassword) _obscureConfirmPassword = !_obscureConfirmPassword;
+                });
+              },
+            ) : null,
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15),
               borderSide: BorderSide(color: Colors.grey.shade300),
@@ -418,9 +551,26 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
               borderRadius: BorderRadius.circular(15),
               borderSide: const BorderSide(color: Colors.pinkAccent),
             ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: const BorderSide(color: Colors.red),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(15),
+              borderSide: const BorderSide(color: Colors.red),
+            ),
             filled: true,
-            fillColor: Colors.grey.shade50,
+            fillColor: Colors.white,
             contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 20),
+            errorText: isCurrentPassword ? _currentPasswordError :
+                      isNewPassword || isConfirmPassword ? _passwordError :
+                      isEmail ? _emailError :
+                      isIC ? _icError : null,
+            hintText: isIC ? 'YYMMDD-PB-XXXX' : null,
+            errorStyle: const TextStyle(
+              color: Colors.red,
+              fontSize: 12,
+            ),
           ),
           validator: (value) => value!.isEmpty ? 'This field is required' : null,
         ),
