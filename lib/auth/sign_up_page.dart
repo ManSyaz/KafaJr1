@@ -137,7 +137,13 @@ class _SignUpPageState extends State<SignUpPage> {
     return true;
   }
 
+  bool _isLoading = false; // New state variable for loading
+
   Future<void> _signUp() async {
+    setState(() {
+      _isLoading = true; // Set loading to true when sign up starts
+    });
+
     bool isPasswordValid = _validatePassword(_passwordController.text);
     bool isEmailValid = _validateEmail(_emailController.text);
     bool isParentEmailValid = true;
@@ -148,6 +154,9 @@ class _SignUpPageState extends State<SignUpPage> {
     }
 
     if (!isPasswordValid || !isEmailValid || !isParentEmailValid || !isICValid) {
+      setState(() {
+        _isLoading = false; // Reset loading state if validation fails
+      });
       return;
     }
 
@@ -169,44 +178,14 @@ class _SignUpPageState extends State<SignUpPage> {
         'role': _role,
       });
 
-      // Check if the role is 'Student'
-      if (_role == 'Student') {
-        // Add data to the "Student" table
-        DatabaseReference studentRef = FirebaseDatabase.instance.ref("Student/$userId");
-        await studentRef.set({
+      // Add data to the "Parent" table if the role is 'Parent'
+      if (_role == 'Parent') {
+        DatabaseReference parentRef = FirebaseDatabase.instance.ref("Parent/$userId");
+        await parentRef.set({
           'fullName': _fullNameController.text,
           'email': _emailController.text,
-          'icNumber': _icNumberController.text,
-          'parentEmail': _studentEmailController.text, // Store Parent Email
+          'icNumber': _icNumberController.text, // Store IC Number
         });
-
-        // Check if the parent email exists in the "Parent" table
-        DatabaseReference parentRef = FirebaseDatabase.instance.ref("Parent");
-        DatabaseEvent event = await parentRef.once();
-        bool parentExists = false;
-        String parentId = '';
-
-        // Check if the parent email exists
-        if (event.snapshot.exists) {
-          final parents = event.snapshot.value as Map;
-          for (var key in parents.keys) {
-            if (parents[key]['email'] == _studentEmailController.text) {
-              parentExists = true;
-              parentId = key;
-              break;
-            }
-          }
-        }
-
-        // If parent exists, add entry to "StudentParent" table to create relationship
-        if (parentExists) {
-          DatabaseReference studentParentRef = FirebaseDatabase.instance.ref("StudentParent/$userId");
-          await studentParentRef.set({
-            'studentId': userId,
-            'parentId': parentId,
-            'parentEmail': _studentEmailController.text, // Store Parent Email
-          });
-        }
       }
 
       // Show success dialog
@@ -255,6 +234,10 @@ class _SignUpPageState extends State<SignUpPage> {
           );
         },
       );
+    } finally {
+      setState(() {
+        _isLoading = false; // Reset loading state after operation
+      });
     }
   }
 
@@ -409,7 +392,7 @@ class _SignUpPageState extends State<SignUpPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _signUp,
+                  onPressed: _isLoading ? null : _signUp, // Disable button while loading
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.pinkAccent,
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -418,14 +401,16 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                     elevation: 2,
                   ),
-                  child: const Text(
-                    'Sign Up',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
+                  child: _isLoading 
+                    ? CircularProgressIndicator(color: Colors.white) // Show loading indicator
+                    : const Text(
+                        'Sign Up',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
                 ),
               ),
             ],
