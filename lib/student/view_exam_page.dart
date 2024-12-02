@@ -1,8 +1,12 @@
-// ignore_for_file: library_private_types_in_public_api
-
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../pdf_viewer_page.dart'; // Import the PDF viewer page
+import 'package:dio/dio.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:open_file/open_file.dart';
+import 'dart:io'; // Ensure this import is present
+// ignore: depend_on_referenced_packages
+import 'package:path/path.dart' as path;
 
 class ViewExamPage extends StatefulWidget {
   const ViewExamPage({super.key});
@@ -319,6 +323,31 @@ class SubjectListPage extends StatefulWidget {
 
 class _SubjectListPageState extends State<SubjectListPage> {
   List<String> selectedSubjects = []; // List to hold selected subjects
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeNotifications();
+  }
+
+  Future<void> _initializeNotifications() async {
+    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const iosSettings = DarwinInitializationSettings();
+    const initializationSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
+    await flutterLocalNotificationsPlugin.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) async {
+        // Handle notification tap
+        if (response.payload != null) {
+          await OpenFile.open(response.payload!);
+        }
+      },
+    );
+  }
 
   void _viewFile(BuildContext context, String fileUrl) {
     Navigator.push(
@@ -327,6 +356,119 @@ class _SubjectListPageState extends State<SubjectListPage> {
         builder: (context) => PDFViewerPage(fileUrl: fileUrl),
       ),
     );
+  }
+
+  Future<void> _downloadFile(String url, String fileName) async {
+    try {
+      // Ensure the file has a .pdf extension
+      String sanitizedFileName = path.basename(fileName);
+      if (!sanitizedFileName.toLowerCase().endsWith('.pdf')) {
+        sanitizedFileName = '$sanitizedFileName.pdf';
+      }
+
+      // Get the Downloads directory path
+      Directory? directory = Directory('/storage/emulated/0/Download');
+      
+      // Create directory if it doesn't exist
+      if (!await directory.exists()) {
+        await directory.create(recursive: true);
+      }
+
+      final filePath = '${directory.path}/$sanitizedFileName';
+
+      // Download file with progress
+      await Dio().download(
+        url,
+        filePath,
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            int progress = ((received / total) * 100).toInt();
+            // Update notification progress
+            final androidDetailsProgress = AndroidNotificationDetails(
+              'download_channel',
+              'File Download',
+              channelDescription: 'Shows file download progress',
+              importance: Importance.low,
+              priority: Priority.low,
+              showProgress: true,
+              maxProgress: 100,
+              progress: progress,
+            );
+            final notificationDetailsProgress = NotificationDetails(android: androidDetailsProgress);
+            flutterLocalNotificationsPlugin.show(
+              0,
+              'Downloading $sanitizedFileName',
+              '$progress% completed',
+              notificationDetailsProgress,
+            );
+          }
+        },
+      );
+
+      // Show completion notification
+      final androidDetailsComplete = AndroidNotificationDetails(
+        'download_channel',
+        'File Download',
+        channelDescription: 'Shows file download progress',
+        importance: Importance.high,
+        priority: Priority.high,
+      );
+      final notificationDetailsComplete = NotificationDetails(android: androidDetailsComplete);
+
+      await flutterLocalNotificationsPlugin.show(
+        1,
+        'Download Complete',
+        'Tap to open $sanitizedFileName',
+        notificationDetailsComplete,
+        payload: filePath,
+      );
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Downloaded $sanitizedFileName'),
+          action: SnackBarAction(
+            label: 'Open',
+            onPressed: () async {
+              try {
+                final result = await OpenFile.open(filePath);
+                if (result.type != ResultType.done) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Could not open file: ${result.message}')),
+                  );
+                }
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error opening file: $e')),
+                );
+              }
+            },
+          ),
+        ),
+      );
+    } catch (e) {
+      // Show error notification
+      const androidDetailsError = AndroidNotificationDetails(
+        'download_channel',
+        'File Download',
+        channelDescription: 'Shows file download progress',
+        importance: Importance.high,
+        priority: Priority.high,
+      );
+      const notificationDetailsError = NotificationDetails(android: androidDetailsError);
+
+      await flutterLocalNotificationsPlugin.show(
+        2,
+        'Download Failed',
+        'Failed to download file',
+        notificationDetailsError,
+      );
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to download file: $e')),
+      );
+    }
   }
 
   @override
@@ -438,7 +580,7 @@ class _SubjectListPageState extends State<SubjectListPage> {
                   return selectedSubjects.isEmpty || selectedSubjects.contains(subject);
                 }).elementAt(index);
                 final subject = entry.value;
-                
+
                 return Container(
                   margin: const EdgeInsets.only(bottom: 16.0),
                   decoration: BoxDecoration(
@@ -465,7 +607,6 @@ class _SubjectListPageState extends State<SubjectListPage> {
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: () => _viewFile(context, subject['fileUrl']),
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Row(
@@ -525,18 +666,39 @@ class _SubjectListPageState extends State<SubjectListPage> {
                                   ],
                                 ),
                               ),
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(8),
+                              if (subject['fileUrl'] != null && subject['fileUrl'].isNotEmpty) ...[
+                                InkWell(
+                                  onTap: () => _downloadFile(subject['fileUrl'], subject['title']),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    margin: const EdgeInsets.only(right: 8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Icon(
+                                      Icons.download,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                  ),
                                 ),
-                                child: const Icon(
-                                  Icons.remove_red_eye,
-                                  color: Colors.white,
-                                  size: 20,
+                                InkWell(
+                                  onTap: () => _viewFile(context, subject['fileUrl']),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Icon(
+                                      Icons.remove_red_eye,
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
+                                  ),
                                 ),
-                              ),
+                              ],
                             ],
                           ),
                         ),

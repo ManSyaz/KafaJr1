@@ -402,7 +402,7 @@ class _SignUpPageState extends State<SignUpPage> {
                     elevation: 2,
                   ),
                   child: _isLoading 
-                    ? CircularProgressIndicator(color: Colors.white) // Show loading indicator
+                    ? const CircularProgressIndicator(color: Colors.white) // Show loading indicator
                     : const Text(
                         'Sign Up',
                         style: TextStyle(
