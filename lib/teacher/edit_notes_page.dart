@@ -214,7 +214,7 @@ class _EditNotePageState extends State<EditNotePage> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: const Color(0xFF0C6B58),
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
           'Edit Note',
@@ -278,11 +278,14 @@ class _EditNotePageState extends State<EditNotePage> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(15),
                       gradient: const LinearGradient(
-                        colors: [Colors.pinkAccent, Colors.pink],
+                        colors: [
+                          Color(0xFF0C6B58),
+                          Color(0xFF094A3D),
+                        ],
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.pinkAccent.withOpacity(0.3),
+                          color: const Color(0xFF0C6B58).withOpacity(0.3),
                           spreadRadius: 1,
                           blurRadius: 8,
                           offset: const Offset(0, 4),
@@ -363,7 +366,7 @@ class _EditNotePageState extends State<EditNotePage> {
                     right: 8,
                     bottom: maxLines > 1 ? 55 : 0,  // Set to 55 for description field
                   ),
-                  child: Icon(icon, color: Colors.pinkAccent),
+                  child: Icon(icon, color: const Color(0xFF0C6B58)),
                 ),
                 alignLabelWithHint: true,
                 border: OutlineInputBorder(
@@ -426,7 +429,7 @@ class _EditNotePageState extends State<EditNotePage> {
             child: DropdownButtonFormField<String>(
               value: currentValue.isEmpty ? null : currentValue,
               decoration: InputDecoration(
-                prefixIcon: Icon(icon, color: Colors.pinkAccent),
+                prefixIcon: Icon(icon, color: const Color(0xFF0C6B58)),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -489,7 +492,7 @@ class _EditNotePageState extends State<EditNotePage> {
               children: [
                 ListTile(
                   leading: const Icon(Icons.cloud_upload_outlined, 
-                      color: Colors.pinkAccent),
+                      color: Color(0xFF0C6B58)),
                   title: Text(
                     _pickedFile != null 
                         ? _pickedFile!.path.split('/').last
@@ -511,7 +514,7 @@ class _EditNotePageState extends State<EditNotePage> {
                     onPressed: _uploadFile,
                     child: Text(
                       _pickedFile != null || _fileUrl != null ? 'Change' : 'Choose File',
-                      style: const TextStyle(color: Colors.pinkAccent),
+                      style: const TextStyle(color: Color(0xFF0C6B58)),
                     ),
                   ),
                 ),

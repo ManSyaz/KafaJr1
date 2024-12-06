@@ -75,7 +75,7 @@ class _ViewExamPageState extends State<ViewExamPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: const Color(0xFF0C6B58),
         iconTheme: const IconThemeData(color: Colors.white),
         title: Container(
           padding: const EdgeInsets.only(right: 48.0),
@@ -122,14 +122,14 @@ class _ViewExamPageState extends State<ViewExamPage> {
                         }
                       });
                     },
-                    selectedColor: Colors.pinkAccent,
+                    selectedColor: const Color(0xFF0C6B58),
                     backgroundColor: Colors.grey[300],
                     labelStyle: TextStyle(
                       color: _selectedCategories.isEmpty ? Colors.white : Colors.black,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8.0),
-                      side: const BorderSide(color: Colors.pinkAccent),
+                      side: const BorderSide(color: Color(0xFF0C6B58)),
                     ),
                   ),
                 ),
@@ -150,12 +150,12 @@ class _ViewExamPageState extends State<ViewExamPage> {
                           }
                         });
                       },
-                      selectedColor: Colors.pinkAccent,
+                      selectedColor: const Color(0xFF0C6B58),
                       backgroundColor: Colors.grey[300],
                       labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8.0),
-                        side: const BorderSide(color: Colors.pinkAccent),
+                        side: const BorderSide(color: Color(0xFF0C6B58)),
                       ),
                     ),
                   );
@@ -211,8 +211,8 @@ class _ViewExamPageState extends State<ViewExamPage> {
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
                             colors: [
-                              Color(0xFFFF69B4),
-                              Color(0xFFFF1493),
+                              Color(0xFF0C6B58),
+                              Color(0xFF094A3D),
                             ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
@@ -406,7 +406,7 @@ class _SubjectListPageState extends State<SubjectListPage> {
       );
 
       // Show completion notification
-      final androidDetailsComplete = AndroidNotificationDetails(
+      final androidDetailsComplete = const AndroidNotificationDetails(
         'download_channel',
         'File Download',
         channelDescription: 'Shows file download progress',
@@ -480,7 +480,7 @@ class _SubjectListPageState extends State<SubjectListPage> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: const Color(0xFF0C6B58),
         iconTheme: const IconThemeData(color: Colors.white),
         title: Container(
           padding: const EdgeInsets.only(right: 48.0),
@@ -524,14 +524,14 @@ class _SubjectListPageState extends State<SubjectListPage> {
                         }
                       });
                     },
-                    selectedColor: Colors.pinkAccent,
+                    selectedColor: const Color(0xFF0C6B58),
                     backgroundColor: Colors.grey[300],
                     labelStyle: TextStyle(
                       color: selectedSubjects.isEmpty ? Colors.white : Colors.black,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8.0),
-                      side: const BorderSide(color: Colors.pinkAccent),
+                      side: const BorderSide(color: Color(0xFF0C6B58)),
                     ),
                   ),
                 ),
@@ -552,12 +552,12 @@ class _SubjectListPageState extends State<SubjectListPage> {
                           }
                         });
                       },
-                      selectedColor: Colors.pinkAccent,
+                      selectedColor: const Color(0xFF0C6B58),
                       backgroundColor: Colors.grey[300],
                       labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8.0),
-                        side: const BorderSide(color: Colors.pinkAccent),
+                        side: const BorderSide(color: Color(0xFF0C6B58)),
                       ),
                     ),
                   );
@@ -586,8 +586,8 @@ class _SubjectListPageState extends State<SubjectListPage> {
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [
-                        Color(0xFFFF69B4),
-                        Color(0xFFFF1493),
+                        Color(0xFF0C6B58),
+                        Color(0xFF094A3D),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,

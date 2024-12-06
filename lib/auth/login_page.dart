@@ -132,7 +132,7 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: const Color(0xFF0C6B58),
         elevation: 0,
       ),
       body: SafeArea(
@@ -194,7 +194,7 @@ class _LoginPageState extends State<LoginPage> {
                       child: const Text(
                         'Forgot Password?',
                         style: TextStyle(
-                          color: Colors.pinkAccent,
+                          color: Color(0xFF0C6B58),
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -205,14 +205,14 @@ class _LoginPageState extends State<LoginPage> {
 
                   // Sign In Button
                   if (_isLoading)
-                    const CircularProgressIndicator(color: Colors.pinkAccent)
+                    const CircularProgressIndicator(color: Color(0xFF0C6B58))
                   else
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: _signIn,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.pinkAccent,
+                          backgroundColor: const Color(0xFF0C6B58),
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
@@ -248,7 +248,7 @@ class _LoginPageState extends State<LoginPage> {
                           TextSpan(
                             text: "Sign Up",
                             style: TextStyle(
-                              color: Colors.pinkAccent,
+                              color: Color(0xFF0C6B58),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -304,11 +304,11 @@ class _LoginPageState extends State<LoginPage> {
               decoration: InputDecoration(
                 hintText: hint,
                 hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
-                prefixIcon: Icon(icon, color: Colors.pinkAccent),
+                prefixIcon: Icon(icon, color: const Color(0xFF0C6B58)),
                 suffixIcon: isPassword ? IconButton(
                   icon: Icon(
                     _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                    color: Colors.pinkAccent,
+                    color: const Color(0xFF0C6B58),
                   ),
                   onPressed: () {
                     setState(() {

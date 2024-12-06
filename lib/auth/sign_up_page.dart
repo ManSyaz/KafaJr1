@@ -247,7 +247,7 @@ class _SignUpPageState extends State<SignUpPage> {
       backgroundColor: const Color(0xFFF5F5F5), // Light gray background
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: const Color(0xFF0C6B58),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () {
@@ -304,7 +304,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         child: ElevatedButton(
                           onPressed: () => setState(() => _role = 'Student'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: _role == 'Student' ? Colors.pinkAccent : Colors.white,
+                            backgroundColor: _role == 'Student' ? const Color(0xFF0C6B58) : Colors.white,
                             elevation: 0,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
@@ -327,7 +327,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         child: ElevatedButton(
                           onPressed: () => setState(() => _role = 'Parent'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: _role == 'Parent' ? Colors.pinkAccent : Colors.white,
+                            backgroundColor: _role == 'Parent' ? const Color(0xFF0C6B58) : Colors.white,
                             elevation: 0,
                             padding: const EdgeInsets.symmetric(vertical: 12),
                             shape: RoundedRectangleBorder(
@@ -394,7 +394,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _signUp, // Disable button while loading
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.pinkAccent,
+                    backgroundColor: const Color(0xFF0C6B58),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
@@ -473,11 +473,11 @@ class _SignUpPageState extends State<SignUpPage> {
               decoration: InputDecoration(
                 hintText: isIC ? 'YYMMDD-PB-XXXX' : hint, // Add IC format hint
                 hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
-                prefixIcon: Icon(icon, color: Colors.pinkAccent),
+                prefixIcon: Icon(icon, color: const Color(0xFF0C6B58)),
                 suffixIcon: isPassword ? IconButton(
                   icon: Icon(
                     _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                    color: Colors.pinkAccent,
+                    color: const Color(0xFF0C6B58),
                   ),
                   onPressed: () {
                     setState(() {

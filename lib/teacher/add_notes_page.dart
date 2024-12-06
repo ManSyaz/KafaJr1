@@ -199,7 +199,7 @@ class _AddNotePageState extends State<AddNotePage> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: const Color(0xFF0C6B58),
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
           'Add New Note',
@@ -262,11 +262,14 @@ class _AddNotePageState extends State<AddNotePage> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(15),
                       gradient: const LinearGradient(
-                        colors: [Colors.pinkAccent, Colors.pink],
+                        colors: [
+                          Color(0xFF0C6B58),
+                          Color(0xFF094A3D),
+                        ],
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.pinkAccent.withOpacity(0.3),
+                          color: const Color(0xFF0C6B58).withOpacity(0.3),
                           spreadRadius: 1,
                           blurRadius: 8,
                           offset: const Offset(0, 4),
@@ -344,9 +347,9 @@ class _AddNotePageState extends State<AddNotePage> {
                   margin: EdgeInsets.only(
                     left: 12,
                     right: 8,
-                    bottom: maxLines > 1 ? 55 : 0,  // Set to 55 for description field
+                    bottom: maxLines > 1 ? 55 : 0,
                   ),
-                  child: Icon(icon, color: Colors.pinkAccent),
+                  child: Icon(icon, color: const Color(0xFF0C6B58)),
                 ),
                 alignLabelWithHint: true,
                 border: OutlineInputBorder(
@@ -409,7 +412,7 @@ class _AddNotePageState extends State<AddNotePage> {
             child: DropdownButtonFormField<String>(
               value: currentValue.isEmpty ? null : currentValue,
               decoration: InputDecoration(
-                prefixIcon: Icon(icon, color: Colors.pinkAccent),
+                prefixIcon: Icon(icon, color: const Color(0xFF0C6B58)),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -472,7 +475,7 @@ class _AddNotePageState extends State<AddNotePage> {
               children: [
                 ListTile(
                   leading: const Icon(Icons.cloud_upload_outlined, 
-                      color: Colors.pinkAccent),
+                      color: Color(0xFF0C6B58)),
                   title: Text(
                     _pickedFile != null 
                         ? _pickedFile!.path.split('/').last
@@ -492,7 +495,7 @@ class _AddNotePageState extends State<AddNotePage> {
                     onPressed: _uploadFile,
                     child: Text(
                       _pickedFile != null ? 'Change' : 'Choose File',
-                      style: const TextStyle(color: Colors.pinkAccent),
+                      style: const TextStyle(color: Color(0xFF0C6B58)),
                     ),
                   ),
                 ),
@@ -543,7 +546,7 @@ class _NotesListPageState extends State<NotesListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: const Color(0xFF0C6B58),
         title: const Text('Your Notes'),
         actions: [
           IconButton(

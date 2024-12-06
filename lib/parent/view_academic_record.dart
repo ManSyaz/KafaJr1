@@ -397,7 +397,7 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: const Color(0xFF0C6B58),
         iconTheme: const IconThemeData(color: Colors.white),
         title: Container(
           padding: const EdgeInsets.only(right: 48.0),
@@ -417,6 +417,10 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
                 labelText: 'Select Student Email',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: const BorderSide(color: Color(0xFF0C6B58)),
                 ),
               ),
               value: _selectedStudentEmail,
@@ -456,6 +460,10 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
                   labelText: 'Choose Exam',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                    borderSide: const BorderSide(color: Color(0xFF0C6B58)),
                   ),
                 ),
                 value: _selectedExam,
@@ -505,7 +513,7 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
                                 dataTableTheme: DataTableThemeData(
                                   headingTextStyle: const TextStyle(
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
+                                    color: Color(0xFF0C6B58),
                                     fontSize: 14,
                                   ),
                                   dataTextStyle: const TextStyle(

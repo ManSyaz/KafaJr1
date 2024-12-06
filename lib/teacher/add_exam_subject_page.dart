@@ -154,7 +154,7 @@ class _AddExamSubjectPageState extends State<AddExamSubjectPage> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: const Color(0xFF0C6B58),
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
           'Add Exam Subject',
@@ -229,11 +229,14 @@ class _AddExamSubjectPageState extends State<AddExamSubjectPage> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(15),
                     gradient: const LinearGradient(
-                      colors: [Colors.pinkAccent, Colors.pink],
+                      colors: [
+                        Color(0xFF0C6B58),
+                        Color(0xFF094A3D),
+                      ],
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.pinkAccent.withOpacity(0.3),
+                        color: const Color(0xFF0C6B58).withOpacity(0.3),
                         spreadRadius: 1,
                         blurRadius: 8,
                         offset: const Offset(0, 4),
@@ -312,7 +315,7 @@ class _AddExamSubjectPageState extends State<AddExamSubjectPage> {
                     right: 8,
                     bottom: maxLines > 1 ? 55 : 0,
                   ),
-                  child: Icon(icon, color: Colors.pinkAccent),
+                  child: Icon(icon, color: const Color(0xFF0C6B58)),
                 ),
                 alignLabelWithHint: true,
                 border: OutlineInputBorder(
@@ -370,7 +373,7 @@ class _AddExamSubjectPageState extends State<AddExamSubjectPage> {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(left: 16.0),
-                  child: Icon(icon, color: Colors.pinkAccent),
+                  child: Icon(icon, color: const Color(0xFF0C6B58)),
                 ),
                 Expanded(child: dropdown),
               ],
@@ -415,7 +418,7 @@ class _AddExamSubjectPageState extends State<AddExamSubjectPage> {
                   child: Row(
                     children: [
                       const Icon(Icons.cloud_upload_outlined, 
-                          color: Colors.pinkAccent, size: 28),
+                          color: Color(0xFF0C6B58), size: 28),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
@@ -448,7 +451,7 @@ class _AddExamSubjectPageState extends State<AddExamSubjectPage> {
                         onPressed: _pickFile,
                         child: Text(
                           _file != null ? 'Change' : 'Choose File',
-                          style: const TextStyle(color: Colors.pinkAccent),
+                          style: const TextStyle(color: Color(0xFF0C6B58)),
                         ),
                       ),
                     ],

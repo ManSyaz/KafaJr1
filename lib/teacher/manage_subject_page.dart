@@ -91,7 +91,7 @@ class _ManageSubjectPageState extends State<ManageSubjectPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: const Color(0xFF0C6B58),
         iconTheme: const IconThemeData(color: Colors.white),
         title: Container(
           padding: const EdgeInsets.only(right: 48.0),
@@ -109,8 +109,8 @@ class _ManageSubjectPageState extends State<ManageSubjectPage> {
             padding: const EdgeInsets.all(16.0),
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pinkAccent,
-                minimumSize: const Size(double.infinity, 50), // Make the button take the full width
+                backgroundColor: const Color(0xFF0C6B58),
+                minimumSize: const Size(double.infinity, 50),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0),
                 ),
@@ -142,7 +142,11 @@ class _ManageSubjectPageState extends State<ManageSubjectPage> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
                 ),
-                prefixIcon: const Icon(Icons.search),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: const BorderSide(color: Color(0xFF0C6B58)),
+                ),
+                prefixIcon: const Icon(Icons.search, color: Color(0xFF0C6B58)),
               ),
             ),
           ),
@@ -182,8 +186,8 @@ class _ManageSubjectPageState extends State<ManageSubjectPage> {
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
                             colors: [
-                              Color(0xFFFF69B4),
-                              Color(0xFFFF1493),
+                              Color(0xFF0C6B58),
+                              Color(0xFF094A3D),
                             ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,

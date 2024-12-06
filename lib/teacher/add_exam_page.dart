@@ -30,7 +30,7 @@ class _AddExamPageState extends State<AddExamPage> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: const Color(0xFF0C6B58),
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
           'Add New Exam',
@@ -78,11 +78,14 @@ class _AddExamPageState extends State<AddExamPage> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(15),
                       gradient: const LinearGradient(
-                        colors: [Colors.pinkAccent, Colors.pink],
+                        colors: [
+                          Color(0xFF0C6B58),
+                          Color(0xFF094A3D),
+                        ],
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.pinkAccent.withOpacity(0.3),
+                          color: const Color(0xFF0C6B58).withOpacity(0.3),
                           spreadRadius: 1,
                           blurRadius: 8,
                           offset: const Offset(0, 4),
@@ -162,7 +165,7 @@ class _AddExamPageState extends State<AddExamPage> {
                     right: 8,
                     bottom: maxLines > 1 ? 55 : 0,
                   ),
-                  child: Icon(icon, color: Colors.pinkAccent),
+                  child: Icon(icon, color: const Color(0xFF0C6B58)),
                 ),
                 alignLabelWithHint: true,
                 border: OutlineInputBorder(

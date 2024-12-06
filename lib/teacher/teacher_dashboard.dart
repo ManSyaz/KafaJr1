@@ -130,7 +130,7 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.pinkAccent,
+        selectedItemColor: const Color(0xFF0C6B58),
         onTap: _onItemTapped, // Handle tap on bottom navigation items
       ),
     );
@@ -144,7 +144,7 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
           left: 0,
           right: 0,
           child: AppBar(
-            backgroundColor: Colors.pinkAccent,
+            backgroundColor: const Color(0xFF0C6B58),
             flexibleSpace: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [

@@ -347,7 +347,7 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: const Color(0xFF0C6B58),
         elevation: 0,
       ),
       body: Container(
@@ -355,7 +355,7 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.pinkAccent, Colors.white],
+            colors: [Color(0xFF0C6B58), Colors.white],
             stops: [0.0, 0.3],
           ),
         ),
@@ -428,7 +428,7 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
                                 _isChangingPassword = value;
                               });
                             },
-                            activeColor: Colors.pinkAccent,
+                            activeColor: const Color(0xFF0C6B58),
                           ),
                         ],
                       ),
@@ -458,7 +458,7 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
                       ElevatedButton(
                         onPressed: _saveProfile,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.pinkAccent,
+                          backgroundColor: const Color(0xFF0C6B58),
                           minimumSize: const Size(double.infinity, 55),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(15),
@@ -528,7 +528,7 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
             }
           },
           decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: Colors.pinkAccent),
+            prefixIcon: Icon(icon, color: const Color(0xFF0C6B58)),
             suffixIcon: (isPassword || isNewPassword || isConfirmPassword || isCurrentPassword) ? IconButton(
               icon: Icon(
                 (isPassword && _obscurePassword) ||
@@ -537,7 +537,7 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
                 (isCurrentPassword && _obscureCurrentPassword)
                     ? Icons.visibility_off
                     : Icons.visibility,
-                color: Colors.pinkAccent,
+                color: const Color(0xFF0C6B58),
               ),
               onPressed: () {
                 setState(() {
@@ -554,7 +554,7 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15),
-              borderSide: const BorderSide(color: Colors.pinkAccent),
+              borderSide: const BorderSide(color: Color(0xFF0C6B58)),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(15),

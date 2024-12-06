@@ -56,7 +56,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: const Color(0xFF0C6B58),
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -119,7 +119,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                   child: ElevatedButton(
                     onPressed: _resetPassword,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.pinkAccent,
+                      backgroundColor: const Color(0xFF0C6B58),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -144,7 +144,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                   child: const Text(
                     'Back to Login',
                     style: TextStyle(
-                      color: Colors.pinkAccent,
+                      color: Color(0xFF0C6B58),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -194,7 +194,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
               decoration: InputDecoration(
                 hintText: hint,
                 hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
-                prefixIcon: Icon(icon, color: Colors.pinkAccent),
+                prefixIcon: Icon(icon, color: const Color(0xFF0C6B58)),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(16),
                   borderSide: BorderSide.none,

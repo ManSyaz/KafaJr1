@@ -127,7 +127,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.pinkAccent,
+        selectedItemColor: const Color(0xFF0C6B58),
         onTap: _onItemTapped, // Handle tap on bottom navigation items
       ),
     );
@@ -141,7 +141,7 @@ class _ParentDashboardState extends State<ParentDashboard> {
           left: 0,
           right: 0,
           child: AppBar(
-            backgroundColor: Colors.pinkAccent,
+            backgroundColor: const Color(0xFF0C6B58),
             flexibleSpace: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
@@ -261,6 +261,10 @@ class _ParentDashboardState extends State<ParentDashboard> {
                             labelText: 'Select Student Email',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8.0),
+                              borderSide: const BorderSide(color: Color(0xFF0C6B58)),
                             ),
                           ),
                           value: _selectedStudentEmail,

@@ -293,7 +293,7 @@ class _EnterScorePageState extends State<EnterScorePage> {
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: const Color(0xFF0C6B58),
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
         centerTitle: true,
@@ -372,7 +372,7 @@ class _EnterScorePageState extends State<EnterScorePage> {
                       onChanged: _filterStudents,
                       decoration: const InputDecoration(
                         hintText: 'Search student...',
-                        prefixIcon: Icon(Icons.search, color: Colors.grey),
+                        prefixIcon: Icon(Icons.search, color: Color(0xFF0C6B58)),
                         border: InputBorder.none,
                         labelStyle: TextStyle(color: Colors.grey),
                         contentPadding: EdgeInsets.symmetric(
@@ -396,7 +396,7 @@ class _EnterScorePageState extends State<EnterScorePage> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.pinkAccent,
+                        color: Color(0xFF0C6B58),
                       ),
                     ),
                   ),
@@ -407,7 +407,7 @@ class _EnterScorePageState extends State<EnterScorePage> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.pinkAccent,
+                        color: Color(0xFF0C6B58),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -545,7 +545,7 @@ class _EnterScorePageState extends State<EnterScorePage> {
               child: ElevatedButton(
                 onPressed: _submitScores,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pinkAccent,
+                  backgroundColor: const Color(0xFF0C6B58),
                   padding: const EdgeInsets.symmetric(vertical: 15),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),

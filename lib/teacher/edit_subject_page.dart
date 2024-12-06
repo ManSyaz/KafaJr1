@@ -34,7 +34,7 @@ class _EditSubjectPageState extends State<EditSubjectPage> {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: const Color(0xFF0C6B58),
         iconTheme: const IconThemeData(color: Colors.white),
         title: const Text(
           'Edit Subject',
@@ -81,11 +81,14 @@ class _EditSubjectPageState extends State<EditSubjectPage> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(15),
                       gradient: const LinearGradient(
-                        colors: [Colors.pinkAccent, Colors.pink],
+                        colors: [
+                          Color(0xFF0C6B58),
+                          Color(0xFF094A3D),
+                        ],
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.pinkAccent.withOpacity(0.3),
+                          color: const Color(0xFF0C6B58).withOpacity(0.3),
                           spreadRadius: 1,
                           blurRadius: 8,
                           offset: const Offset(0, 4),
@@ -158,7 +161,7 @@ class _EditSubjectPageState extends State<EditSubjectPage> {
               decoration: InputDecoration(
                 hintText: hint,
                 hintStyle: TextStyle(color: Colors.grey.withOpacity(0.5)),
-                prefixIcon: Icon(icon, color: Colors.pinkAccent),
+                prefixIcon: Icon(icon, color: const Color(0xFF0C6B58)),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,

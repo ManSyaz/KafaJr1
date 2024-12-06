@@ -490,20 +490,18 @@ class _ManageAcademicRecordPageState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: const Color(0xFF0C6B58),
         title: Container(
-          padding: const EdgeInsets.only(right: 48.0), // Adjust right padding for space
-          alignment: Alignment.center, // Center the title
+          padding: const EdgeInsets.only(right: 48.0),
+          alignment: Alignment.center,
           child: const Text(
             'Academic Records',
-            style: TextStyle(color: Colors.white), // Change text color
+            style: TextStyle(color: Colors.white),
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white), // Change back icon color
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: SingleChildScrollView(
@@ -524,7 +522,7 @@ class _ManageAcademicRecordPageState
                   });
                 },
                 selectedColor: Colors.white,
-                fillColor: Colors.pinkAccent,
+                fillColor: const Color(0xFF0C6B58),
                 color: Colors.black,
                 borderRadius: BorderRadius.circular(8.0),
                 children: const [
@@ -544,10 +542,14 @@ class _ManageAcademicRecordPageState
                   controller: _searchController,
                   decoration: InputDecoration(
                     labelText: 'Search by IC Number',
-                    prefixIcon: const Icon(Icons.search),
+                    prefixIcon: const Icon(Icons.search, color: Color(0xFF0C6B58)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.0),
-                      borderSide: const BorderSide(color: Colors.pinkAccent),
+                      borderSide: const BorderSide(color: Color(0xFF0C6B58)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                      borderSide: const BorderSide(color: Color(0xFF0C6B58)),
                     ),
                   ),
                   onSubmitted: (value) {
@@ -565,8 +567,12 @@ class _ManageAcademicRecordPageState
                     decoration: InputDecoration(
                       labelText: 'Choose Exam',
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0), // Rounded corners
-                        borderSide: const BorderSide(color: Colors.pinkAccent), // Border color
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: const BorderSide(color: Color(0xFF0C6B58)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                        borderSide: const BorderSide(color: Color(0xFF0C6B58)),
                       ),
                     ),
                     value: _selectedExam,
@@ -742,8 +748,12 @@ class _ManageAcademicRecordPageState
                   decoration: InputDecoration(
                     labelText: 'Choose Exam',
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0), // Rounded corners
-                      borderSide: const BorderSide(color: Colors.pinkAccent), // Border color
+                      borderRadius: BorderRadius.circular(8.0),
+                      borderSide: const BorderSide(color: Color(0xFF0C6B58)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                      borderSide: const BorderSide(color: Color(0xFF0C6B58)),
                     ),
                   ),
                   value: _selectedExam,

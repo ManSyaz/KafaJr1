@@ -84,7 +84,7 @@ class _ManageNotesPageState extends State<ManageNotesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: const Color(0xFF0C6B58),
         iconTheme: const IconThemeData(color: Colors.white),
         title: Container(
           padding: const EdgeInsets.only(right: 48.0),
@@ -107,7 +107,7 @@ class _ManageNotesPageState extends State<ManageNotesPage> {
                 ).then((_) => _fetchNotes());
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.pinkAccent,
+                backgroundColor: const Color(0xFF0C6B58),
                 minimumSize: const Size(double.infinity, 50), // Make the button take the full width
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10.0),
@@ -149,7 +149,11 @@ class _ManageNotesPageState extends State<ManageNotesPage> {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10.0),
                 ),
-                prefixIcon: const Icon(Icons.search),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                  borderSide: const BorderSide(color: Color(0xFF0C6B58)),
+                ),
+                prefixIcon: const Icon(Icons.search, color: Color(0xFF0C6B58)),
               ),
             ),
           ),
@@ -190,8 +194,8 @@ class _ManageNotesPageState extends State<ManageNotesPage> {
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
                             colors: [
-                              Color(0xFFFF69B4),
-                              Color(0xFFFF1493),
+                              Color(0xFF0C6B58),
+                              Color(0xFF094A3D),
                             ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,

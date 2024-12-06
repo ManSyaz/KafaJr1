@@ -183,8 +183,8 @@ class _EditExamPageState extends State<EditExamPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.pinkAccent,
-        iconTheme: const IconThemeData(color: Colors.white), // {{ edit_1 }}
+        backgroundColor: const Color(0xFF0C6B58),
+        iconTheme: const IconThemeData(color: Colors.white),
         title: Container(
           padding: const EdgeInsets.only(right:48.0),
           alignment: Alignment.center,
@@ -370,19 +370,26 @@ class _EditExamPageState extends State<EditExamPage> {
               ),
             ),
             const SizedBox(height: 16.0),
-            SizedBox( // {{ edit_2 }}
-              width: double.infinity, // Make the button take the full width
+            SizedBox(
+              width: double.infinity,
               child: ElevatedButton(
                 onPressed: _updateExam,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.pinkAccent,
+                  backgroundColor: const Color(0xFF0C6B58),
+                  padding: const EdgeInsets.symmetric(vertical: 15),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.0), // Add border radius here
+                    borderRadius: BorderRadius.circular(15),
                   ),
+                  elevation: 0,
+                  minimumSize: const Size(double.infinity, 50),
                 ),
-                child: const Text( // Change text color to white
+                child: const Text(
                   'Update Exam',
-                  style: TextStyle(color: Colors.white), // Change text color to white
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),

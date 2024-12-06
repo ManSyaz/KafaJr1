@@ -502,7 +502,7 @@ class _ManageStudentProgressPageState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: const Color(0xFF0C6B58),
         title: Container(
           alignment: Alignment.center,
           padding: const EdgeInsets.only(right: 48.0),
@@ -513,9 +513,7 @@ class _ManageStudentProgressPageState
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
       ),
       body: SingleChildScrollView(
@@ -538,8 +536,10 @@ class _ManageStudentProgressPageState
                   });
                 },
                 selectedColor: Colors.white,
-                fillColor: Colors.pinkAccent,
+                fillColor: const Color(0xFF0C6B58),
                 color: Colors.black,
+                borderColor: const Color(0xFF0C6B58),
+                selectedBorderColor: const Color(0xFF0C6B58),
                 borderRadius: BorderRadius.circular(8.0),
                 children: const [
                   Padding(
@@ -560,9 +560,13 @@ class _ManageStudentProgressPageState
                   controller: _searchController,
                   decoration: InputDecoration(
                     labelText: 'Search by IC Number',
-                    prefixIcon: const Icon(Icons.search),
+                    prefixIcon: const Icon(Icons.search, color: Color(0xFF0C6B58)),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                      borderSide: const BorderSide(color: Color(0xFF0C6B58)),
                     ),
                   ),
                   onSubmitted: (value) {

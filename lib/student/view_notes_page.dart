@@ -74,7 +74,7 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: const Color(0xFF0C6B58),
         iconTheme: const IconThemeData(color: Colors.white),
         title: Container(
           padding: const EdgeInsets.only(right: 48.0),
@@ -121,14 +121,14 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
                         }
                       });
                     },
-                    selectedColor: Colors.pinkAccent,
+                    selectedColor: const Color(0xFF0C6B58),
                     backgroundColor: Colors.grey[300],
                     labelStyle: TextStyle(
                       color: _selectedSubjects.isEmpty ? Colors.white : Colors.black,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8.0),
-                      side: const BorderSide(color: Colors.pinkAccent),
+                      side: const BorderSide(color: Color(0xFF0C6B58)),
                     ),
                   ),
                 ),
@@ -149,12 +149,14 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
                           }
                         });
                       },
-                      selectedColor: Colors.pinkAccent,
+                      selectedColor: const Color(0xFF0C6B58),
                       backgroundColor: Colors.grey[300],
                       labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8.0),
-                        side: BorderSide(color: isSelected ? Colors.white : Colors.pinkAccent),
+                        side: BorderSide(
+                          color: isSelected ? Colors.white : const Color(0xFF0C6B58),
+                        ),
                       ),
                     ),
                   );
@@ -209,8 +211,8 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
                         decoration: BoxDecoration(
                           gradient: const LinearGradient(
                             colors: [
-                              Color(0xFFFF69B4), // Pink
-                              Color(0xFFFF1493), // Deep Pink
+                              Color(0xFF0C6B58),
+                              Color(0xFF094A3D),
                             ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,

@@ -353,7 +353,7 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: const Color(0xFF0C6B58),
         iconTheme: const IconThemeData(color: Colors.white),
         title: Container(
           padding: const EdgeInsets.only(right: 48.0),
@@ -373,6 +373,10 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
                 labelText: 'Choose Exam',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                  borderSide: const BorderSide(color: Color(0xFF0C6B58)),
                 ),
               ),
               value: _selectedExam,
