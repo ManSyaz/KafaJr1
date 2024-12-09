@@ -225,7 +225,7 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF0C6B58),
+                color: Color.fromARGB(255, 0, 0, 0),
               ),
             ),
             Padding(
@@ -350,7 +350,7 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF0C6B58),
+                color: Color.fromARGB(255, 0, 0, 0),
               ),
             ),
             const SizedBox(height: 16),
@@ -453,7 +453,10 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
         Container(
           width: 16,
           height: 16,
-          color: color,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(4),
+          ),
         ),
         const SizedBox(width: 8),
         Text(

@@ -28,13 +28,16 @@ class _ManageStudentProgressPageState
   String _selectedSubject = 'Choose Subject';
   String _fullName = '';
   String _selectedStudentId = '';
+  String _selectedStudentName = 'Choose Student';
   Map<String, String> studentNames = {};
   List<Map<String, String>> subjects = [];
   Map<String, Map<String, String>> studentsProgress = {};
   Map<String, String>? studentProgress;
   List<Map<String, dynamic>> examTypes = [];
 
-  final TextEditingController _searchController = TextEditingController();
+  List<Map<String, String>> studentList = [
+    {'id': 'Choose Student', 'name': 'Choose Student'}
+  ];
 
   @override
   void initState() {
@@ -112,6 +115,16 @@ class _ManageStudentProgressPageState
                 return map;
               },
             );
+
+            studentList = [
+              {'id': 'Choose Student', 'name': 'Choose Student'}
+            ] + studentData.entries.map((entry) {
+              final studentMap = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
+              return {
+                'id': entry.key?.toString() ?? 'Unknown',
+                'name': studentMap['fullName']?.toString() ?? 'Unknown',
+              };
+            }).toList();
           });
         }
       }
@@ -162,52 +175,6 @@ class _ManageStudentProgressPageState
       }
     } catch (e) {
       print('Error fetching student progress by subject: $e');
-    }
-  }
-
-  Future<void> _searchStudentByICNumber(String icNumber) async {
-    try {
-      final snapshot = await _userRef.get();
-      if (snapshot.exists) {
-        final userData = snapshot.value as Map<Object?, Object?>?;
-        if (userData != null) {
-          final Map<String, dynamic> userMap = Map<String, dynamic>.from(userData);
-
-          final matchedStudent = userMap.entries.firstWhere(
-            (entry) {
-              final studentMap = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
-              final studentICNumber = studentMap['icNumber'] as String?;
-              return studentICNumber != null && studentICNumber == icNumber; // Match by IC Number
-            },
-            orElse: () => const MapEntry<String, dynamic>('none', {}),
-          );
-
-          if (matchedStudent.key != 'none') {
-            final studentMap = Map<String, dynamic>.from(matchedStudent.value as Map<Object?, Object?>);
-            final studentId = matchedStudent.key;
-            setState(() {
-              _fullName = studentMap['fullName'] ?? 'Unknown';
-              _selectedStudentId = studentId;
-              _selectedSubject = 'Choose Subject'; // Reset subject selection
-              studentProgress = null; // Clear previous progress
-              studentsProgress = {}; // Clear previous data
-            });
-          } else {
-            setState(() {
-              _fullName = 'Student not found';
-              studentProgress = null;
-              studentsProgress = {};
-            });
-          }
-        }
-      }
-    } catch (e) {
-      print('Error searching for student by IC Number: $e');
-      setState(() {
-        _fullName = 'Error occurred';
-        studentProgress = null;
-        studentsProgress = {};
-      });
     }
   }
 
@@ -493,9 +460,31 @@ class _ManageStudentProgressPageState
       return const Color(0xFF2196F3); // Blue for B
     } else if (score >= 40) {
       return const Color(0xFFFFA726); // Orange for C
-    } else {
+    } else if (score >= 0) {
       return const Color(0xFFE53935); // Red for D
+    } else {
+      return Colors.grey; // Red for D
     }
+  }
+
+  // Add this helper method to format long names
+  String _formatLongName(String name) {
+    final words = name.split(' ');
+    if (words.length <= 3) return name; // Return as is if name is short
+
+    // Find the middle point, preferring to break after "BIN" or "BINTI" if present
+    int breakPoint = words.length ~/ 2;
+    for (int i = 0; i < words.length; i++) {
+      if (words[i].toUpperCase() == 'BIN' || words[i].toUpperCase() == 'BINTI') {
+        breakPoint = i;
+        break;
+      }
+    }
+
+    // Join the words with a line break
+    final firstLine = words.sublist(0, breakPoint).join(' ');
+    final secondLine = words.sublist(breakPoint).join(' ');
+    return '$firstLine\n$secondLine';
   }
 
   @override
@@ -556,21 +545,40 @@ class _ManageStudentProgressPageState
 
               // Student Filter Section
               if (_selectedFilter == 'Student') ...[
-                TextField(
-                  controller: _searchController,
+                DropdownButtonFormField<String>(
+                  isExpanded: true,
                   decoration: InputDecoration(
-                    labelText: 'Search by IC Number',
-                    prefixIcon: const Icon(Icons.search, color: Color(0xFF0C6B58)),
+                    labelText: 'Select Student',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.0),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                      borderSide: const BorderSide(color: Color(0xFF0C6B58)),
-                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                   ),
-                  onSubmitted: (value) {
-                    _searchStudentByICNumber(value);
+                  value: _selectedStudentName,
+                  items: studentList.map((student) {
+                    return DropdownMenuItem<String>(
+                      value: student['id'],
+                      child: Text(
+                        student['name'] ?? 'Unknown',
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedStudentName = value!;
+                      if (_selectedStudentName != 'Choose Student') {
+                        _selectedStudentId = value;
+                        _fullName = studentNames[value] ?? '';
+                        _selectedSubject = 'Choose Subject';
+                        studentProgress = null;
+                      } else {
+                        _selectedStudentId = '';
+                        _fullName = '';
+                        _selectedSubject = 'Choose Subject';
+                        studentProgress = null;
+                      }
+                    });
                   },
                 ),
                 const SizedBox(height: 16.0),
@@ -840,9 +848,18 @@ class _ManageStudentProgressPageState
                                   final progress = entry.value;
                                   return DataRow(
                                     cells: [
-                                      DataCell(Text(
-                                        progress['name'] ?? '-',
-                                        style: const TextStyle(fontSize: 14),
+                                      DataCell(Container(
+                                        width: 200, // Adjust width as needed
+                                        child: Text(
+                                          _formatLongName(progress['name'] ?? '-'),
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            height: 1.2, // Add line height for better readability
+                                          ),
+                                          softWrap: true,
+                                          maxLines: 2, // Allow up to 2 lines
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       )),
                                       ...examTypes.map((exam) => DataCell(
                                         _buildScoreCell(progress[exam['description']]),

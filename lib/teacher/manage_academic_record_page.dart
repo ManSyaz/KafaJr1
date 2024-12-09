@@ -33,7 +33,10 @@ class _ManageAcademicRecordPageState
   Map<String, Map<String, String>> studentsProgress = {};
   Map<String, Map<String, String>> studentProgressByExam = {};
 
-  final TextEditingController _searchController = TextEditingController();
+  String _selectedStudentName = 'Choose Student';
+  List<Map<String, String>> studentList = [
+    {'id': 'Choose Student', 'name': 'Choose Student'}
+  ];
 
   @override
   void initState() {
@@ -89,6 +92,16 @@ class _ManageAcademicRecordPageState
                 return map;
               },
             );
+
+            studentList = [
+              {'id': 'Choose Student', 'name': 'Choose Student'}
+            ] + studentData.entries.map((entry) {
+              final studentMap = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
+              return {
+                'id': entry.key?.toString() ?? 'Unknown',
+                'name': studentMap['fullName']?.toString() ?? 'Unknown',
+              };
+            }).toList();
           });
         }
       }
@@ -202,50 +215,6 @@ class _ManageAcademicRecordPageState
     });
   }
 
-  Future<void> _searchStudentByIC() async {
-    final icNumber = _searchController.text;
-    try {
-      final snapshot = await _userRef.get();
-      if (snapshot.exists) {
-        final userData = snapshot.value as Map<Object?, Object?>?;
-        if (userData != null) {
-          final Map<String, dynamic> userMap = Map<String, dynamic>.from(userData);
-
-          final matchedStudent = userMap.entries.firstWhere(
-            (entry) {
-              final studentMap = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
-              final studentIC = studentMap['icNumber']?.toString() ?? '';
-              return studentIC == icNumber;
-            },
-            orElse: () => const MapEntry('', {}),
-          );
-
-          if (matchedStudent.value.isNotEmpty) {
-            final studentId = matchedStudent.key;
-            final studentMap = Map<String, dynamic>.from(matchedStudent.value as Map<Object?, Object?>);
-            setState(() {
-              _fullName = studentMap['fullName'] ?? 'Unknown';
-              _selectedStudentId = studentId;
-              _selectedExam = 'Choose Exam';
-              _clearExamHistory(); // Clear history when new student is searched
-            });
-          } else {
-            setState(() {
-              _fullName = 'Student not found';
-              _clearExamHistory();
-            });
-          }
-        }
-      }
-    } catch (e) {
-      print('Error searching for student by IC: $e');
-      setState(() {
-        _fullName = 'Error occurred';
-        _clearExamHistory();
-      });
-    }
-  }
-
   Color _getScoreColor(double score) {
     if (score >= 80) {
       return const Color(0xFF4CAF50); // Green for A
@@ -253,8 +222,10 @@ class _ManageAcademicRecordPageState
       return const Color(0xFF2196F3); // Blue for B
     } else if (score >= 40) {
       return const Color(0xFFFFA726); // Orange for C
-    } else {
+    } else if (score >= 0) {
       return const Color(0xFFE53935); // Red for D
+    } else {
+      return Colors.grey; // Red for D
     }
   }
 
@@ -437,6 +408,9 @@ class _ManageAcademicRecordPageState
 
   String _getGradeText(String? scoreStr) {
     final score = double.tryParse(scoreStr ?? '0') ?? 0;
+    if (scoreStr == null || scoreStr == '0') {
+      return 'N/A';
+    }
     if (score >= 80 && score <= 100) {
       return 'A';
     } else if (score >= 60 && score < 80) {
@@ -451,12 +425,16 @@ class _ManageAcademicRecordPageState
   }
 
   Widget _buildScoreCell(String? score) {
+    // Determine if the score is N/A
+    final displayScore = (score == null || score == '0') ? '-' : score;
+    final numericScore = double.tryParse(score ?? '0') ?? 0;
+
     return Container(
       alignment: Alignment.center,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
-          color: _getScoreColor(double.tryParse(score ?? '0') ?? 0),
+          color: _getScoreColor(numericScore),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -464,7 +442,7 @@ class _ManageAcademicRecordPageState
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              score ?? '-',
+              displayScore,
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w500,
@@ -484,6 +462,25 @@ class _ManageAcademicRecordPageState
         ),
       ),
     );
+  }
+
+  String _formatLongName(String name) {
+    final words = name.split(' ');
+    if (words.length <= 3) return name; // Return as is if name is short
+
+    // Find the middle point, preferring to break after "BIN" or "BINTI" if present
+    int breakPoint = words.length ~/ 2;
+    for (int i = 0; i < words.length; i++) {
+      if (words[i].toUpperCase() == 'BIN' || words[i].toUpperCase() == 'BINTI') {
+        breakPoint = i;
+        break;
+      }
+    }
+
+    // Join the words with a line break
+    final firstLine = words.sublist(0, breakPoint).join(' ');
+    final secondLine = words.sublist(breakPoint).join(' ');
+    return '$firstLine\n$secondLine';
   }
 
   @override
@@ -538,22 +535,40 @@ class _ManageAcademicRecordPageState
               ),
               const SizedBox(height: 16.0),
               if (_selectedFilter == 'Student') ...[
-                TextField(
-                  controller: _searchController,
+                DropdownButtonFormField<String>(
+                  isExpanded: true,
                   decoration: InputDecoration(
-                    labelText: 'Search by IC Number',
-                    prefixIcon: const Icon(Icons.search, color: Color(0xFF0C6B58)),
+                    labelText: 'Select Student',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.0),
-                      borderSide: const BorderSide(color: Color(0xFF0C6B58)),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                      borderSide: const BorderSide(color: Color(0xFF0C6B58)),
-                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                   ),
-                  onSubmitted: (value) {
-                    _searchStudentByIC();
+                  value: _selectedStudentName,
+                  items: studentList.map((student) {
+                    return DropdownMenuItem<String>(
+                      value: student['id'],
+                      child: Text(
+                        student['name'] ?? 'Unknown',
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedStudentName = value!;
+                      if (_selectedStudentName != 'Choose Student') {
+                        _selectedStudentId = value;
+                        _fullName = studentNames[value] ?? '';
+                        _selectedExam = 'Choose Exam';
+                        _clearExamHistory(); // Clear history when new student is selected
+                      } else {
+                        _selectedStudentId = '';
+                        _fullName = '';
+                        _selectedExam = 'Choose Exam';
+                        _clearExamHistory();
+                      }
+                    });
                   },
                 ),
                 const SizedBox(height: 16.0),
@@ -709,7 +724,7 @@ class _ManageAcademicRecordPageState
                                                 mainAxisAlignment: MainAxisAlignment.center,
                                                 children: [
                                                   Text(
-                                                    entry.value[code] ?? '-',
+                                                    (entry.value[code] == null || entry.value[code] == '0') ? '-' : entry.value[code]!,
                                                     style: const TextStyle(
                                                       color: Colors.white,
                                                       fontWeight: FontWeight.w500,
@@ -867,9 +882,18 @@ class _ManageAcademicRecordPageState
                                   final progress = entry.value;
                                   return DataRow(
                                     cells: [
-                                      DataCell(Text(
-                                        progress['name'] ?? '-',
-                                        style: const TextStyle(fontSize: 14),
+                                      DataCell(Container(
+                                        width: 200, // Adjust width as needed
+                                        child: Text(
+                                          _formatLongName(progress['name'] ?? '-'),
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            height: 1.2,
+                                          ),
+                                          softWrap: true,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       )),
                                       ...subjectCodes.values.map((code) => 
                                         DataCell(_buildScoreCell(progress[code]))

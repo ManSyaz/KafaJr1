@@ -118,8 +118,8 @@ class _ParentDashboardState extends State<ParentDashboard> {
       bottomNavigationBar: BottomNavigationBar(
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
+            icon: Icon(Icons.home),
+            label: 'Home',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
@@ -246,57 +246,100 @@ class _ParentDashboardState extends State<ParentDashboard> {
                   ),
                 ],
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 50),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "Children's Result Overview",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.white,
+                          const Color(0xFF0C6B58).withOpacity(0.3),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(
+                        color: const Color(0xFF0C6B58).withOpacity(0.3),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          spreadRadius: 1,
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  FutureBuilder<List<String>>(
-                    future: _getStudentEmails(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Align(
-                          alignment: Alignment.centerLeft,
-                          child: CircularProgressIndicator(),
-                        );
-                      } else if (snapshot.hasError) {
-                        return const Text('Error fetching emails');
-                      } else {
-                        List<String> studentEmails = snapshot.data ?? [];
-                        return DropdownButtonFormField<String>(
-                          decoration: InputDecoration(
-                            labelText: 'Select Student Email',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Row(
+                          children: [
+                            Icon(
+                              Icons.assessment_rounded,
+                              color: Color(0xFF0C6B58),
+                              size: 24,
                             ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8.0),
-                              borderSide: const BorderSide(color: Color(0xFF0C6B58)),
+                            SizedBox(width: 8),
+                            Text(
+                              "Result Overview",
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Color.fromARGB(255, 0, 0, 0),
+                              ),
                             ),
-                          ),
-                          value: _selectedStudentEmail,
-                          isExpanded: true,
-                          items: studentEmails.map((String email) {
-                            return DropdownMenuItem<String>(
-                              value: email,
-                              child: Text(email),
-                            );
-                          }).toList(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              _selectedStudentEmail = newValue;
-                            });
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        FutureBuilder<List<String>>(
+                          future: _getStudentEmails(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return const Align(
+                                alignment: Alignment.centerLeft,
+                                child: CircularProgressIndicator(),
+                              );
+                            } else if (snapshot.hasError) {
+                              return const Text('Error fetching emails');
+                            } else {
+                              List<String> studentEmails = snapshot.data ?? [];
+                              return DropdownButtonFormField<String>(
+                                decoration: InputDecoration(
+                                  labelText: 'Select Student Email',
+                                  hintText: 'Choose the Email',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    borderSide: const BorderSide(color: Color(0xFF0C6B58)),
+                                  ),
+                                ),
+                                value: _selectedStudentEmail,
+                                isExpanded: true,
+                                items: studentEmails.map((String email) {
+                                  return DropdownMenuItem<String>(
+                                    value: email,
+                                    child: Text(email),
+                                  );
+                                }).toList(),
+                                onChanged: (String? newValue) {
+                                  setState(() {
+                                    _selectedStudentEmail = newValue;
+                                  });
+                                },
+                              );
+                            }
                           },
-                        );
-                      }
-                    },
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -474,10 +517,13 @@ class _ParentDashboardState extends State<ParentDashboard> {
               });
 
             return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              scrollDirection: Axis.horizontal,
+              child: Row(
                 children: sortedExamTypes.map((examType) {
-                  return _buildExamTypeSummary(examType, examScores[examType]!);
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: _buildExamTypeSummary(examType, examScores[examType]!),
+                  );
                 }).toList(),
               ),
             );
@@ -510,56 +556,84 @@ class _ParentDashboardState extends State<ParentDashboard> {
       future: _getSubjectNames(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const SizedBox(); // Hide individual loading indicators
+          return const SizedBox();
         }
 
         Map<String, String> subjectNames = snapshot.data ?? {};
-        
-        // Calculate summary for this exam type
         double average = scores.isEmpty ? 0 : 
             scores.map((s) => s['score'] as int).reduce((a, b) => a + b) / scores.length;
-
-        // Find highest score with subject
         var highestScore = scores.isEmpty ? null : 
             scores.reduce((a, b) => (a['score'] as int) > (b['score'] as int) ? a : b);
-        
-        // Find lowest score with subject
         var lowestScore = scores.isEmpty ? null : 
             scores.reduce((a, b) => (a['score'] as int) < (b['score'] as int) ? a : b);
 
         return Card(
+          elevation: 4,
           margin: const EdgeInsets.symmetric(vertical: 8.0),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  examType,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Container(
+            width: 300,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white,
+                  const Color(0xFF0C6B58).withOpacity(0.1),
+                ],
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        examType,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0C6B58),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: _getGradeColor(average).withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          _getGrade(average),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: _getGradeColor(average),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 12),
-                Text('Average Score: ${average.toStringAsFixed(2)}'),
-                if (highestScore != null)
-                  Text('Highest Score: ${highestScore['score']} (${subjectNames[highestScore['subjectId']] ?? 'Unknown Subject'})'),
-                if (lowestScore != null)
-                  Text('Lowest Score: ${lowestScore['score']} (${subjectNames[lowestScore['subjectId']] ?? 'Unknown Subject'})'),
-                Text('Total Subjects: ${scores.length}'),
-                const SizedBox(height: 12),
-                _buildProgressIndicator(average),
-                const SizedBox(height: 8),
-                Text(
-                  'Grade: ${_getGrade(average)}',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: _getGradeColor(average),
-                  ),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  _buildProgressIndicator(average),
+                  const SizedBox(height: 16),
+                  _buildScoreDetail('Average Score', average.toStringAsFixed(2), Icons.analytics),
+                  if (highestScore != null)
+                    _buildScoreDetail('Highest Score', 
+                      '${highestScore['score']} (${subjectNames[highestScore['subjectId']] ?? 'Unknown Subject'})',
+                      Icons.arrow_upward),
+                  if (lowestScore != null)
+                    _buildScoreDetail('Lowest Score', 
+                      '${lowestScore['score']} (${subjectNames[lowestScore['subjectId']] ?? 'Unknown Subject'})',
+                      Icons.arrow_downward),
+                  _buildScoreDetail('Total Subjects', scores.length.toString(), Icons.book),
+                ],
+              ),
             ),
           ),
         );
@@ -573,11 +647,14 @@ class _ParentDashboardState extends State<ParentDashboard> {
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(10),
-          child: LinearProgressIndicator(
-            value: score / 100,
-            minHeight: 10,
-            backgroundColor: Colors.grey[300],
-            valueColor: AlwaysStoppedAnimation<Color>(_getGradeColor(score)),
+          child: SizedBox(
+            width: double.infinity,
+            child: LinearProgressIndicator(
+              value: score / 100,
+              minHeight: 10,
+              backgroundColor: Colors.grey[300],
+              valueColor: AlwaysStoppedAnimation<Color>(_getGradeColor(score)),
+            ),
           ),
         ),
       ],
@@ -608,5 +685,31 @@ class _ParentDashboardState extends State<ParentDashboard> {
     } else {
       return Colors.red; // Not Satisfactory
     }
+  }
+
+  Widget _buildScoreDetail(String label, String value, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: const Color(0xFF0C6B58)),
+          const SizedBox(width: 8),
+          Text(
+            '$label: ',
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

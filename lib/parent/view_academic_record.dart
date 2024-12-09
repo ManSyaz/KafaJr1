@@ -137,11 +137,11 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
   Future<void> _fetchStudentProgressByExam(String examId) async {
     try {
       final exam = exams.firstWhere((exam) => exam['id'] == examId);
-      final examDescription = exam['description'];
+      final examDescription = exam['description'] ?? 'Unknown';
 
       final snapshot = await _progressRef
           .orderByChild('examDescription')
-          .equalTo(examDescription)
+          .equalTo(exam['description'])
           .get();
 
       if (snapshot.exists) {
@@ -157,28 +157,29 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
 
             if (!map.containsKey(studentId)) {
               map[studentId] = {
-                'name': studentNames[studentId] ?? 'Unknown',
-                'examDescription': examDescription ?? 'Unknown', // Ensure examDescription is set here
+                'examDescription': examDescription,
               };
             }
 
-            map[studentId]![subjectCode] = progress['score']?.toString() ?? '-'; // Use score instead of percentage
+            map[studentId]![subjectCode] = progress['score']?.toString() ?? '-';
             return map;
           },
         );
 
         setState(() {
           studentsProgress = filteredProgress;
-          studentProgressByExam[examId] = studentsProgress[_selectedStudentId] ?? {};
+          studentProgressByExam[examId] = studentsProgress[_selectedStudentId] ?? {
+            'examDescription': examDescription,
+          };
         });
-
-        // Debug print
-        print('Students Progress: $studentsProgress');
-        print('Student Progress by Exam: $studentProgressByExam');
       } else {
         setState(() {
-          studentsProgress = {};
-          studentProgressByExam = {};
+          studentsProgress = {
+            _selectedStudentId: {
+              'examDescription': examDescription,
+            }
+          };
+          studentProgressByExam[examId] = studentsProgress[_selectedStudentId] ?? {};
         });
       }
     } catch (e) {
