@@ -136,81 +136,98 @@ class _ParentDashboardState extends State<ParentDashboard> {
   Widget _buildDashboard() {
     return Stack(
       children: [
+        // Pattern container overlapping everything
+        Container(
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage('assets/kafapattern.png'),
+              repeat: ImageRepeat.repeat,
+              opacity: 0.2,
+            ),
+          ),
+        ),
+        
+        // AppBar with higher z-index for interactivity
         Positioned(
           top: 0,
           left: 0,
           right: 0,
-          child: AppBar(
-            backgroundColor: const Color(0xFF0C6B58),
-            flexibleSpace: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                SizedBox(height: MediaQuery.of(context).padding.top), // Status bar height
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      FutureBuilder<Map<String, dynamic>>(
-                        future: _getUserData(),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const Text('Loading...');
-                          } else if (snapshot.hasError) {
-                            return const Text('Error');
-                          } else {
-                            var userData = snapshot.data!;
-                            String userFullName = userData['fullName'] ?? 'User';
-                            return Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Welcome!',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.white,
+          child: Material(  // Add Material widget to ensure touch events work
+            color: Colors.transparent,
+            child: AppBar(
+              backgroundColor: const Color(0xFF0C6B58),
+              flexibleSpace: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  SizedBox(height: MediaQuery.of(context).padding.top),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        FutureBuilder<Map<String, dynamic>>(
+                          future: _getUserData(),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.waiting) {
+                              return const Text('Loading...');
+                            } else if (snapshot.hasError) {
+                              return const Text('Error');
+                            } else {
+                              var userData = snapshot.data!;
+                              String userFullName = userData['fullName'] ?? 'User';
+                              return Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Welcome!',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        color: Colors.white,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    userFullName,
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                    Text(
+                                      userFullName,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.logout, size: 35, color: Colors.white),
-                        onPressed: _handleLogout, // Call logout function
-                      ),
-                    ],
+                                  ],
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.logout, size: 35, color: Colors.white),
+                          onPressed: _handleLogout,
+                        ),
+                      ],
+                    ),
                   ),
+                ],
+              ),
+              toolbarHeight: 250.0,
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(15),
+                  bottomRight: Radius.circular(15),
                 ),
-              ],
-            ),
-            toolbarHeight: 250.0,
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(15),
-                bottomRight: Radius.circular(15),
               ),
             ),
           ),
         ),
-        Column(
-          children: [
-            const SizedBox(height: 115),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Row(
+        
+        // Rest of the dashboard content
+        Container(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              const SizedBox(height: 115),
+              Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _buildDashboardButton(
@@ -229,11 +246,8 @@ class _ParentDashboardState extends State<ParentDashboard> {
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 75),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
+              const SizedBox(height: 40),
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
@@ -286,17 +300,17 @@ class _ParentDashboardState extends State<ParentDashboard> {
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: _selectedStudentEmail != null
-                  ? Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: _buildScoreSummary(_selectedStudentEmail!),
-                    )
-                  : const SizedBox(),
-            ),
-          ],
+              const SizedBox(height: 20),
+              Expanded(
+                child: _selectedStudentEmail != null
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: _buildScoreSummary(_selectedStudentEmail!),
+                      )
+                    : const SizedBox(),
+              ),
+            ],
+          ),
         ),
       ],
     );

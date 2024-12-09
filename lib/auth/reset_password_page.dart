@@ -73,8 +73,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                 // Replace the Title Section with Logo Section
                 Image.asset(
                   'assets/kafalogo.png',
-                  height: 155,
-                  width: 155,
+                  height: 200,
+                  width: 200,
                   fit: BoxFit.contain,
                 ),
                 const SizedBox(height: 0),

@@ -46,13 +46,28 @@ class _PDFViewerPageState extends State<PDFViewerPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.pinkAccent,
+        backgroundColor: const Color(0xFF0C6B58),
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
+          'PDF Viewer',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        centerTitle: true,
       ),
       body: FutureBuilder<File>(
         future: _pdfFile,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF0C6B58),
+              ),
+            );
           }
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
@@ -61,6 +76,10 @@ class _PDFViewerPageState extends State<PDFViewerPage> {
             final file = snapshot.data!;
             return PDFView(
               filePath: file.path,
+              enableSwipe: true,
+              swipeHorizontal: false,
+              autoSpacing: true,
+              pageSnap: true,
             );
           }
           return const Center(child: Text('No PDF found.'));

@@ -146,8 +146,8 @@ class _LoginPageState extends State<LoginPage> {
                   // Logo Section
                   Image.asset(
                     'assets/kafalogo.png', // Make sure to add your logo image to this path
-                    height: 155, // Adjust height as needed
-                    width: 155,  // Adjust width as needed
+                    height: 200, // Adjust height as needed
+                    width: 200,  // Adjust width as needed
                     fit: BoxFit.contain,
                   ),
                   const SizedBox(height: 0),

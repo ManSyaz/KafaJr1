@@ -266,8 +266,8 @@ class _SignUpPageState extends State<SignUpPage> {
               // Replace Logo and Title Section
               Image.asset(
                 'assets/kafalogo.png',
-                height: 120,
-                width: 120,
+                height: 140,
+                width: 140,
                 fit: BoxFit.contain,
               ),
               const SizedBox(height: 0),
