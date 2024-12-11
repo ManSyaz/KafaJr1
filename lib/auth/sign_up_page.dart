@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'login_page.dart';
+import 'teacher_sign_up_page.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -141,7 +142,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
   Future<void> _signUp() async {
     setState(() {
-      _isLoading = true; // Set loading to true when sign up starts
+      _isLoading = true;
     });
 
     bool isPasswordValid = _validatePassword(_passwordController.text);
@@ -155,12 +156,30 @@ class _SignUpPageState extends State<SignUpPage> {
 
     if (!isPasswordValid || !isEmailValid || !isParentEmailValid || !isICValid) {
       setState(() {
-        _isLoading = false; // Reset loading state if validation fails
+        _isLoading = false;
       });
       return;
     }
 
     try {
+      // Check if parent email exists in Parent table when registering as Student
+      if (_role == 'Student') {
+        final parentEmailQuery = await FirebaseDatabase.instance
+            .ref("Parent")
+            .orderByChild("email")
+            .equalTo(_studentEmailController.text)
+            .get();
+
+        if (parentEmailQuery.value == null) {
+          throw Exception("Parent email not found. Please ensure parent is registered.");
+        }
+
+        // Get parent ID from the query result
+        final parentData = (parentEmailQuery.value as Map).entries.first;
+        // ignore: unused_local_variable
+        final parentId = parentData.key;
+      }
+
       // Register user in Firebase Auth
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text,
@@ -178,13 +197,38 @@ class _SignUpPageState extends State<SignUpPage> {
         'role': _role,
       });
 
-      // Add data to the "Parent" table if the role is 'Parent'
-      if (_role == 'Parent') {
+      // Add data to specific role tables
+      if (_role == 'Student') {
+        // Add to Student table
+        DatabaseReference studentRef = FirebaseDatabase.instance.ref("Student/$userId");
+        await studentRef.set({
+          'fullName': _fullNameController.text,
+          'email': _emailController.text,
+          'icNumber': _icNumberController.text,
+          'parentEmail': _studentEmailController.text,
+        });
+
+        // Add to StudentParent table
+        final parentEmailQuery = await FirebaseDatabase.instance
+            .ref("Parent")
+            .orderByChild("email")
+            .equalTo(_studentEmailController.text)
+            .get();
+        
+        final parentId = (parentEmailQuery.value as Map).entries.first.key;
+        
+        DatabaseReference studentParentRef = FirebaseDatabase.instance.ref("StudentParent/$userId");
+        await studentParentRef.set({
+          'studentId': userId,
+          'parentId': parentId,
+          'parentEmail': _studentEmailController.text,
+        });
+      } else if (_role == 'Parent') {
         DatabaseReference parentRef = FirebaseDatabase.instance.ref("Parent/$userId");
         await parentRef.set({
           'fullName': _fullNameController.text,
           'email': _emailController.text,
-          'icNumber': _icNumberController.text, // Store IC Number
+          'icNumber': _icNumberController.text,
         });
       }
 
@@ -236,7 +280,7 @@ class _SignUpPageState extends State<SignUpPage> {
       );
     } finally {
       setState(() {
-        _isLoading = false; // Reset loading state after operation
+        _isLoading = false;
       });
     }
   }
@@ -345,6 +389,19 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                     ),
                   ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const TeacherSignUpPage()),
+                  );
+                },
+                child: const Text(
+                  'Are you a teacher? Register here',
+                  style: TextStyle(color: Color(0xFF0C6B58)),
                 ),
               ),
               const SizedBox(height: 32),

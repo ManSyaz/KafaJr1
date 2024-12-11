@@ -848,7 +848,7 @@ class _ManageStudentProgressPageState
                                   final progress = entry.value;
                                   return DataRow(
                                     cells: [
-                                      DataCell(Container(
+                                      DataCell(SizedBox(
                                         width: 200, // Adjust width as needed
                                         child: Text(
                                           _formatLongName(progress['name'] ?? '-'),

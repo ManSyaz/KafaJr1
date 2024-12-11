@@ -406,7 +406,7 @@ class _SubjectListPageState extends State<SubjectListPage> {
       );
 
       // Show completion notification
-      final androidDetailsComplete = const AndroidNotificationDetails(
+      const androidDetailsComplete = AndroidNotificationDetails(
         'download_channel',
         'File Download',
         channelDescription: 'Shows file download progress',
