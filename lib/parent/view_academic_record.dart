@@ -204,152 +204,303 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
     if (studentProgressByExam.isEmpty) return Container();
 
     final subjectList = subjectCodes.values.toList();
-    final dataEntries = subjectList.asMap().entries.map((entry) {
-      final index = entry.key;
-      final code = entry.value;
-      final yValue = double.tryParse(studentProgressByExam[_selectedExam]?[code] ?? '0') ?? 0;
+    final examList = exams.where((exam) => exam['id'] != 'Choose Exam').toList();
+    
+    // Sort examList based on specific order
+    examList.sort((a, b) {
+      List<String> order = ['PAT', 'PPT', 'PUPPK'];
+      String descA = a['description'] ?? '';
+      String descB = b['description'] ?? '';
+      int indexA = order.indexOf(descA);
+      int indexB = order.indexOf(descB);
+      // If both items are found in the order list, use their indices
+      if (indexA != -1 && indexB != -1) {
+        return indexA.compareTo(indexB);
+      }
+      // If one or both items are not in the order list, keep their relative order
+      return 0;
+    });
 
-      return BarChartGroupData(
-        x: index,
-        barRods: [
-          BarChartRodData(
-            toY: yValue,
-            color: _getScoreColor(yValue),
-            width: subjectList.length <= 3 ? 40 : (subjectList.length <= 5 ? 30 : 20),
-            borderRadius: BorderRadius.circular(4),
-            backDrawRodData: BackgroundBarChartRodData(
-              show: true,
-              toY: 100,
-              color: Colors.grey[200],
-            ),
+    return Column(
+      children: [
+        // Subject Legend Card
+        Card(
+          elevation: 4,
+          margin: const EdgeInsets.only(bottom: 16.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-        ],
-      );
-    }).toList();
-
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Subject Performance',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
+          child: Container(
+            padding: const EdgeInsets.all(16.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: const Color(0xFF0C6B58).withOpacity(0.1),
+                width: 1,
               ),
-            ),
-            // Add grade legend
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: Wrap(
-                spacing: 16.0,
-                children: [
-                  _buildLegendItem('A (≥80)', const Color(0xFF4CAF50)),
-                  _buildLegendItem('B (≥60)', const Color(0xFF2196F3)),
-                  _buildLegendItem('C (≥40)', const Color(0xFFFFA726)),
-                  _buildLegendItem('D (<40)', const Color(0xFFE53935)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 400,
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: subjectList.length <= 3 ? 40.0 : 16.0,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
                 ),
-                child: BarChart(
-                  BarChartData(
-                    alignment: BarChartAlignment.spaceAround,
-                    maxY: 100,
-                    barGroups: dataEntries,
-                    gridData: FlGridData(
-                      show: true,
-                      drawHorizontalLine: true,
-                      horizontalInterval: 20,
-                      getDrawingHorizontalLine: (value) => FlLine(
-                        color: Colors.grey[300],
-                        strokeWidth: 1,
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      size: 20,
+                      color: const Color(0xFF0C6B58).withOpacity(0.8),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Subject Legend',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        color: Color(0xFF0C6B58),
                       ),
                     ),
-                    titlesData: FlTitlesData(
-                      leftTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          getTitlesWidget: (value, meta) => Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: Text(
-                              value.toInt().toString(),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.black54,
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Left column
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSubjectLegendItem('SR', 'Sirah'),
+                          _buildSubjectLegendItem('AS', 'Amali Solat'),
+                          _buildSubjectLegendItem('US', 'Ulum Syari\'ah'),
+                          _buildSubjectLegendItem('JK', 'Jawi & Khat'),
+                        ],
+                      ),
+                    ),
+                    // Right column
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildSubjectLegendItem('LQ', 'Lughatul Quran'),
+                          _buildSubjectLegendItem('BAQ', 'Bidang Al-Quran'),
+                          _buildSubjectLegendItem('AD', 'Adab'),
+                          _buildSubjectLegendItem('PCHI', 'Penghayatan Cara Hidup Islam'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        // Scrollable Subject Cards
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: subjectList.map((subjectCode) {
+              List<Map<String, dynamic>> examScores = examList.map((exam) {
+                final examId = exam['id'] ?? '';
+                final score = double.tryParse(
+                    studentProgressByExam[examId]?[subjectCode] ?? '0') ?? 0;
+                return {
+                  'examId': examId,
+                  'examDescription': exam['description'] ?? 'Unknown',
+                  'examTitle': exam['title'] ?? 'Unknown',
+                  'score': score,
+                };
+              }).toList();
+
+              // Sort examScores to ensure the order is maintained
+              examScores.sort((a, b) {
+                List<String> order = ['PAT', 'PPT', 'PUPPK'];
+                String descA = a['examDescription'] ?? '';
+                String descB = b['examDescription'] ?? '';
+                int indexA = order.indexOf(descA);
+                int indexB = order.indexOf(descB);
+                if (indexA != -1 && indexB != -1) {
+                  return indexA.compareTo(indexB);
+                }
+                return 0;
+              });
+
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Container(
+                  width: 350, // Fixed width like in parent dashboard
+                  child: Card(
+                    elevation: 4,
+                    margin: const EdgeInsets.symmetric(vertical: 8.0),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Subject: $subjectCode',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Wrap(
+                              spacing: 16.0,
+                              children: [
+                                _buildLegendItem('A (≥80)', const Color(0xFF4CAF50)),
+                                _buildLegendItem('B (≥60)', const Color(0xFF2196F3)),
+                                _buildLegendItem('C (≥40)', const Color(0xFFFFA726)),
+                                _buildLegendItem('D (<40)', const Color(0xFFE53935)),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          SizedBox(
+                            height: 200,
+                            child: BarChart(
+                              BarChartData(
+                                alignment: BarChartAlignment.spaceAround,
+                                maxY: 100,
+                                barGroups: List.generate(
+                                  examScores.length,
+                                  (index) => BarChartGroupData(
+                                    x: index,
+                                    barRods: [
+                                      BarChartRodData(
+                                        toY: examScores[index]['score'],
+                                        color: _getScoreColor(examScores[index]['score']),
+                                        width: 30,
+                                        borderRadius: BorderRadius.circular(4),
+                                        backDrawRodData: BackgroundBarChartRodData(
+                                          show: true,
+                                          toY: 100,
+                                          color: Colors.grey[200],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                gridData: FlGridData(
+                                  show: true,
+                                  drawHorizontalLine: true,
+                                  horizontalInterval: 20,
+                                  getDrawingHorizontalLine: (value) => FlLine(
+                                    color: Colors.grey[300],
+                                    strokeWidth: 1,
+                                  ),
+                                ),
+                                titlesData: FlTitlesData(
+                                  leftTitles: AxisTitles(
+                                    sideTitles: SideTitles(
+                                      showTitles: true,
+                                      getTitlesWidget: (value, meta) => Padding(
+                                        padding: const EdgeInsets.only(right: 8.0),
+                                        child: Text(
+                                          value.toInt().toString(),
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.black54,
+                                          ),
+                                        ),
+                                      ),
+                                      reservedSize: 40,
+                                    ),
+                                  ),
+                                  bottomTitles: AxisTitles(
+                                    sideTitles: SideTitles(
+                                      showTitles: true,
+                                      getTitlesWidget: (value, meta) {
+                                        if (value >= 0 && value < examScores.length) {
+                                          return Padding(
+                                            padding: const EdgeInsets.only(top: 8.0),
+                                            child: Text(
+                                              examScores[value.toInt()]['examDescription'],
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.black54,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          );
+                                        }
+                                        return const Text('');
+                                      },
+                                      reservedSize: 40,
+                                    ),
+                                  ),
+                                  rightTitles: const AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false),
+                                  ),
+                                  topTitles: const AxisTitles(
+                                    sideTitles: SideTitles(showTitles: false),
+                                  ),
+                                ),
+                                borderData: FlBorderData(show: false),
+                                barTouchData: BarTouchData(
+                                  enabled: true,
+                                  touchTooltipData: BarTouchTooltipData(
+                                    fitInsideHorizontally: true,
+                                    fitInsideVertically: true,
+                                    tooltipPadding: const EdgeInsets.all(8),
+                                    tooltipMargin: 8,
+                                    getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                                      final examData = examScores[group.x];
+                                      final value = rod.toY.round();
+                                      final grade = _getGradeText(value.toString());
+                                      return BarTooltipItem(
+                                        '${examData['examDescription']}\n$value% (Grade $grade)',
+                                        const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                          reservedSize: 40,
-                        ),
-                      ),
-                      bottomTitles: AxisTitles(
-                        sideTitles: SideTitles(
-                          showTitles: true,
-                          getTitlesWidget: (value, meta) {
-                            final index = value.toInt();
-                            if (index >= 0 && index < subjectList.length) {
-                              return Padding(
-                                padding: const EdgeInsets.only(top: 8.0),
-                                child: Text(
-                                  subjectList[index],
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.black87,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              );
-                            }
-                            return const Text('');
-                          },
-                          reservedSize: 40,
-                        ),
-                      ),
-                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    ),
-                    borderData: FlBorderData(show: false),
-                    barTouchData: BarTouchData(
-                      enabled: true,
-                      touchTooltipData: BarTouchTooltipData(
-                        fitInsideHorizontally: true,
-                        fitInsideVertically: true,
-                        tooltipPadding: const EdgeInsets.all(8),
-                        tooltipMargin: 8,
-                        getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                          final subjectCode = subjectList[group.x.toInt()];
-                          final value = rod.toY.round();
-                          final grade = _getGradeText(value.toString());
-                          return BarTooltipItem(
-                            '$subjectCode\n$value% (Grade $grade)',
-                            const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                          const SizedBox(height: 16),
+                          // Add exam abbreviation legend below the graph
+                          Container(
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: const Text(
+                              'PAT: Peperiksaan Awal Tahun\n'
+                              'PPT: Peperiksaan Pertengahan Tahun\n'
+                              'PUPPK: Percubaan Ujian Penilaian Kelas KAFA',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.black54,
+                                fontStyle: FontStyle.italic,
+                              ),
+                              textAlign: TextAlign.center,
                             ),
-                          );
-                        },
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
-              ),
-            ),
-          ],
+              );
+            }).toList(),
+          ),
         ),
-      ),
+      ],
     );
   }
 
@@ -392,6 +543,46 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
     } else {
       return 'N/A';
     }
+  }
+
+  Widget _buildSubjectLegendItem(String code, String name) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 4.0),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 4.0),
+            decoration: BoxDecoration(
+              color: const Color(0xFF0C6B58).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: const Color(0xFF0C6B58).withOpacity(0.2),
+              ),
+            ),
+            child: Text(
+              code,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0C6B58),
+                fontSize: 12,
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              name,
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.black87,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -479,8 +670,6 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
                     _selectedExam = value!;
                     if (_selectedExam != 'Choose Exam') {
                       _fetchStudentProgressByExam(_selectedExam);
-                    } else {
-                      studentProgressByExam = {}; // Clear progress if no exam is selected
                     }
                   });
                 },

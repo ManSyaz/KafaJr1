@@ -328,6 +328,41 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
                 ),
               ),
             ),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 16.0),
+              child: const Column(
+                children: [
+                  Text(
+                    'PAT: Peperiksaan Awal Tahun',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.black54,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  Text(
+                    'PPT: Peperiksaan Pertengahan Tahun',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.black54,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  Text(
+                    'PUPPK: Percubaan Ujian Penilaian Kelas KAFA',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.black54,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
