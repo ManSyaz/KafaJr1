@@ -31,11 +31,12 @@ class _EditExamPageState extends State<EditExamPage> {
   @override
   void initState() {
     super.initState();
-    _loadExamData();
-    _fetchSubjects();
+    _fetchSubjects().then((_) {
+      _loadExamData();
+    });
   }
 
-  void _fetchSubjects() async {
+  Future<void> _fetchSubjects() async {
     final snapshot = await _subjectRef.get();
     if (snapshot.exists) {
       final subjectData = snapshot.value as Map<dynamic, dynamic>?;
@@ -47,6 +48,9 @@ class _EditExamPageState extends State<EditExamPage> {
             final name = subjectInfo['name'] as String;
             return '$code - $name';
           }).toList();
+          
+          // Debug print
+          print('Available subjects: $subjects');
         });
       }
     }
@@ -60,7 +64,18 @@ class _EditExamPageState extends State<EditExamPage> {
         setState(() {
           _titleController.text = subjectData['title'] as String? ?? '';
           _descriptionController.text = subjectData['description'] as String? ?? '';
-          _selectedSubject = subjectData['subject'] as String? ?? '';
+          String loadedSubject = subjectData['subject'] as String? ?? '';
+          
+          // Debug print
+          print('Loaded subject: $loadedSubject');
+          
+          // Check if the loaded subject exists in the subjects list
+          if (subjects.contains(loadedSubject)) {
+            _selectedSubject = loadedSubject;
+          } else {
+            _selectedSubject = null; // Reset if not found
+          }
+          
           _currentFileUrl = subjectData['fileUrl'] as String?;
         });
       }
@@ -223,12 +238,14 @@ class _EditExamPageState extends State<EditExamPage> {
                 onChanged: (value) {
                   setState(() {
                     _selectedSubject = value;
+                    print('Selected subject: $value'); // Debug print
                   });
                 },
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   contentPadding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
                 ),
+                isExpanded: true, // Add this to prevent overflow
               ),
             ),
             const SizedBox(height: 16.0),
