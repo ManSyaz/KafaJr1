@@ -245,8 +245,8 @@ class _ManageStudentProgressPageState
         barRods: [
           BarChartRodData(
             toY: yValue,
-            color: getGradeColor(yValue), // Use grade color based on score
-            width: examTypes.length <= 3 ? 40 : (examTypes.length <= 5 ? 30 : 20),
+            color: getGradeColor(yValue),
+            width: 30, // Fixed width to match other cards
             borderRadius: BorderRadius.circular(4),
             backDrawRodData: BackgroundBarChartRodData(
               show: true,
@@ -258,42 +258,39 @@ class _ManageStudentProgressPageState
       );
     }).toList();
 
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Student Performance',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
-            // Add grade legend
-            Padding(
-              padding: const EdgeInsets.only(top: 8.0),
-              child: Wrap(
-                spacing: 16.0,
-                children: [
-                  _buildLegendItem('A (≥80)', gradeColors['A']!),
-                  _buildLegendItem('B (≥60)', gradeColors['B']!),
-                  _buildLegendItem('C (≥40)', gradeColors['C']!),
-                  _buildLegendItem('D (<40)', gradeColors['D']!),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 400,
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: examTypes.length <= 3 ? 40.0 : 16.0,
+    return SizedBox(
+      width: 350, // Fixed width to match other cards
+      child: Card(
+        elevation: 4,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Student Performance',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
                 ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Wrap(
+                  spacing: 16.0,
+                  children: [
+                    _buildLegendItem('A (≥80)', gradeColors['A']!),
+                    _buildLegendItem('B (≥60)', gradeColors['B']!),
+                    _buildLegendItem('C (≥40)', gradeColors['C']!),
+                    _buildLegendItem('D (<40)', gradeColors['D']!),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                height: 200, // Fixed height to match other cards
                 child: BarChart(
                   BarChartData(
                     alignment: BarChartAlignment.spaceAround,
@@ -340,10 +337,9 @@ class _ManageStudentProgressPageState
                                   message: examTypes[index]['title'],
                                   child: Text(
                                     examTypes[index]['description'],
-                                    style: TextStyle(
-                                      fontSize: examTypes.length <= 5 ? 12 : 10,
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.black87,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.black54,
                                     ),
                                     textAlign: TextAlign.center,
                                   ),
@@ -387,8 +383,24 @@ class _ManageStudentProgressPageState
                   ),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 16),
+              Container(
+                alignment: Alignment.center,
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: const Text(
+                  'PAT: Peperiksaan Awal Tahun\n'
+                  'PPT: Peperiksaan Pertengahan Tahun\n'
+                  'PUPKK: Percubaan Ujian Penilaian KAFA',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.black54,
+                    fontStyle: FontStyle.italic,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -615,7 +627,11 @@ class _ManageStudentProgressPageState
                     },
                   ),
                   const SizedBox(height: 16.0),
-                  if (studentProgress != null) _buildGraph(),
+                  if (studentProgress != null) 
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: _buildGraph(),
+                    ),
                   if (studentProgress != null) ...[
                     const SizedBox(height: 24),
                     Card(

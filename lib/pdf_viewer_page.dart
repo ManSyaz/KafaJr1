@@ -49,14 +49,6 @@ class _PDFViewerPageState extends State<PDFViewerPage> {
         backgroundColor: const Color(0xFF0C6B58),
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'PDF Viewer',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
         centerTitle: true,
       ),
       body: FutureBuilder<File>(
