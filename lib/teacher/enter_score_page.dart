@@ -2,10 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert'; // For jsonEncode
+// For jsonEncode
 // ignore: unused_import
 import 'package:firebase_auth/firebase_auth.dart';
+import '../models/notification.dart';
 
 class EnterScorePage extends StatefulWidget {
   final String examId;
@@ -18,10 +18,11 @@ class EnterScorePage extends StatefulWidget {
 
 class _EnterScorePageState extends State<EnterScorePage> {
   final DatabaseReference _subjectRef = FirebaseDatabase.instance.ref().child('Subject');
-  final DatabaseReference _studentRef = FirebaseDatabase.instance.ref().child('Student');
-  final DatabaseReference _parentRef = FirebaseDatabase.instance.ref().child('Parent'); // New reference for Parent
+  final DatabaseReference _studentRef = FirebaseDatabase.instance.ref().child('Student');// New reference for Parent
   final DatabaseReference _progressRef = FirebaseDatabase.instance.ref().child('Progress');
   final DatabaseReference _examRef = FirebaseDatabase.instance.ref().child('Exam'); // New reference for Exam
+  final DatabaseReference _studentParentRef = FirebaseDatabase.instance.ref().child('StudentParent'); // New reference for StudentParent
+  final DatabaseReference _notificationRef = FirebaseDatabase.instance.ref().child('Noti');
 
   String? _selectedSubjectId;
   String? _examDescription; // Variable to store exam description
@@ -201,6 +202,46 @@ class _EnterScorePageState extends State<EnterScorePage> {
                 }
             }
 
+            // Replace email notification with in-app notification
+            for (var student in _students) {
+                String studentId = student['id']!;
+                double? score = double.tryParse(_scoreControllers[studentId]!.text);
+                
+                if (score != null) {
+                    // Get parent ID for the student
+                    final studentParentSnapshot = await _studentParentRef
+                        .orderByChild('studentId')
+                        .equalTo(studentId)
+                        .once();
+                    
+                    if (studentParentSnapshot.snapshot.value != null) {
+                        final parentData = studentParentSnapshot.snapshot.value as Map<dynamic, dynamic>;
+                        final firstEntry = parentData.entries.first;
+                        final parentId = (firstEntry.value as Map<dynamic, dynamic>)['parentId'];
+
+                        // Create notification using SchoolNotification model
+                        String notificationId = _notificationRef.push().key!;
+                        final notification = SchoolNotification(
+                            id: notificationId,
+                            title: 'Exam Result Update',
+                            message: "Your Children's Result have been Add/Updated",
+                            type: NotificationType.examResult,
+                            timestamp: DateTime.now(),
+                            isRead: false,
+                            parentId: parentId,
+                            studentId: studentId,
+                            data: {
+                                'examId': _selectedExamId,
+                                'subjectId': _selectedSubjectId,
+                            }
+                        );
+
+                        // Save notification using the toJson method
+                        await _notificationRef.child(notificationId).set(notification.toJson());
+                    }
+                }
+            }
+
             ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                     content: const Text(
@@ -229,62 +270,6 @@ class _EnterScorePageState extends State<EnterScorePage> {
                 SnackBar(content: Text('Error saving scores: $e')),
             );
         }
-    }
-  }
-
-  // Function to get parent email based on student ID
-  Future<String> _getParentEmail(String studentId) async {
-    final studentSnapshot = await _studentRef.child(studentId).get();
-    if (studentSnapshot.exists) {
-      final studentData = studentSnapshot.value as Map<dynamic, dynamic>?; // Cast as nullable map
-      String? parentId = studentData?['parentId'] as String?; // Check parentId with null safety
-      if (parentId != null) { // Proceed only if parentId is not null
-        final parentSnapshot = await _parentRef.child(parentId).get();
-        if (parentSnapshot.exists) {
-          final parentData = parentSnapshot.value as Map<dynamic, dynamic>?; // Nullable cast
-          return parentData?['username'] ?? 'default@example.com'; // Fallback if email not found
-        }
-      }
-    }
-    return 'default@example.com'; // Fallback email if not found
-  }
-
-  // Function to send email using SendGrid
-  Future<void> _sendEmail(String toEmail, String subject, String body, String s) async {
-    const String apiKey = ''; // Your SendGrid API key
-    const String url = 'https://api.sendgrid.com/v3/mail/send';
-
-    await Future.delayed(const Duration(seconds: 1));
-
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $apiKey',
-      },
-      body: jsonEncode({
-        'personalizations': [
-          {
-            'to': [
-              {'email': toEmail}
-            ],
-            'subject': subject,
-          }
-        ],
-        'from': {'email': 'kafajr02@gmail.com'}, // Use your verified email as sender
-        'content': [
-          {
-            'type': 'text/plain',
-            'value': body,
-          }
-        ],
-      }),
-    );
-
-    if (response.statusCode == 202) {
-      print('Email sent successfully!');
-    } else {
-      print('Failed to send email: ${response.body}');
     }
   }
 

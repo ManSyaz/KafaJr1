@@ -413,7 +413,7 @@ class _SubjectListPageState extends State<SubjectListPage> {
         importance: Importance.high,
         priority: Priority.high,
       );
-      final notificationDetailsComplete = NotificationDetails(android: androidDetailsComplete);
+      final notificationDetailsComplete = const NotificationDetails(android: androidDetailsComplete);
 
       await flutterLocalNotificationsPlugin.show(
         1,

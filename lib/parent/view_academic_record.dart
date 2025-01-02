@@ -335,7 +335,7 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
 
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Container(
+                child: SizedBox(
                   width: 350, // Fixed width like in parent dashboard
                   child: Card(
                     elevation: 4,

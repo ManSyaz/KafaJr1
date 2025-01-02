@@ -1,5 +1,7 @@
 // ignore_for_file: library_private_types_in_public_api, no_leading_underscores_for_local_identifiers
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -8,6 +10,7 @@ import 'package:kafa_jr_1/auth/login_page.dart';
 import 'manage_profile.dart';
 import 'view_progress_student.dart';
 import 'view_academic_record.dart';
+import 'notification_page.dart';
 
 class ParentDashboard extends StatefulWidget {
   const ParentDashboard({super.key});
@@ -17,9 +20,13 @@ class ParentDashboard extends StatefulWidget {
 }
 
 class _ParentDashboardState extends State<ParentDashboard> {
+  int _unreadNotificationCount = 0;
+  StreamSubscription<DatabaseEvent>? _notificationSubscription;
+
   @override
   void initState() {
     super.initState();
+    _setupNotificationListener();
     // Show floating welcome message when dashboard loads
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -44,6 +51,49 @@ class _ParentDashboardState extends State<ParentDashboard> {
         ),
       );
     });
+  }
+
+  @override
+  void dispose() {
+    _notificationSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _setupNotificationListener() {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      // First get the parent ID from User table
+      FirebaseDatabase.instance
+          .ref()
+          .child('User')
+          .child(user.uid)
+          .once()
+          .then((userSnapshot) {
+        if (userSnapshot.snapshot.value != null) {
+          _notificationSubscription = FirebaseDatabase.instance
+              .ref()
+              .child('Noti')
+              .orderByChild('parentId')
+              .equalTo(user.uid) // This is the parent's ID from auth
+              .onValue
+              .listen((event) {
+            if (event.snapshot.value != null) {
+              Map<dynamic, dynamic> notifications = event.snapshot.value as Map<dynamic, dynamic>;
+              int unreadCount = notifications.values
+                  .where((notification) => notification['isRead'] == false)
+                  .length;
+              setState(() {
+                _unreadNotificationCount = unreadCount;
+              });
+            } else {
+              setState(() {
+                _unreadNotificationCount = 0;
+              });
+            }
+          });
+        }
+      });
+    }
   }
 
   final DatabaseReference _userRef = FirebaseDatabase.instance.ref().child('User');
@@ -201,9 +251,52 @@ class _ParentDashboardState extends State<ParentDashboard> {
                             }
                           },
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.logout, size: 35, color: Colors.white),
-                          onPressed: _handleLogout,
+                        Row(
+                          children: [
+                            Stack(
+                              children: [
+                                IconButton(
+                                  icon: const Icon(Icons.notifications, size: 35, color: Colors.white),
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const NotificationPage(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                if (_unreadNotificationCount > 0)
+                                  Positioned(
+                                    right: 0,
+                                    top: 0,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(2),
+                                      decoration: BoxDecoration(
+                                        color: Colors.red,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 20,
+                                        minHeight: 20,
+                                      ),
+                                      child: Text(
+                                        _unreadNotificationCount.toString(),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.logout, size: 35, color: Colors.white),
+                              onPressed: _handleLogout,
+                            ),
+                          ],
                         ),
                       ],
                     ),
