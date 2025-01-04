@@ -14,7 +14,7 @@ class SchoolNotification {
   final bool isRead;
   final String parentId;
   final String studentId;
-  final Map<String, dynamic>? data; // For storing examId, subjectId, etc.
+  final Map<String, dynamic>? data; // Now includes examTitle
 
   SchoolNotification({
     required this.id,

@@ -241,6 +241,7 @@ class NotificationCard extends StatelessWidget {
       future: _getAdditionalInfo(),
       builder: (context, snapshot) {
         final additionalInfo = snapshot.data ?? {'subjectName': '', 'studentName': ''};
+        final examTitle = notification.data?['examTitle'] ?? '';
         
         return Container(
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -281,16 +282,16 @@ class NotificationCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            notification.title,
+                          const Text(
+                            "Your Child's Latest Score is Here!",
                             style: TextStyle(
                               fontSize: 16,
-                              fontWeight: notification.isRead ? FontWeight.normal : FontWeight.bold,
+                              fontWeight: FontWeight.bold,
                               color: Colors.black87,
                             ),
                           ),
-                          if (additionalInfo['studentName']!.isNotEmpty) ...[
-                            const SizedBox(height: 4),
+                          const SizedBox(height: 8),
+                          if (additionalInfo['studentName']!.isNotEmpty)
                             Text(
                               'Student: ${additionalInfo['studentName']}',
                               style: const TextStyle(
@@ -298,9 +299,15 @@ class NotificationCard extends StatelessWidget {
                                 color: Colors.black54,
                               ),
                             ),
-                          ],
-                          if (additionalInfo['subjectName']!.isNotEmpty) ...[
-                            const SizedBox(height: 2),
+                          if (examTitle.isNotEmpty)
+                            Text(
+                              'Exam: $examTitle',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.black54,
+                              ),
+                            ),
+                          if (additionalInfo['subjectName']!.isNotEmpty)
                             Text(
                               'Subject: ${additionalInfo['subjectName']}',
                               style: const TextStyle(
@@ -308,7 +315,6 @@ class NotificationCard extends StatelessWidget {
                                 color: Colors.black54,
                               ),
                             ),
-                          ],
                           const SizedBox(height: 4),
                           Text(
                             DateFormat('MMM dd, yyyy hh:mm a').format(notification.timestamp),
@@ -327,7 +333,6 @@ class NotificationCard extends StatelessWidget {
                         size: 20,
                       ),
                       onPressed: () {
-                        // Show confirmation dialog
                         showDialog(
                           context: context,
                           builder: (context) => AlertDialog(

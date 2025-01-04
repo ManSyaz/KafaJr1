@@ -217,14 +217,23 @@ class _EnterScorePageState extends State<EnterScorePage> {
                     if (studentParentSnapshot.snapshot.value != null) {
                         final parentData = studentParentSnapshot.snapshot.value as Map<dynamic, dynamic>;
                         final firstEntry = parentData.entries.first;
-                        final parentId = (firstEntry.value as Map<dynamic, dynamic>)['parentId'];
+                        final parentId = firstEntry.value['parentId'];
 
-                        // Create notification using SchoolNotification model
+                        // Get subject name for the notification message
+                        final subjectSnapshot = await _subjectRef.child(_selectedSubjectId!).get();
+                        final subjectName = (subjectSnapshot.value as Map)['name'] ?? 'Unknown Subject';
+
+                        // Get exam title
+                        final examSnapshot = await _examRef.child(_selectedExamId!).get();
+                        final examData = examSnapshot.value as Map<dynamic, dynamic>;
+                        final examTitle = examData['title'] ?? 'Unknown Exam';
+
+                        // Create notification
                         String notificationId = _notificationRef.push().key!;
                         final notification = SchoolNotification(
                             id: notificationId,
-                            title: 'Exam Result Update',
-                            message: "Your Children's Result have been Add/Updated",
+                            title: '$examTitle',
+                            message: 'A new score has been added for $subjectName in $examTitle',
                             type: NotificationType.examResult,
                             timestamp: DateTime.now(),
                             isRead: false,
@@ -232,11 +241,13 @@ class _EnterScorePageState extends State<EnterScorePage> {
                             studentId: studentId,
                             data: {
                                 'examId': _selectedExamId,
+                                'examTitle': examTitle,
                                 'subjectId': _selectedSubjectId,
+                                'score': score,
                             }
                         );
 
-                        // Save notification using the toJson method
+                        // Save notification
                         await _notificationRef.child(notificationId).set(notification.toJson());
                     }
                 }
