@@ -122,7 +122,7 @@ class _ManageStudentProgressPageState
               final studentMap = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
               return {
                 'id': entry.key?.toString() ?? 'Unknown',
-                'name': studentMap['fullName']?.toString() ?? 'Unknown',
+                'name': studentMap['fullName']?.toString().toUpperCase() ?? 'Unknown',
               };
             }).toList();
           });
@@ -596,7 +596,7 @@ class _ManageStudentProgressPageState
                 const SizedBox(height: 16.0),
                 if (_fullName.isNotEmpty && _selectedStudentId.isNotEmpty) ...[
                   Text(
-                    'Full Name:\n$_fullName',
+                    'Full Name:\n${_fullName.toUpperCase()}',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16.0),
@@ -867,7 +867,7 @@ class _ManageStudentProgressPageState
                                       DataCell(SizedBox(
                                         width: 200, // Adjust width as needed
                                         child: Text(
-                                          _formatLongName(progress['name'] ?? '-'),
+                                          _formatLongName(progress['name']?.toUpperCase() ?? '-'),
                                           style: const TextStyle(
                                             fontSize: 14,
                                             height: 1.2, // Add line height for better readability

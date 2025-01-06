@@ -54,12 +54,19 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
   int _selectedIndex = 0; // Track the selected index for bottom navigation
 
   Future<Map<String, dynamic>> _getUserData() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      DataSnapshot snapshot = await _userRef.child(user.uid).once().then((event) => event.snapshot);
-      return Map<String, dynamic>.from(snapshot.value as Map);
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        DataSnapshot snapshot = await _userRef.child(user.uid).once().then((event) => event.snapshot);
+        if (snapshot.exists && snapshot.value != null) {
+          return Map<String, dynamic>.from(snapshot.value as Map);
+        }
+      }
+      return {'fullName': 'User'}; // Default value if no data found
+    } catch (e) {
+      print('Error fetching user data: $e');
+      return {'fullName': 'User'}; // Default value on error
     }
-    return {};
   }
 
   void _onItemTapped(int index) {
@@ -171,37 +178,35 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
                         FutureBuilder<Map<String, dynamic>>(
                           future: _getUserData(),
                           builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return const Text('Loading...');
-                            } else if (snapshot.hasError) {
-                              return const Text('Error');
-                            } else {
-                              var userData = snapshot.data!;
-                              String userFullName = userData['fullName'] ?? 'User';
-                              return Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Welcome!',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    Text(
-                                      userFullName,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
-                                ),
-                              );
+                            String userFullName = 'User'; // Default name
+                            
+                            if (snapshot.hasData && snapshot.data != null) {
+                              userFullName = snapshot.data!['fullName'] ?? 'User';
                             }
+                            
+                            return Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Welcome!',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  Text(
+                                    userFullName,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            );
                           },
                         ),
                         IconButton(

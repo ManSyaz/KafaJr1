@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'login_page.dart';
-import 'teacher_sign_up_page.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -218,24 +217,6 @@ class _SignUpPageState extends State<SignUpPage> {
           'icNumber': _icNumberController.text,
           'parentEmail': _studentEmailController.text,
         });
-
-        // Get parent data again for StudentParent table
-        final parentSnapshot = await FirebaseDatabase.instance
-            .ref("Parent")
-            .orderByChild("email")
-            .equalTo(_studentEmailController.text)
-            .get();
-
-        final parentData = parentSnapshot.value as Map;
-        final parentId = parentData.keys.first;
-
-        // Add to StudentParent table
-        DatabaseReference studentParentRef = FirebaseDatabase.instance.ref("StudentParent/$userId");
-        await studentParentRef.set({
-          'studentId': userId,
-          'parentId': parentId,
-          'parentEmail': _studentEmailController.text,
-        });
       } else if (_role == 'Parent') {
         DatabaseReference parentRef = FirebaseDatabase.instance.ref("Parent/$userId");
         await parentRef.set({
@@ -407,19 +388,6 @@ class _SignUpPageState extends State<SignUpPage> {
                       ),
                     ),
                   ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const TeacherSignUpPage()),
-                  );
-                },
-                child: const Text(
-                  'Are you a teacher? Register here',
-                  style: TextStyle(color: Color(0xFF0C6B58)),
                 ),
               ),
               const SizedBox(height: 32),

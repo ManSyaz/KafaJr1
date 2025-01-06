@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'add_student_page.dart';
 import 'edit_student_page.dart';
+import 'upload_students_page.dart';
 
 class ManageStudentPage extends StatefulWidget {
 
@@ -38,9 +39,12 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
           setState(() {
             students = studentMap.entries.map((entry) {
               final studentInfo = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
+              // Convert fullName to uppercase if it exists
+              if (studentInfo['fullName'] != null) {
+                studentInfo['fullName'] = studentInfo['fullName'].toString().toUpperCase();
+              }
               return {
                 'uid': entry.key,
-
                 ...studentInfo,
               };
             }).toList();
@@ -48,12 +52,11 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
             // Sort students alphabetically by fullName
             students.sort((a, b) => (a['fullName'] ?? '').compareTo(b['fullName'] ?? ''));
 
-            filteredStudents = students; // Initialize filtered list
+            filteredStudents = students;
           });
         }
       }
     } catch (e) {
-
       print('Error fetching students: $e');
     }
   }
@@ -61,14 +64,30 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
   Future<void> _deleteStudent(String uid) async {
     if (uid.isEmpty) {
       print('Invalid UID provided for deletion');
-
       return;
     }
+    
     try {
+      // First, query all progress records for this student
+      final progressRef = FirebaseDatabase.instance.ref().child('Progress');
+      final progressSnapshot = await progressRef
+          .orderByChild('studentId')
+          .equalTo(uid)
+          .get();
+      
+      if (progressSnapshot.exists) {
+        // Delete all progress records for this student
+        final progressData = progressSnapshot.value as Map<Object?, Object?>;
+        for (var key in progressData.keys) {
+          await progressRef.child(key.toString()).remove();
+        }
+      }
+
+      // Then delete the student record and user record
       await _studentRef.child(uid).remove();
       await FirebaseDatabase.instance.ref().child('User').child(uid).remove();
+      
       _fetchStudents(); // Refresh the list
-
     } catch (e) {
       print('Error deleting student: $e');
     }
@@ -104,6 +123,15 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
         final fullName = student['fullName']?.toLowerCase() ?? '';
         return fullName.contains(query.toLowerCase());
       }).toList()..sort((a, b) => (a['fullName'] ?? '').compareTo(b['fullName'] ?? ''));
+    });
+  }
+
+  void _navigateToUploadStudents() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const UploadStudentsPage()),
+    ).then((_) {
+      _fetchStudents(); // Refresh the list after adding students
     });
   }
 
@@ -169,30 +197,48 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
         children: [
 
           Padding(
-
             padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0C6B58),
-                minimumSize: const Size(double.infinity, 50), // Make the button take the full width
-
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0C6B58),
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                    ),
+                    onPressed: _navigateToAddStudent,
+                    child: const Text(
+                      'Add New Student',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-              onPressed: _navigateToAddStudent,
-              child: const Text(
-                'Add New Student',
-
-                style: TextStyle(
-                  fontSize: 18,
-
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0C6B58),
+                      minimumSize: const Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10.0),
+                      ),
+                    ),
+                    onPressed: _navigateToUploadStudents,
+                    child: const Icon(
+                      Icons.upload_file,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-
-              ),
+              ],
             ),
           ),
           const Padding(
@@ -286,17 +332,6 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
                             child: ExpansionTile(
                               backgroundColor: Colors.transparent,
                               collapsedBackgroundColor: Colors.transparent,
-                              leading: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Icons.person_outline,
-                                  color: Colors.white,
-                                ),
-                              ),
                               title: Row(
                                 children: [
                                   Text(

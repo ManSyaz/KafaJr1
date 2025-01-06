@@ -21,8 +21,8 @@ class _EnterScorePageState extends State<EnterScorePage> {
   final DatabaseReference _studentRef = FirebaseDatabase.instance.ref().child('Student');// New reference for Parent
   final DatabaseReference _progressRef = FirebaseDatabase.instance.ref().child('Progress');
   final DatabaseReference _examRef = FirebaseDatabase.instance.ref().child('Exam'); // New reference for Exam
-  final DatabaseReference _studentParentRef = FirebaseDatabase.instance.ref().child('StudentParent'); // New reference for StudentParent
   final DatabaseReference _notificationRef = FirebaseDatabase.instance.ref().child('Noti');
+  final DatabaseReference _parentRef = FirebaseDatabase.instance.ref().child('Parent'); // Add Parent reference
 
   String? _selectedSubjectId;
   String? _examDescription; // Variable to store exam description
@@ -208,47 +208,53 @@ class _EnterScorePageState extends State<EnterScorePage> {
                 double? score = double.tryParse(_scoreControllers[studentId]!.text);
                 
                 if (score != null) {
-                    // Get parent ID for the student
-                    final studentParentSnapshot = await _studentParentRef
-                        .orderByChild('studentId')
-                        .equalTo(studentId)
-                        .once();
-                    
-                    if (studentParentSnapshot.snapshot.value != null) {
-                        final parentData = studentParentSnapshot.snapshot.value as Map<dynamic, dynamic>;
-                        final firstEntry = parentData.entries.first;
-                        final parentId = firstEntry.value['parentId'];
+                    // Get student data to get parent email
+                    final studentSnapshot = await _studentRef.child(studentId).get();
+                    if (studentSnapshot.exists) {
+                        final studentData = studentSnapshot.value as Map<dynamic, dynamic>;
+                        final parentEmail = studentData['parentEmail'];
 
-                        // Get subject name for the notification message
-                        final subjectSnapshot = await _subjectRef.child(_selectedSubjectId!).get();
-                        final subjectName = (subjectSnapshot.value as Map)['name'] ?? 'Unknown Subject';
+                        // Get parent ID using parent email
+                        final parentSnapshot = await _parentRef
+                            .orderByChild('email')
+                            .equalTo(parentEmail)
+                            .once();
+                        
+                        if (parentSnapshot.snapshot.value != null) {
+                            final parentData = parentSnapshot.snapshot.value as Map<dynamic, dynamic>;
+                            final parentId = parentData.entries.first.key;
 
-                        // Get exam title
-                        final examSnapshot = await _examRef.child(_selectedExamId!).get();
-                        final examData = examSnapshot.value as Map<dynamic, dynamic>;
-                        final examTitle = examData['title'] ?? 'Unknown Exam';
+                            // Get subject name for the notification message
+                            final subjectSnapshot = await _subjectRef.child(_selectedSubjectId!).get();
+                            final subjectName = (subjectSnapshot.value as Map)['name'] ?? 'Unknown Subject';
 
-                        // Create notification
-                        String notificationId = _notificationRef.push().key!;
-                        final notification = SchoolNotification(
-                            id: notificationId,
-                            title: '$examTitle',
-                            message: 'A new score has been added for $subjectName in $examTitle',
-                            type: NotificationType.examResult,
-                            timestamp: DateTime.now(),
-                            isRead: false,
-                            parentId: parentId,
-                            studentId: studentId,
-                            data: {
-                                'examId': _selectedExamId,
-                                'examTitle': examTitle,
-                                'subjectId': _selectedSubjectId,
-                                'score': score,
-                            }
-                        );
+                            // Get exam title
+                            final examSnapshot = await _examRef.child(_selectedExamId!).get();
+                            final examData = examSnapshot.value as Map<dynamic, dynamic>;
+                            final examTitle = examData['title'] ?? 'Unknown Exam';
 
-                        // Save notification
-                        await _notificationRef.child(notificationId).set(notification.toJson());
+                            // Create notification
+                            String notificationId = _notificationRef.push().key!;
+                            final notification = SchoolNotification(
+                                id: notificationId,
+                                title: '$examTitle',
+                                message: 'A new score has been added for $subjectName in $examTitle',
+                                type: NotificationType.examResult,
+                                timestamp: DateTime.now(),
+                                isRead: false,
+                                parentId: parentId,
+                                studentId: studentId,
+                                data: {
+                                    'examId': _selectedExamId,
+                                    'examTitle': examTitle,
+                                    'subjectId': _selectedSubjectId,
+                                    'score': score,
+                                }
+                            );
+
+                            // Save notification
+                            await _notificationRef.child(notificationId).set(notification.toJson());
+                        }
                     }
                 }
             }
@@ -442,7 +448,7 @@ class _EnterScorePageState extends State<EnterScorePage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  studentName,
+                                  studentName.toUpperCase(),
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,

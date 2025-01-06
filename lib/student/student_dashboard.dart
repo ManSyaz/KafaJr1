@@ -196,7 +196,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
                                       ),
                                     ),
                                     Text(
-                                      userFullName,
+                                      userFullName.toUpperCase(),
                                       style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,

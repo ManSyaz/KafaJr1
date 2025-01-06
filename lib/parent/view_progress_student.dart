@@ -544,7 +544,7 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
                 children: [
                   Expanded(
                     child: Text(
-                      'Full Name:\n${studentNames[_selectedStudentEmail] ?? ''}',
+                      'Full Name:\n${studentNames[_selectedStudentEmail]?.toUpperCase() ?? ''}',
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),

@@ -640,7 +640,7 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
                 children: [
                   Expanded(
                     child: Text(
-                      'Full Name:\n${studentNames[_selectedStudentEmail] ?? ''}',
+                      'Full Name:\n${studentNames[_selectedStudentEmail]?.toUpperCase() ?? ''}',
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),

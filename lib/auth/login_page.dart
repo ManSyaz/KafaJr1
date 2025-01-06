@@ -67,22 +67,24 @@ class _LoginPageState extends State<LoginPage> {
         Map<String, dynamic> userData = Map<String, dynamic>.from(event.snapshot.value as Map);
 
         String role = userData['role'];
+        print('User role: $role'); // Debugging line
+
         if (!mounted) return;
 
         DatabaseReference? roleRef;
-        if (role == 'Student') {
+        if (role.toLowerCase() == 'student') {
           roleRef = FirebaseDatabase.instance.ref("Student/${userCredential.user?.uid}");
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const StudentDashboard()),
           );
-        } else if (role == 'Teacher') {
+        } else if (role.toLowerCase() == 'teacher') {
           roleRef = FirebaseDatabase.instance.ref("Teacher/${userCredential.user?.uid}");
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(builder: (context) => const TeacherDashboard()),
           );
-        } else if (role == 'Parent') {
+        } else if (role.toLowerCase() == 'parent') {
           roleRef = FirebaseDatabase.instance.ref("Parent/${userCredential.user?.uid}");
           Navigator.pushReplacement(
             context,
