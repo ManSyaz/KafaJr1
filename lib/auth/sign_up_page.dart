@@ -146,14 +146,15 @@ class _SignUpPageState extends State<SignUpPage> {
 
     bool isPasswordValid = _validatePassword(_passwordController.text);
     bool isEmailValid = _validateEmail(_emailController.text);
-    bool isParentEmailValid = true;
     bool isICValid = _validateIC(_icNumberController.text);
-    
+    bool isParentEmailValid = true; // No longer needed, but keep for structure
+
     if (_role == 'Student') {
+      // Validate parent email only if the role is Student
       isParentEmailValid = _validateEmail(_studentEmailController.text, isParentEmail: true);
     }
 
-    if (!isPasswordValid || !isEmailValid || !isParentEmailValid || !isICValid) {
+    if (!isPasswordValid || !isEmailValid || !isICValid || !isParentEmailValid) {
       setState(() {
         _isLoading = false;
       });
@@ -161,35 +162,6 @@ class _SignUpPageState extends State<SignUpPage> {
     }
 
     try {
-      // Check if parent email exists in Parent table when registering as Student
-      if (_role == 'Student') {
-        final parentSnapshot = await FirebaseDatabase.instance
-            .ref("Parent")
-            .orderByChild("email")
-            .equalTo(_studentEmailController.text)
-            .get();
-
-        if (parentSnapshot.value == null) {
-          throw Exception("Parent email not registered. Please ensure the parent has registered first.");
-        }
-
-        // Convert snapshot to Map and verify email exists
-        final parentData = parentSnapshot.value as Map;
-        bool parentFound = false;
-        String? parentId;
-
-        parentData.forEach((key, value) {
-          if (value['email'] == _studentEmailController.text) {
-            parentFound = true;
-            parentId = key;
-          }
-        });
-
-        if (!parentFound || parentId == null) {
-          throw Exception("Parent email not found. Please check the email and try again.");
-        }
-      }
-
       // Register user in Firebase Auth
       UserCredential userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
         email: _emailController.text,
@@ -215,7 +187,7 @@ class _SignUpPageState extends State<SignUpPage> {
           'fullName': _fullNameController.text,
           'email': _emailController.text,
           'icNumber': _icNumberController.text,
-          'parentEmail': _studentEmailController.text,
+          'parentEmail': _studentEmailController.text, // Store parent email for reference
         });
       } else if (_role == 'Parent') {
         DatabaseReference parentRef = FirebaseDatabase.instance.ref("Parent/$userId");
@@ -257,12 +229,7 @@ class _SignUpPageState extends State<SignUpPage> {
         context: context,
         builder: (BuildContext context) {
           String errorMessage = e.toString();
-          if (errorMessage.contains("Parent email not registered")) {
-            errorMessage = "The parent email provided is not registered. Please ensure the parent has created an account first.";
-          } else if (errorMessage.contains("Parent email not found")) {
-            errorMessage = "Could not find a parent account with this email. Please verify the email address.";
-          }
-          
+          // Handle specific error messages if needed
           return AlertDialog(
             title: const Text('Registration Failed'),
             content: Text(errorMessage),
