@@ -67,7 +67,7 @@ class _LoginPageState extends State<LoginPage> {
         Map<String, dynamic> userData = Map<String, dynamic>.from(event.snapshot.value as Map);
 
         String role = userData['role'];
-        print('User role: $role'); // Debugging line
+        // Debugging line
 
         if (!mounted) return;
 
