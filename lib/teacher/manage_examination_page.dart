@@ -63,6 +63,32 @@ class _ManageExaminationPageState extends State<ManageExaminationPage> {
   }
 
   Future<void> _deleteExam(String examId) async {
+    // Show confirmation dialog
+    bool confirmDelete = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const Text('Are you sure you want to delete this exam? All related progress records will also be deleted. This action cannot be undone.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    ) ?? false;
+
+    if (!confirmDelete) return;
+
     try {
       // First, query and delete all progress entries related to this exam
       final progressSnapshot = await _progressRef

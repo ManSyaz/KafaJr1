@@ -61,6 +61,32 @@ class _ManageNotesPageState extends State<ManageNotesPage> {
   }
 
   Future<void> _deleteNoteWithFile(String noteId, String? fileUrl) async {
+    // Show confirmation dialog
+    bool confirmDelete = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const Text('Are you sure you want to delete this note? This action cannot be undone.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    ) ?? false;
+
+    if (!confirmDelete) return;
+
     try {
       // Delete the file from Firebase Storage if the URL exists
       if (fileUrl != null && fileUrl.isNotEmpty) {
@@ -74,9 +100,57 @@ class _ManageNotesPageState extends State<ManageNotesPage> {
       // Remove the note locally and refresh the UI
       setState(() {
         _notesList.removeWhere((note) => note['id'] == noteId);
+        filteredNotes.removeWhere((note) => note['id'] == noteId);
       });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'Note successfully deleted',
+              style: TextStyle(color: Colors.white),
+              textAlign: TextAlign.center,
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.only(
+              bottom: 20,
+              right: 20,
+              left: 20,
+              top: 20,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
     } catch (e) {
       print('Error deleting note: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error deleting note: $e',
+              style: const TextStyle(color: Colors.white),
+              textAlign: TextAlign.center,
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.only(
+              bottom: 20,
+              right: 20,
+              left: 20,
+              top: 20,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
     }
   }
 
