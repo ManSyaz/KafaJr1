@@ -49,11 +49,103 @@ class _ManageSubjectPageState extends State<ManageSubjectPage> {
   }
 
   Future<void> _deleteSubject(String key) async {
+    // Show confirmation dialog
+    bool confirmDelete = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const Text('Are you sure you want to delete this subject? All related progress records will also be deleted. This action cannot be undone.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    ) ?? false;
+
+    if (!confirmDelete) return;
+
     try {
+      // Get all progress records
+      final progressRef = FirebaseDatabase.instance.ref().child('Progress');
+      final progressSnapshot = await progressRef.get();
+      
+      if (progressSnapshot.exists) {
+        final progressData = progressSnapshot.value as Map<Object?, Object?>;
+        
+        // Find and delete all progress records related to this subject
+        progressData.forEach((progressKey, value) {
+          if (value is Map<Object?, Object?>) {
+            if (value['subjectId'] == key) {
+              progressRef.child(progressKey.toString()).remove();
+            }
+          }
+        });
+      }
+
+      // Delete the subject
       await _subjectRef.child(key).remove();
-      _fetchSubjects();
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'Subject and related progress records successfully deleted',
+              style: TextStyle(color: Colors.white),
+              textAlign: TextAlign.center,
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.only(
+              bottom: 20,
+              right: 20,
+              left: 20,
+              top: 20,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+
+      _fetchSubjects(); // Refresh the list
     } catch (e) {
       print('Error deleting subject: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error deleting subject: $e',
+              style: const TextStyle(color: Colors.white),
+              textAlign: TextAlign.center,
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.only(
+              bottom: 20,
+              right: 20,
+              left: 20,
+              top: 20,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
     }
   }
 

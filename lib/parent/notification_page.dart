@@ -203,11 +203,11 @@ class NotificationCard extends StatelessWidget {
   final DatabaseReference _studentRef = FirebaseDatabase.instance.ref().child('Student');
 
   NotificationCard({
-    Key? key,
+    super.key,
     required this.notification,
     required this.onTap,
     required this.onDelete,
-  }) : super(key: key);
+  });
 
   Future<Map<String, String>> _getAdditionalInfo() async {
     String subjectName = '';

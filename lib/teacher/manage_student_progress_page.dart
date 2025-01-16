@@ -687,15 +687,20 @@ class _ManageStudentProgressPageState
                                         ),
                                       )),
                                     ],
-                                    rows: [
-                                      DataRow(
+                                    rows: (studentsProgress.entries.toList()
+                                      ..sort((a, b) => (a.value['name'] ?? '')
+                                          .toLowerCase()
+                                          .compareTo((b.value['name'] ?? '').toLowerCase())))
+                                      .map((entry) {
+                                      final progress = entry.value;
+                                      return DataRow(
                                         cells: [
                                           ...examTypes.map((exam) => DataCell(
-                                            _buildScoreCell(studentProgress![exam['description']]),
+                                            _buildScoreCell(progress[exam['description']]),
                                           )),
                                         ],
-                                      ),
-                                    ],
+                                      );
+                                    }).toList(),
                                   ),
                                 ),
                               ),
@@ -860,20 +865,24 @@ class _ManageStudentProgressPageState
                                     ),
                                   )),
                                 ],
-                                rows: studentsProgress.entries.map((entry) {
+                                rows: (studentsProgress.entries.toList()
+                                  ..sort((a, b) => (a.value['name'] ?? '')
+                                      .toLowerCase()
+                                      .compareTo((b.value['name'] ?? '').toLowerCase())))
+                                  .map((entry) {
                                   final progress = entry.value;
                                   return DataRow(
                                     cells: [
                                       DataCell(SizedBox(
-                                        width: 200, // Adjust width as needed
+                                        width: 200,
                                         child: Text(
                                           _formatLongName(progress['name']?.toUpperCase() ?? '-'),
                                           style: const TextStyle(
                                             fontSize: 14,
-                                            height: 1.2, // Add line height for better readability
+                                            height: 1.2,
                                           ),
                                           softWrap: true,
-                                          maxLines: 2, // Allow up to 2 lines
+                                          maxLines: 2,
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                       )),

@@ -67,6 +67,32 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
       return;
     }
     
+    // Show confirmation dialog
+    bool confirmDelete = await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const Text('Are you sure you want to delete this student? This action cannot be undone.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.red,
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    ) ?? false; // If dialog is dismissed, default to false
+
+    if (!confirmDelete) return;
+    
     try {
       // First, query all progress records for this student
       final progressRef = FirebaseDatabase.instance.ref().child('Progress');
@@ -87,9 +113,57 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
       await _studentRef.child(uid).remove();
       await FirebaseDatabase.instance.ref().child('User').child(uid).remove();
       
+      // Show success snackbar with updated design
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text(
+              'Student successfully deleted',
+              style: TextStyle(color: Colors.white),
+              textAlign: TextAlign.center,
+            ),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.only(
+              bottom: 20,
+              right: 20,
+              left: 20,
+              top: 20,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+      
       _fetchStudents(); // Refresh the list
     } catch (e) {
       print('Error deleting student: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Error deleting student: $e',
+              style: const TextStyle(color: Colors.white),
+              textAlign: TextAlign.center,
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.only(
+              bottom: 20,
+              right: 20,
+              left: 20,
+              top: 20,
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
     }
   }
 

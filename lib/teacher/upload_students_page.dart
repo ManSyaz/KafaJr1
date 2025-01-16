@@ -16,7 +16,7 @@ class _UploadStudentsPageState extends State<UploadStudentsPage> {
   Uint8List? _excelBytes;
   String? _fileName;
   bool _isUploading = false;
-  List<Map<String, String>> _previewData = [];
+  final List<Map<String, String>> _previewData = [];
   double _uploadProgress = 0.0;
 
   Future<void> _pickExcelFile() async {
@@ -119,7 +119,7 @@ class _UploadStudentsPageState extends State<UploadStudentsPage> {
         final data = existingStudentsSnapshot.value as Map<Object?, Object?>;
         data.forEach((key, value) {
           if (value is Map) {
-            final studentData = Map<String, dynamic>.from(value as Map);
+            final studentData = Map<String, dynamic>.from(value);
             existingStudents[studentData['email'].toString()] = {
               'uid': key,
               ...studentData,

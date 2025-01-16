@@ -32,6 +32,8 @@ class _EnterScorePageState extends State<EnterScorePage> {
   Map<String, TextEditingController> _scoreControllers = {};
   String? _selectedExamId;
   final TextEditingController _searchController = TextEditingController();
+  bool _isLoading = false;
+  double _loadingProgress = 0.0;
 
   @override
   void initState() {
@@ -106,6 +108,13 @@ class _EnterScorePageState extends State<EnterScorePage> {
   }
 
   void _submitScores() async {
+    if (_isLoading) return; // Prevent multiple submissions
+
+    setState(() {
+      _isLoading = true;
+      _loadingProgress = 0.0;
+    });
+
     bool hasInvalidScores = false;
     String errorMessage = '';
 
@@ -130,6 +139,9 @@ class _EnterScorePageState extends State<EnterScorePage> {
     }
 
     if (hasInvalidScores) {
+      setState(() {
+        _isLoading = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -172,6 +184,10 @@ class _EnterScorePageState extends State<EnterScorePage> {
                 });
             }
 
+            // Calculate total number of students for progress tracking
+            int totalStudents = _students.length;
+            int processedStudents = 0;
+
             for (var student in _students) {
                 String studentId = student['id']!;
                 double? score = double.tryParse(_scoreControllers[studentId]!.text);
@@ -199,6 +215,12 @@ class _EnterScorePageState extends State<EnterScorePage> {
                             'timestamp': ServerValue.timestamp,
                         });
                     }
+
+                    // Update progress
+                    processedStudents++;
+                    setState(() {
+                      _loadingProgress = processedStudents / totalStudents;
+                    });
                 }
             }
 
@@ -259,6 +281,11 @@ class _EnterScorePageState extends State<EnterScorePage> {
                 }
             }
 
+            setState(() {
+              _isLoading = false;
+            });
+            
+            // Show success message and pop
             ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                     content: const Text(
@@ -282,6 +309,9 @@ class _EnterScorePageState extends State<EnterScorePage> {
             );
             Navigator.pop(context);
         } catch (e) {
+            setState(() {
+              _isLoading = false;
+            });
             print('Error saving scores: $e');
             ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Error saving scores: $e')),
@@ -308,265 +338,292 @@ class _EnterScorePageState extends State<EnterScorePage> {
           ),
         ),
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(30),
-                  bottomRight: Radius.circular(30),
+      body: Stack(
+        children: [
+          SafeArea(
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(30),
+                      bottomRight: Radius.circular(30),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 1,
+                        blurRadius: 10,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 15),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(color: Colors.grey.withOpacity(0.1)),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButtonFormField<String>(
+                            value: _selectedSubjectId,
+                            onChanged: (newValue) {
+                              setState(() {
+                                _selectedSubjectId = newValue;
+                                _loadStudents();
+                              });
+                            },
+                            items: _subjects.map<DropdownMenuItem<String>>((subject) {
+                              return DropdownMenuItem<String>(
+                                value: subject['id'],
+                                child: Text(subject['name']),
+                              );
+                            }).toList(),
+                            decoration: const InputDecoration(
+                              labelText: 'Select Subject',
+                              border: InputBorder.none,
+                              labelStyle: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 15), // Add spacing
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 15),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(15),
+                          border: Border.all(color: Colors.grey.withOpacity(0.1)),
+                        ),
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: _filterStudents,
+                          decoration: const InputDecoration(
+                            hintText: 'Search student...',
+                            prefixIcon: Icon(Icons.search, color: Color(0xFF0C6B58)),
+                            border: InputBorder.none,
+                            labelStyle: TextStyle(color: Colors.grey),
+                            contentPadding: EdgeInsets.symmetric(
+                              vertical: 15,
+                              horizontal: 15,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    spreadRadius: 1,
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      borderRadius: BorderRadius.circular(15),
-                      border: Border.all(color: Colors.grey.withOpacity(0.1)),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButtonFormField<String>(
-                        value: _selectedSubjectId,
-                        onChanged: (newValue) {
-                          setState(() {
-                            _selectedSubjectId = newValue;
-                            _loadStudents();
-                          });
-                        },
-                        items: _subjects.map<DropdownMenuItem<String>>((subject) {
-                          return DropdownMenuItem<String>(
-                            value: subject['id'],
-                            child: Text(subject['name']),
-                          );
-                        }).toList(),
-                        decoration: const InputDecoration(
-                          labelText: 'Select Subject',
-                          border: InputBorder.none,
-                          labelStyle: TextStyle(color: Colors.grey),
+                // Column headers
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 15),
+                  child: const Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Name',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF0C6B58),
+                          ),
                         ),
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 15), // Add spacing
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      borderRadius: BorderRadius.circular(15),
-                      border: Border.all(color: Colors.grey.withOpacity(0.1)),
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      onChanged: _filterStudents,
-                      decoration: const InputDecoration(
-                        hintText: 'Search student...',
-                        prefixIcon: Icon(Icons.search, color: Color(0xFF0C6B58)),
-                        border: InputBorder.none,
-                        labelStyle: TextStyle(color: Colors.grey),
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 15,
-                          horizontal: 15,
+                      SizedBox(
+                        width: 80,
+                        child: Text(
+                          'Score',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF0C6B58),
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            // Column headers
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 15),
-              child: const Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Name',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0C6B58),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 80,
-                    child: Text(
-                      'Score',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF0C6B58),
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: _filteredStudents.length,
-                itemBuilder: (context, index) {
-                  String studentName = _filteredStudents[index]['name'];
-                  String studentId = _filteredStudents[index]['id'];
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 15),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(15),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          spreadRadius: 1,
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    itemCount: _filteredStudents.length,
+                    itemBuilder: (context, index) {
+                      String studentName = _filteredStudents[index]['name'];
+                      String studentId = _filteredStudents[index]['id'];
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 15),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(15),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.1),
+                              spreadRadius: 1,
+                              blurRadius: 10,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(15),
-                      child: Row(
-                        children: [
-                          const SizedBox(width: 15),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  studentName.toUpperCase(),
+                        child: Padding(
+                          padding: const EdgeInsets.all(15),
+                          child: Row(
+                            children: [
+                              const SizedBox(width: 15),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      studentName.toUpperCase(),
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                width: 80,
+                                child: TextField(
+                                  controller: _scoreControllers[studentId],
+                                  textAlign: TextAlign.center,
+                                  decoration: InputDecoration(
+                                    filled: true,
+                                    fillColor: Colors.grey[50],
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    hintText: '',
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 12,
+                                    ),
+                                    errorMaxLines: 2,
+                                  ),
+                                  keyboardType: TextInputType.number,
                                   style: const TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                   ),
+                                  onChanged: (value) {
+                                    if (value.isNotEmpty) {
+                                      double? score = double.tryParse(value);
+                                      if (score == null) {
+                                        _scoreControllers[studentId]!.clear();
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: const Text(
+                                              'Please enter a valid number',
+                                              style: TextStyle(color: Colors.white),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            backgroundColor: Colors.red,
+                                            duration: const Duration(seconds: 2),
+                                            behavior: SnackBarBehavior.floating,
+                                            margin: const EdgeInsets.only(
+                                              bottom: 20,
+                                              right: 20,
+                                              left: 20,
+                                              top: 20,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                        );
+                                      } else if (score < 0 || score > 100) {
+                                        _scoreControllers[studentId]!.clear();
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: const Text(
+                                              'Score must be between 0 and 100',
+                                              style: TextStyle(color: Colors.white),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            backgroundColor: Colors.red,
+                                            duration: const Duration(seconds: 2),
+                                            behavior: SnackBarBehavior.floating,
+                                            margin: const EdgeInsets.only(
+                                              bottom: 20,
+                                              right: 20,
+                                              left: 20,
+                                              top: 20,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  },
                                 ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(
-                            width: 80,
-                            child: TextField(
-                              controller: _scoreControllers[studentId],
-                              textAlign: TextAlign.center,
-                              decoration: InputDecoration(
-                                filled: true,
-                                fillColor: Colors.grey[50],
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide.none,
-                                ),
-                                hintText: '',
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 12,
-                                ),
-                                errorMaxLines: 2,
                               ),
-                              keyboardType: TextInputType.number,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              onChanged: (value) {
-                                if (value.isNotEmpty) {
-                                  double? score = double.tryParse(value);
-                                  if (score == null) {
-                                    _scoreControllers[studentId]!.clear();
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: const Text(
-                                          'Please enter a valid number',
-                                          style: TextStyle(color: Colors.white),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                        backgroundColor: Colors.red,
-                                        duration: const Duration(seconds: 2),
-                                        behavior: SnackBarBehavior.floating,
-                                        margin: const EdgeInsets.only(
-                                          bottom: 20,
-                                          right: 20,
-                                          left: 20,
-                                          top: 20,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                      ),
-                                    );
-                                  } else if (score < 0 || score > 100) {
-                                    _scoreControllers[studentId]!.clear();
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: const Text(
-                                          'Score must be between 0 and 100',
-                                          style: TextStyle(color: Colors.white),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                        backgroundColor: Colors.red,
-                                        duration: const Duration(seconds: 2),
-                                        behavior: SnackBarBehavior.floating,
-                                        margin: const EdgeInsets.only(
-                                          bottom: 20,
-                                          right: 20,
-                                          left: 20,
-                                          top: 20,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                }
-                              },
-                            ),
+                            ],
                           ),
-                        ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _submitScores,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0C6B58),
+                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
                       ),
+                      elevation: 0,
+                      minimumSize: const Size(double.infinity, 50),
                     ),
-                  );
-                },
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.all(20),
-              child: ElevatedButton(
-                onPressed: _submitScores,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF0C6B58),
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(15),
+                    child: _isLoading
+                      ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Submitting ${(_loadingProgress * 100).toStringAsFixed(0)}%',
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        )
+                      : const Text(
+                          'Submit Scores',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
                   ),
-                  elevation: 0,
-                  minimumSize: const Size(double.infinity, 50),
                 ),
-                child: const Text(
-                  'Submit Scores',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

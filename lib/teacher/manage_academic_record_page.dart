@@ -1054,29 +1054,33 @@ class _ManageAcademicRecordPageState
                                     ),
                                   )),
                                 ],
-                                rows: studentsProgress.entries.map((entry) {
-                                  final progress = entry.value;
-                                  return DataRow(
-                                    cells: [
-                                      DataCell(SizedBox(
-                                        width: 200, // Adjust width as needed
-                                        child: Text(
-                                          _formatLongName(progress['name']?.toUpperCase() ?? '-'),
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            height: 1.2,
+                                rows: (studentsProgress.entries.toList()
+                                  ..sort((a, b) => (a.value['name'] ?? '')
+                                      .toLowerCase()
+                                      .compareTo((b.value['name'] ?? '').toLowerCase())))
+                                  .map((entry) {
+                                    final progress = entry.value;
+                                    return DataRow(
+                                      cells: [
+                                        DataCell(SizedBox(
+                                          width: 200,
+                                          child: Text(
+                                            _formatLongName(progress['name']?.toUpperCase() ?? '-'),
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              height: 1.2,
+                                            ),
+                                            softWrap: true,
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                          softWrap: true,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
+                                        )),
+                                        ...subjectCodes.values.map((code) => 
+                                          DataCell(_buildScoreCell(progress[code]))
                                         ),
-                                      )),
-                                      ...subjectCodes.values.map((code) => 
-                                        DataCell(_buildScoreCell(progress[code]))
-                                      ),
-                                    ],
-                                  );
-                                }).toList(),
+                                      ],
+                                    );
+                                  }).toList(),
                               ),
                             ),
                           ),

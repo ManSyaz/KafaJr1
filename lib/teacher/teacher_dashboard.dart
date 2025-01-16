@@ -12,6 +12,7 @@ import 'manage_subject_page.dart';
 import 'manage_notes_page.dart';
 import 'manage_examination_page.dart';
 import 'manage_profile.dart'; // Import the ManageProfilePage
+import 'manage_analysis_page.dart';
 
 class TeacherDashboard extends StatefulWidget {
   const TeacherDashboard({super.key});
@@ -114,10 +115,11 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
     Widget _getSelectedPage() {
       switch (_selectedIndex) {
         case 0:
-          return _buildDashboard(); // Your existing dashboard content
+          return _buildDashboard();
         case 1:
-          return const ManageProfilePage(); // Navigate to ManageProfilePage
-        // Add other cases for different pages if needed
+          return const ManageAnalysisPage();
+        case 2:
+          return const ManageProfilePage();
         default:
           return _buildDashboard();
       }
@@ -130,6 +132,10 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.analytics),
+            label: 'Analysis',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),
