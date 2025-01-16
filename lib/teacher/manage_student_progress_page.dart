@@ -522,6 +522,7 @@ class _ManageStudentProgressPageState
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               // Toggle Buttons
               ToggleButtons(
@@ -627,116 +628,61 @@ class _ManageStudentProgressPageState
                     },
                   ),
                   const SizedBox(height: 16.0),
-                  if (studentProgress != null) 
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: _buildGraph(),
-                    ),
-                  if (studentProgress != null) ...[
-                    const SizedBox(height: 24),
-                    Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Detailed Scores',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Center(
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Theme(
-                                  data: Theme.of(context).copyWith(
-                                    dataTableTheme: DataTableThemeData(
-                                      headingTextStyle: const TextStyle(
+                  if (studentProgress != null && studentProgress!.isNotEmpty) ...[
+                    Center(
+                      child: Column(
+                        children: [
+                          _buildGraph(),
+                          const SizedBox(height: 24),
+                          SizedBox(
+                            width: 350, // Same width as graph
+                            child: Card(
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Detailed Scores',
+                                      style: TextStyle(
+                                        fontSize: 18,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black87,
-                                        fontSize: 14,
                                       ),
-                                      dataTextStyle: const TextStyle(
-                                        color: Colors.black87,
-                                        fontSize: 14,
-                                      ),
-                                      headingRowColor: WidgetStateProperty.all(Colors.grey[100]),
                                     ),
-                                  ),
-                                  child: DataTable(
-                                    columnSpacing: 24,
-                                    horizontalMargin: 12,
-                                    columns: [
-                                      ...examTypes.map((exam) => DataColumn(
-                                        label: SizedBox(
-                                          width: 100,
-                                          child: Tooltip(
-                                            message: exam['title'],
+                                    const SizedBox(height: 16),
+                                    SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: DataTable(
+                                        columnSpacing: 24,
+                                        horizontalMargin: 12,
+                                        columns: examTypes.map((exam) => DataColumn(
+                                          label: Container(
+                                            width: 100,
+                                            alignment: Alignment.center,
                                             child: Text(
-                                              exam['description'],
-                                              textAlign: TextAlign.center,
+                                              exam['description'] ?? '',
                                               style: const TextStyle(fontSize: 14),
+                                              textAlign: TextAlign.center,
                                             ),
                                           ),
-                                        ),
-                                      )),
-                                    ],
-                                    rows: (studentsProgress.entries.toList()
-                                      ..sort((a, b) => (a.value['name'] ?? '')
-                                          .toLowerCase()
-                                          .compareTo((b.value['name'] ?? '').toLowerCase())))
-                                      .map((entry) {
-                                      final progress = entry.value;
-                                      return DataRow(
-                                        cells: [
-                                          ...examTypes.map((exam) => DataCell(
-                                            _buildScoreCell(progress[exam['description']]),
-                                          )),
+                                        )).toList(),
+                                        rows: [
+                                          DataRow(
+                                            cells: examTypes.map((exam) {
+                                              final score = studentProgress![exam['description']] ?? '-';
+                                              return DataCell(_buildScoreCell(score));
+                                            }).toList(),
+                                          ),
                                         ],
-                                      );
-                                    }).toList(),
-                                  ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ] else if (_selectedSubject != 'Choose Subject') ...[
-                    const SizedBox(height: 24),
-                    Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.assessment_outlined,
-                            size: 70,
-                            color: Colors.grey,
-                          ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'No Progress Found',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'No exam scores recorded for ${subjects.firstWhere((subject) => subject['id'] == _selectedSubject)['name']}',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey,
-                            ),
-                            textAlign: TextAlign.center,
                           ),
                         ],
                       ),

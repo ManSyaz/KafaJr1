@@ -172,7 +172,7 @@ class _ManageExaminationPageState extends State<ManageExaminationPage> {
           alignment: Alignment.center,
           child: const Text(
             'Manage Examination',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
           ),
         ),
       ),

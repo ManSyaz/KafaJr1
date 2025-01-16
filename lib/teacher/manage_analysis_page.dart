@@ -81,7 +81,7 @@ class _ManageAnalysisPageState extends State<ManageAnalysisPage> {
   String _calculateGrade(int score) {
     if (score >= 80) return 'A';
     if (score >= 60) return 'B';
-    if (score >= 50) return 'C';
+    if (score >= 40) return 'C';
     return 'D';
   }
 
@@ -438,40 +438,50 @@ class _ManageAnalysisPageState extends State<ManageAnalysisPage> {
   }
 
   Widget _buildGradeSummary(String grade, int count, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Column(
-        children: [
-          Text(
-            grade,
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: color,
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color.withOpacity(0.3)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              grade,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            count.toString(),
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: color.withOpacity(0.8),
+            const SizedBox(height: 4),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                count.toString(),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: color.withOpacity(0.8),
+                ),
+              ),
             ),
-          ),
-          Text(
-            'Students',
-            style: TextStyle(
-              fontSize: 12,
-              color: color.withOpacity(0.8),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                'Students',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: color.withOpacity(0.8),
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

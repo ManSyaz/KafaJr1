@@ -261,7 +261,7 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
           alignment: Alignment.center,
           child: const Text(
             'Manage Students',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
           ),
         ),
       ),

@@ -165,7 +165,7 @@ class _ManageNotesPageState extends State<ManageNotesPage> {
           alignment: Alignment.center,
           child: const Text(
             'Manage Notes',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
           ),
         ),
       ),

@@ -190,7 +190,7 @@ class _ManageSubjectPageState extends State<ManageSubjectPage> {
           alignment: Alignment.center,
           child: const Text(
             'Manage Subjects',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
           ),
         ),
       ),

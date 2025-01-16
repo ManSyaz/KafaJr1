@@ -82,7 +82,7 @@ class _ViewExamPageState extends State<ViewExamPage> {
           alignment: Alignment.center,
           child: const Text(
             'Examination',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
           ),
         ),
       ),
@@ -487,7 +487,7 @@ class _SubjectListPageState extends State<SubjectListPage> {
           alignment: Alignment.center,
           child: const Text(
             'Exam Subject',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
           ),
         ),
       ),

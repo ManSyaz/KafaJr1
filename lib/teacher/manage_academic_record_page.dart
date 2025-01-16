@@ -661,7 +661,7 @@ class _ManageAcademicRecordPageState
           alignment: Alignment.center,
           child: const Text(
             'Academic Records',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
           ),
         ),
         leading: IconButton(

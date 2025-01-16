@@ -500,7 +500,7 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
           alignment: Alignment.center,
           child: const Text(
             'View Student Progress',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
           ),
         ),
       ),
@@ -582,12 +582,19 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
               ),
               const SizedBox(height: 16.0),
               if (studentsProgress.isNotEmpty) ...[
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: _buildGraph(),
+                Center(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: _buildGraph(),
+                  ),
                 ),
                 const SizedBox(height: 24),
-                _buildDataTable(),
+                Center(
+                  child: SizedBox(
+                    width: 350,
+                    child: _buildDataTable(),
+                  ),
+                ),
               ],
               if (studentsProgress.isEmpty) const Center(child: Text('No data available for the selected subject.')),
             ],

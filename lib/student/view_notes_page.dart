@@ -81,7 +81,7 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
           alignment: Alignment.center,
           child: const Text(
             'Notes',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
           ),
         ),
       ),

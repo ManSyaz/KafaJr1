@@ -596,7 +596,7 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
           alignment: Alignment.center,
           child: const Text(
             'View Academic Records',
-            style: TextStyle(color: Colors.white),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
           ),
         ),
       ),
