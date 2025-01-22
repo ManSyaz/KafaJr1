@@ -194,17 +194,17 @@ class _ManageAnalysisPageState extends State<ManageAnalysisPage> {
               if (isLoading)
                 const Center(child: CircularProgressIndicator())
               else if (hasAnalyzed && gradeDistribution.isEmpty)
-                Center(
+                const Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.assessment_outlined,
                         size: 70,
                         color: Colors.grey,
                       ),
-                      const SizedBox(height: 16),
-                      const Text(
+                      SizedBox(height: 16),
+                      Text(
                         'No Marks Found',
                         style: TextStyle(
                           fontSize: 18,
@@ -212,8 +212,8 @@ class _ManageAnalysisPageState extends State<ManageAnalysisPage> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      const Text(
+                      SizedBox(height: 8),
+                      Text(
                         'The marks have not been entered yet',
                         style: TextStyle(
                           fontSize: 14,
