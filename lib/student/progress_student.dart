@@ -486,6 +486,9 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Get the student's name using the selected ID
+    String studentName = studentNames[_selectedStudentId] ?? 'Unknown Student';
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF0C6B58),
@@ -533,6 +536,30 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
               },
             ),
             const SizedBox(height: 24),
+            // Display student name card only after subject is selected
+            if (_selectedStudentId.isNotEmpty && _selectedSubject != 'Choose Subject')
+              Card(
+                elevation: 2,
+                margin: const EdgeInsets.only(bottom: 16.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.person, color: Color(0xFF0C6B58)),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          studentName,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             if (studentsProgress.isNotEmpty) ...[
               Center(
                 child: SingleChildScrollView(

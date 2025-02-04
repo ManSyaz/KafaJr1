@@ -16,9 +16,11 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
   final DatabaseReference _progressRef = FirebaseDatabase.instance.ref().child('Progress');
   final DatabaseReference _examRef = FirebaseDatabase.instance.ref().child('Exam');
   final DatabaseReference _subjectRef = FirebaseDatabase.instance.ref().child('Subject');
+  final DatabaseReference _userRef = FirebaseDatabase.instance.ref().child('User');
 
   String _selectedExam = 'Choose Exam';
   String _selectedStudentId = '';
+  String _studentName = '';
   Map<String, String> subjectCodes = {};
   List<Map<String, String>> exams = [];
   Map<String, Map<String, String>> studentsProgress = {};
@@ -27,9 +29,10 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
   @override
   void initState() {
     super.initState();
-    _selectedStudentId = _getLoggedInStudentId(); // Get the logged-in student's ID
+    _selectedStudentId = _getLoggedInStudentId();
     _fetchExams();
     _fetchSubjects();
+    _fetchStudentName();
   }
 
   String _getLoggedInStudentId() {
@@ -88,8 +91,25 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
     }
   }
 
+  Future<void> _fetchStudentName() async {
+    try {
+      final snapshot = await _userRef.child(_selectedStudentId).get();
+      if (snapshot.exists) {
+        final userData = snapshot.value as Map<Object?, Object?>;
+        setState(() {
+          _studentName = userData['fullName']?.toString() ?? 'Unknown Student';
+        });
+      }
+    } catch (e) {
+      print('Error fetching student name: $e');
+    }
+  }
+
   Future<void> _fetchStudentProgressByExam(String examId) async {
     try {
+      // First, ensure we have the student name
+      await _fetchStudentName();  // Add this line to refresh the student name
+
       final exam = exams.firstWhere((exam) => exam['id'] == examId);
       final examDescription = exam['description'];
 
@@ -127,7 +147,9 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
           studentProgressByExam[examId] = studentsProgress[_selectedStudentId] ?? {};
         });
 
-        // Debug print
+        // Debug print to check values
+        print('Student Name: $_studentName');
+        print('Selected Exam: $_selectedExam');
         print('Students Progress: $studentsProgress');
         print('Student Progress by Exam: $studentProgressByExam');
       } else {
@@ -561,12 +583,35 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
                   if (_selectedExam != 'Choose Exam') {
                     _fetchStudentProgressByExam(_selectedExam);
                   } else {
-                    studentProgressByExam = {}; // Clear progress if no exam is selected
+                    studentProgressByExam = {};
                   }
                 });
               },
             ),
             const SizedBox(height: 16.0),
+            if (_selectedExam != 'Choose Exam')
+              Card(
+                elevation: 2,
+                margin: const EdgeInsets.only(bottom: 16.0),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.person, color: Color(0xFF0C6B58)),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          _studentName.isNotEmpty ? _studentName : 'Loading...',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             if (studentProgressByExam.isNotEmpty) _buildGraph(),
             if (studentProgressByExam.isNotEmpty) ...[
               const SizedBox(height: 24),
