@@ -350,17 +350,24 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
         backgroundColor: const Color(0xFF0C6B58),
         elevation: 0,
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF0C6B58), Colors.white],
-            stops: [0.0, 0.3],
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Refresh student data
+          await _fetchStudentData();
+          return Future.delayed(const Duration(milliseconds: 500));
+        },
+        color: const Color(0xFF0C6B58),
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF0C6B58), Colors.white],
+              stops: [0.0, 0.3],
+            ),
           ),
-        ),
-        child: SingleChildScrollView(
-          child: Column(
+          child: ListView(  // Changed from SingleChildScrollView to ListView
+            physics: const AlwaysScrollableScrollPhysics(),
             children: [
               const SizedBox(height: 20),
               const Text(
@@ -370,6 +377,7 @@ class _StudentProfilePageState extends State<StudentProfilePage> {
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
+                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 30),
               Container(

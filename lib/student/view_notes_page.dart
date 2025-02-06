@@ -85,123 +85,137 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
           ),
         ),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 16),
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: Padding(
-              padding: EdgeInsets.only(left: 16.0),
-              child: Text(
-                'List of Notes',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Refresh all data sources
+          await _fetchNotes();
+          await _fetchSubjects();
+          return Future.delayed(const Duration(milliseconds: 500));
+        },
+        color: const Color(0xFF0C6B58),
+        child: ListView(  // Changed from Column to ListView
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            const SizedBox(height: 16),
+            const Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: EdgeInsets.only(left: 16.0),
+                child: Text(
+                  'List of Notes',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
-          ),
-          const SizedBox(height: 8),
+            const SizedBox(height: 8),
 
-          // Subject filter chips
-          Container(
-            height: 50, // Fixed height for the chips container
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              children: [
-                // "All" chip
-                Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: FilterChip(
-                    label: const Text('All'),
-                    selected: _selectedSubjects.isEmpty,
-                    onSelected: (selected) {
-                      setState(() {
-                        if (selected) {
-                          _selectedSubjects.clear();
-                        }
-                      });
-                    },
-                    selectedColor: const Color(0xFF0C6B58),
-                    backgroundColor: Colors.grey[300],
-                    labelStyle: TextStyle(
-                      color: _selectedSubjects.isEmpty ? Colors.white : Colors.black,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                      side: const BorderSide(color: Color(0xFF0C6B58)),
-                    ),
-                  ),
-                ),
-                // Chips for each subject
-                ..._subjects.map((subject) {
-                  final isSelected = _selectedSubjects.contains(subject);
-                  return Padding(
+            // Subject filter chips
+            Container(
+              height: 50,
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: [
+                  // "All" chip
+                  Padding(
                     padding: const EdgeInsets.only(right: 8.0),
                     child: FilterChip(
-                      label: Text(subject),
-                      selected: isSelected,
+                      label: const Text('All'),
+                      selected: _selectedSubjects.isEmpty,
                       onSelected: (selected) {
                         setState(() {
                           if (selected) {
-                            _selectedSubjects.add(subject); // Add subject to selected list
-                          } else {
-                            _selectedSubjects.remove(subject); // Remove subject from selected list
+                            _selectedSubjects.clear();
                           }
                         });
                       },
                       selectedColor: const Color(0xFF0C6B58),
                       backgroundColor: Colors.grey[300],
-                      labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
+                      labelStyle: TextStyle(
+                        color: _selectedSubjects.isEmpty ? Colors.white : Colors.black,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8.0),
-                        side: BorderSide(
-                          color: isSelected ? Colors.white : const Color(0xFF0C6B58),
-                        ),
+                        side: const BorderSide(color: Color(0xFF0C6B58)),
                       ),
                     ),
-                  );
-                }),
-              ],
+                  ),
+                  // Chips for each subject
+                  ..._subjects.map((subject) {
+                    final isSelected = _selectedSubjects.contains(subject);
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: FilterChip(
+                        label: Text(subject),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          setState(() {
+                            if (selected) {
+                              _selectedSubjects.add(subject);
+                            } else {
+                              _selectedSubjects.remove(subject);
+                            }
+                          });
+                        },
+                        selectedColor: const Color(0xFF0C6B58),
+                        backgroundColor: Colors.grey[300],
+                        labelStyle: TextStyle(color: isSelected ? Colors.white : Colors.black),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                          side: BorderSide(
+                            color: isSelected ? Colors.white : const Color(0xFF0C6B58),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: filteredNotes.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.note_outlined,
-                          size: 70,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          _selectedSubjects.isEmpty
-                              ? 'No Notes Found'
-                              : 'No Notes Found for Selected Subject${_selectedSubjects.length > 1 ? 's' : ''}',
-                          style: const TextStyle(
-                            fontSize: 18,
+            const SizedBox(height: 16),
+
+            // Notes list or empty state
+            filteredNotes.isEmpty
+                ? SizedBox(
+                    height: MediaQuery.of(context).size.height - 200,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.note_outlined,
+                            size: 70,
                             color: Colors.grey,
-                            fontWeight: FontWeight.bold,
                           ),
-                        ),
-                        if (_selectedSubjects.isNotEmpty) ...[
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 16),
                           Text(
-                            _selectedSubjects.join(', '),
+                            _selectedSubjects.isEmpty
+                                ? 'No Notes Found'
+                                : 'No Notes Found for Selected Subject${_selectedSubjects.length > 1 ? 's' : ''}',
                             style: const TextStyle(
-                              fontSize: 14,
+                              fontSize: 18,
                               color: Colors.grey,
+                              fontWeight: FontWeight.bold,
                             ),
-                            textAlign: TextAlign.center,
                           ),
+                          if (_selectedSubjects.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              _selectedSubjects.join(', '),
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   )
                 : ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
                     itemCount: filteredNotes.length,
                     padding: const EdgeInsets.all(16.0),
                     itemBuilder: (context, index) {
@@ -323,8 +337,10 @@ class _ViewNotesPageState extends State<ViewNotesPage> {
                       );
                     },
                   ),
-          ),
-        ],
+            // Add extra padding at the bottom
+            const SizedBox(height: 32),
+          ],
+        ),
       ),
     );
   }

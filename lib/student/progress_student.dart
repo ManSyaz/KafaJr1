@@ -488,9 +488,6 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Get the student's name using the selected ID
-    String studentName = studentNames[_selectedStudentId] ?? 'Unknown Student';
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF0C6B58),
@@ -504,9 +501,21 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Refresh all data sources
+          await _fetchExams();
+          await _fetchSubjects();
+          await _fetchStudents();
+          if (_selectedSubject != 'Choose Subject') {
+            await _fetchStudentProgressBySubject(_selectedSubject);
+          }
+          return Future.delayed(const Duration(milliseconds: 500));
+        },
+        color: const Color(0xFF0C6B58),
+        child: ListView(  // Changed from SingleChildScrollView to ListView
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16.0),
           children: [
             DropdownButtonFormField<String>(
               decoration: InputDecoration(
@@ -551,7 +560,7 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          studentName,
+                          studentNames[_selectedStudentId] ?? 'Unknown Student',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -590,6 +599,8 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
                   ),
                 ),
               ),
+            // Add extra padding at the bottom to ensure all content is scrollable
+            const SizedBox(height: 32.0),
           ],
         ),
       ),
