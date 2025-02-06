@@ -85,12 +85,13 @@ class _EnterScorePageState extends State<EnterScorePage> {
         _students = studentsData.entries
             .map((entry) => {
                   "id": entry.key,
-                  "name": entry.value['fullName'] ?? 'Unnamed Student',
+                  "name": (entry.value['fullName'] ?? 'Unnamed Student').toString().toUpperCase(),
                   "username": entry.value['username'] ?? '',
                 })
             .toList();
-        _students.sort((a, b) => (a['name'] as String).compareTo(b['name'] as String));
-        _filteredStudents = List.from(_students); // Initialize filtered list
+        // Sort students alphabetically by name
+        _students.sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
+        _filteredStudents = List.from(_students);
         _scoreControllers = {
           for (var student in _students) student['id']!: TextEditingController()
         };
@@ -103,7 +104,8 @@ class _EnterScorePageState extends State<EnterScorePage> {
       _filteredStudents = _students
           .where((student) =>
               student['name'].toString().toLowerCase().contains(query.toLowerCase()))
-          .toList();
+          .toList()
+        ..sort((a, b) => (a['name'] ?? '').compareTo(b['name'] ?? ''));
     });
   }
 

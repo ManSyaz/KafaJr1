@@ -69,6 +69,8 @@ class _NotificationPageState extends State<NotificationPage> {
           'Inbox',
           style: TextStyle(
             color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
           ),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
