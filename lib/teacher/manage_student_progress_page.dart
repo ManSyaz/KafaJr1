@@ -517,184 +517,100 @@ class _ManageStudentProgressPageState
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Refresh all data sources
+          await _fetchStudents();
+          await _fetchSubjects();
+          if (_selectedFilter == 'All' && _selectedSubject != 'Choose Subject') {
+            await _fetchStudentProgressBySubject(_selectedSubject);
+          } else if (_selectedFilter == 'Student' && _selectedStudentId.isNotEmpty && _selectedSubject != 'Choose Subject') {
+            await _fetchStudentProgress();
+          }
+          return Future.delayed(const Duration(milliseconds: 500));
+        },
+        color: const Color(0xFF0C6B58),
+        child: ListView(  // Changed from SingleChildScrollView to ListView
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Toggle Buttons
-              ToggleButtons(
-                isSelected: [_selectedFilter == 'All', _selectedFilter == 'Student'],
-                onPressed: (index) {
+          children: [
+            // Toggle Buttons
+            ToggleButtons(
+              isSelected: [_selectedFilter == 'All', _selectedFilter == 'Student'],
+              onPressed: (index) {
+                setState(() {
+                  _selectedFilter = index == 0 ? 'All' : 'Student';
+                  _fullName = '';
+                  _selectedStudentId = '';
+                  _selectedSubject = 'Choose Subject';
+                  studentProgress = null;
+                  studentsProgress = {};
+                });
+              },
+              selectedColor: Colors.white,
+              fillColor: const Color(0xFF0C6B58),
+              color: Colors.black,
+              borderColor: const Color(0xFF0C6B58),
+              selectedBorderColor: const Color(0xFF0C6B58),
+              borderRadius: BorderRadius.circular(8.0),
+              children: const [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+                  child: Text('All'),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+                  child: Text('Student'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16.0),
+
+            // Student Filter Section
+            if (_selectedFilter == 'Student') ...[
+              DropdownButtonFormField<String>(
+                isExpanded: true,
+                decoration: InputDecoration(
+                  labelText: 'Select Student',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                ),
+                value: _selectedStudentName,
+                items: studentList.map((student) {
+                  return DropdownMenuItem<String>(
+                    value: student['id'],
+                    child: Text(
+                      student['name'] ?? 'Unknown',
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                }).toList(),
+                onChanged: (value) {
                   setState(() {
-                    _selectedFilter = index == 0 ? 'All' : 'Student';
-                    _fullName = '';
-                    _selectedStudentId = '';
-                    _selectedSubject = 'Choose Subject';
-                    studentProgress = null;
-                    studentsProgress = {};
+                    _selectedStudentName = value!;
+                    if (_selectedStudentName != 'Choose Student') {
+                      _selectedStudentId = value;
+                      _fullName = studentNames[value] ?? '';
+                      _selectedSubject = 'Choose Subject';
+                      studentProgress = null;
+                    } else {
+                      _selectedStudentId = '';
+                      _fullName = '';
+                      _selectedSubject = 'Choose Subject';
+                      studentProgress = null;
+                    }
                   });
                 },
-                selectedColor: Colors.white,
-                fillColor: const Color(0xFF0C6B58),
-                color: Colors.black,
-                borderColor: const Color(0xFF0C6B58),
-                selectedBorderColor: const Color(0xFF0C6B58),
-                borderRadius: BorderRadius.circular(8.0),
-                children: const [
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-                    child: Text('All'),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-                    child: Text('Student'),
-                  ),
-                ],
               ),
               const SizedBox(height: 16.0),
-
-              // Student Filter Section
-              if (_selectedFilter == 'Student') ...[
-                DropdownButtonFormField<String>(
-                  isExpanded: true,
-                  decoration: InputDecoration(
-                    labelText: 'Select Student',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                  ),
-                  value: _selectedStudentName,
-                  items: studentList.map((student) {
-                    return DropdownMenuItem<String>(
-                      value: student['id'],
-                      child: Text(
-                        student['name'] ?? 'Unknown',
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedStudentName = value!;
-                      if (_selectedStudentName != 'Choose Student') {
-                        _selectedStudentId = value;
-                        _fullName = studentNames[value] ?? '';
-                        _selectedSubject = 'Choose Subject';
-                        studentProgress = null;
-                      } else {
-                        _selectedStudentId = '';
-                        _fullName = '';
-                        _selectedSubject = 'Choose Subject';
-                        studentProgress = null;
-                      }
-                    });
-                  },
+              if (_fullName.isNotEmpty && _selectedStudentId.isNotEmpty) ...[
+                Text(
+                  'Full Name:\n${_fullName.toUpperCase()}',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16.0),
-                if (_fullName.isNotEmpty && _selectedStudentId.isNotEmpty) ...[
-                  Text(
-                    'Full Name:\n${_fullName.toUpperCase()}',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16.0),
-                  DropdownButtonFormField<String>(
-                    decoration: InputDecoration(
-                      labelText: 'Choose Subject',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-                    ),
-                    value: _selectedSubject,
-                    items: subjects.map((subject) {
-                      return DropdownMenuItem<String>(
-                        value: subject['id'],
-                        child: Text(subject['name'] ?? 'Unknown'),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedSubject = value!;
-                        if (_selectedSubject != 'Choose Subject') {
-                          _fetchStudentProgress();
-                        } else {
-                          studentProgress = null;
-                        }
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 16.0),
-                  if (studentProgress != null && studentProgress!.isNotEmpty) ...[
-                    Center(
-                      child: Column(
-                        children: [
-                          _buildGraph(),
-                          const SizedBox(height: 24),
-                          SizedBox(
-                            width: 350, // Same width as graph
-                            child: Card(
-                              elevation: 4,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Detailed Scores',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Center(
-                                      child: SingleChildScrollView(
-                                        scrollDirection: Axis.horizontal,
-                                        child: DataTable(
-                                          columnSpacing: examTypes.length <= 2 ? 48 : 24,
-                                          horizontalMargin: examTypes.length <= 2 ? 24 : 12,
-                                          columns: examTypes.map((exam) => DataColumn(
-                                            label: Container(
-                                              width: 100,
-                                              alignment: Alignment.center,
-                                              child: Text(
-                                                exam['description'] ?? '',
-                                                style: const TextStyle(fontSize: 14),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ),
-                                          )).toList(),
-                                          rows: [
-                                            DataRow(
-                                              cells: examTypes.map((exam) {
-                                                final score = studentProgress![exam['description']] ?? '-';
-                                                return DataCell(_buildScoreCell(score));
-                                              }).toList(),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ],
-              ],
-
-              // All Students Section
-              if (_selectedFilter == 'All') ...[
                 DropdownButtonFormField<String>(
                   decoration: InputDecoration(
                     labelText: 'Choose Subject',
@@ -714,142 +630,238 @@ class _ManageStudentProgressPageState
                     setState(() {
                       _selectedSubject = value!;
                       if (_selectedSubject != 'Choose Subject') {
-                        _fetchStudentProgressBySubject(_selectedSubject);
+                        _fetchStudentProgress();
                       } else {
-                        studentsProgress = {};
+                        studentProgress = null;
                       }
                     });
                   },
                 ),
                 const SizedBox(height: 16.0),
-                if (_selectedSubject != 'Choose Subject' && studentsProgress.isEmpty)
+                if (studentProgress != null && studentProgress!.isNotEmpty) ...[
                   Center(
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
-                          Icons.people_outline,
-                          size: 70,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(height: 16),
-                        const Text(
-                          'No Student Progress Found',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.grey,
-                            fontWeight: FontWeight.bold,
+                        _buildGraph(),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: 350, // Same width as graph
+                          child: Card(
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Detailed Scores',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Center(
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: DataTable(
+                                        columnSpacing: examTypes.length <= 2 ? 48 : 24,
+                                        horizontalMargin: examTypes.length <= 2 ? 24 : 12,
+                                        columns: examTypes.map((exam) => DataColumn(
+                                          label: Container(
+                                            width: 100,
+                                            alignment: Alignment.center,
+                                            child: Text(
+                                              exam['description'] ?? '',
+                                              style: const TextStyle(fontSize: 14),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ),
+                                        )).toList(),
+                                        rows: [
+                                          DataRow(
+                                            cells: examTypes.map((exam) {
+                                              final score = studentProgress![exam['description']] ?? '-';
+                                              return DataCell(_buildScoreCell(score));
+                                            }).toList(),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'No exam scores recorded for ${subjects.firstWhere((subject) => subject['id'] == _selectedSubject)['name']}',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
-                          textAlign: TextAlign.center,
                         ),
                       ],
                     ),
-                  )
-                else if (studentsProgress.isNotEmpty)
-                  Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'All Students Scores',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Theme(
-                              data: Theme.of(context).copyWith(
-                                dataTableTheme: DataTableThemeData(
-                                  headingTextStyle: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
-                                    fontSize: 14,
-                                  ),
-                                  dataTextStyle: const TextStyle(
-                                    color: Colors.black87,
-                                    fontSize: 14,
-                                  ),
-                                  headingRowColor: WidgetStateProperty.all(Colors.grey[100]),
-                                ),
-                              ),
-                              child: DataTable(
-                                columnSpacing: 24,
-                                horizontalMargin: 12,
-                                columns: [
-                                  const DataColumn(
-                                    label: Text(
-                                      'Full Name',
-                                      style: TextStyle(fontSize: 14),
-                                    ),
-                                  ),
-                                  ...examTypes.map((exam) => DataColumn(
-                                    label: Container(
-                                      width: 100,
-                                      alignment: Alignment.center,
-                                      child: Tooltip(
-                                        message: exam['title'],
-                                        child: Text(
-                                          exam['description'],
-                                          style: const TextStyle(fontSize: 14),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
-                                    ),
-                                  )),
-                                ],
-                                rows: (studentsProgress.entries.toList()
-                                  ..sort((a, b) => (a.value['name'] ?? '')
-                                      .toLowerCase()
-                                      .compareTo((b.value['name'] ?? '').toLowerCase())))
-                                  .map((entry) {
-                                  final progress = entry.value;
-                                  return DataRow(
-                                    cells: [
-                                      DataCell(SizedBox(
-                                        width: 200,
-                                        child: Text(
-                                          _formatLongName(progress['name']?.toUpperCase() ?? '-'),
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            height: 1.2,
-                                          ),
-                                          softWrap: true,
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      )),
-                                      ...examTypes.map((exam) => DataCell(
-                                        _buildScoreCell(progress[exam['description']]),
-                                      )),
-                                    ],
-                                  );
-                                }).toList(),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
+                ],
               ],
             ],
-          ),
+
+            // All Students Section
+            if (_selectedFilter == 'All') ...[
+              DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  labelText: 'Choose Subject',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+                ),
+                value: _selectedSubject,
+                items: subjects.map((subject) {
+                  return DropdownMenuItem<String>(
+                    value: subject['id'],
+                    child: Text(subject['name'] ?? 'Unknown'),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedSubject = value!;
+                    if (_selectedSubject != 'Choose Subject') {
+                      _fetchStudentProgressBySubject(_selectedSubject);
+                    } else {
+                      studentsProgress = {};
+                    }
+                  });
+                },
+              ),
+              const SizedBox(height: 16.0),
+              if (_selectedSubject != 'Choose Subject' && studentsProgress.isEmpty)
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.people_outline,
+                        size: 70,
+                        color: Colors.grey,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'No Student Progress Found',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'No exam scores recorded for ${subjects.firstWhere((subject) => subject['id'] == _selectedSubject)['name']}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                )
+              else if (studentsProgress.isNotEmpty)
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'All Students Scores',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Theme(
+                            data: Theme.of(context).copyWith(
+                              dataTableTheme: DataTableThemeData(
+                                headingTextStyle: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                  fontSize: 14,
+                                ),
+                                dataTextStyle: const TextStyle(
+                                  color: Colors.black87,
+                                  fontSize: 14,
+                                ),
+                                headingRowColor: WidgetStateProperty.all(Colors.grey[100]),
+                              ),
+                            ),
+                            child: DataTable(
+                              columnSpacing: 24,
+                              horizontalMargin: 12,
+                              columns: [
+                                const DataColumn(
+                                  label: Text(
+                                    'Full Name',
+                                    style: TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                                ...examTypes.map((exam) => DataColumn(
+                                  label: Container(
+                                    width: 100,
+                                    alignment: Alignment.center,
+                                    child: Tooltip(
+                                      message: exam['title'],
+                                      child: Text(
+                                        exam['description'],
+                                        style: const TextStyle(fontSize: 14),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                  ),
+                                )),
+                              ],
+                              rows: (studentsProgress.entries.toList()
+                                ..sort((a, b) => (a.value['name'] ?? '')
+                                    .toLowerCase()
+                                    .compareTo((b.value['name'] ?? '').toLowerCase())))
+                                .map((entry) {
+                                final progress = entry.value;
+                                return DataRow(
+                                  cells: [
+                                    DataCell(SizedBox(
+                                      width: 200,
+                                      child: Text(
+                                        _formatLongName(progress['name']?.toUpperCase() ?? '-'),
+                                        style: const TextStyle(
+                                          fontSize: 14,
+                                          height: 1.2,
+                                        ),
+                                        softWrap: true,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    )),
+                                    ...examTypes.map((exam) => DataCell(
+                                      _buildScoreCell(progress[exam['description']]),
+                                    )),
+                                  ],
+                                );
+                              }).toList(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
+            
+            // Add extra padding at the bottom
+            const SizedBox(height: 32),
+          ],
         ),
       ),
     );

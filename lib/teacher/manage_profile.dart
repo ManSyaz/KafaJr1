@@ -321,139 +321,150 @@ class _ManageProfilePageState extends State<ManageProfilePage> {
         backgroundColor: const Color(0xFF0C6B58),
         elevation: 0,
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF0C6B58), Colors.white],
-            stops: [0.0, 0.3],
-          ),
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              const Text(
-                'My Profile',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Refresh teacher data
+          await _fetchTeacherData();
+          return Future.delayed(const Duration(milliseconds: 500));
+        },
+        color: const Color(0xFF0C6B58),
+        child: ListView(  // Changed from Container to ListView
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Color(0xFF0C6B58), Colors.white],
+                  stops: [0.0, 0.3],
                 ),
               ),
-              const SizedBox(height: 30),
-              // Form Container
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.2),
-                      spreadRadius: 2,
-                      blurRadius: 10,
-                      offset: const Offset(0, 3),
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+                  const Text(
+                    'My Profile',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
                     ),
-                  ],
-                ),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildInputField(
-                        title: 'Full Name',
-                        controller: _fullNameController,
-                        icon: Icons.person_outline,
-                      ),
-                      _buildInputField(
-                        title: 'Identity Card Number',
-                        controller: _icNumberController,
-                        icon: Icons.assignment_ind,
-                        isIC: true,
-                      ),
-                      _buildInputField(
-                        title: 'Email',
-                        controller: _emailController,
-                        icon: Icons.email_outlined,
-                        isEmail: true,
-                      ),
-                      
-                      // Password Change Section
-                      const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  ),
+                  const SizedBox(height: 30),
+                  // Form Container
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.2),
+                          spreadRadius: 2,
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Change Password',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          _buildInputField(
+                            title: 'Full Name',
+                            controller: _fullNameController,
+                            icon: Icons.person_outline,
                           ),
-                          Switch(
-                            value: _isChangingPassword,
-                            onChanged: (value) {
-                              setState(() {
-                                _isChangingPassword = value;
-                              });
-                            },
-                            activeColor: const Color(0xFF0C6B58),
+                          _buildInputField(
+                            title: 'Identity Card Number',
+                            controller: _icNumberController,
+                            icon: Icons.assignment_ind,
+                            isIC: true,
+                          ),
+                          _buildInputField(
+                            title: 'Email',
+                            controller: _emailController,
+                            icon: Icons.email_outlined,
+                            isEmail: true,
+                          ),
+                          
+                          // Password Change Section
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'Change Password',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Switch(
+                                value: _isChangingPassword,
+                                onChanged: (value) {
+                                  setState(() {
+                                    _isChangingPassword = value;
+                                  });
+                                },
+                                activeColor: const Color(0xFF0C6B58),
+                              ),
+                            ],
+                          ),
+
+                          if (_isChangingPassword) ...[
+                            _buildInputField(
+                              title: 'Current Password',
+                              controller: _currentPasswordController,
+                              icon: Icons.lock_outline,
+                              isCurrentPassword: true,
+                            ),
+                            _buildInputField(
+                              title: 'New Password',
+                              controller: _newPasswordController,
+                              icon: Icons.lock_outline,
+                              isNewPassword: true,
+                            ),
+                            _buildInputField(
+                              title: 'Confirm New Password',
+                              controller: _confirmPasswordController,
+                              icon: Icons.lock_outline,
+                              isConfirmPassword: true,
+                            ),
+                          ],
+
+                          const SizedBox(height: 30),
+                          ElevatedButton(
+                            onPressed: _saveProfile,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF0C6B58),
+                              minimumSize: const Size(double.infinity, 55),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              elevation: 2,
+                            ),
+                            child: const Text(
+                              'Save Changes',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                         ],
                       ),
-
-                      if (_isChangingPassword) ...[
-                        _buildInputField(
-                          title: 'Current Password',
-                          controller: _currentPasswordController,
-                          icon: Icons.lock_outline,
-                          isCurrentPassword: true,
-                        ),
-                        _buildInputField(
-                          title: 'New Password',
-                          controller: _newPasswordController,
-                          icon: Icons.lock_outline,
-                          isNewPassword: true,
-                        ),
-                        _buildInputField(
-                          title: 'Confirm New Password',
-                          controller: _confirmPasswordController,
-                          icon: Icons.lock_outline,
-                          isConfirmPassword: true,
-                        ),
-                      ],
-
-                      const SizedBox(height: 30),
-                      ElevatedButton(
-                        onPressed: _saveProfile,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF0C6B58),
-                          minimumSize: const Size(double.infinity, 55),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          elevation: 2,
-                        ),
-                        child: const Text(
-                          'Save Changes',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 30),
+                ],
               ),
-              const SizedBox(height: 30),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

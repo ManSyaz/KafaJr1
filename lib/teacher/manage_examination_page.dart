@@ -176,320 +176,315 @@ class _ManageExaminationPageState extends State<ManageExaminationPage> {
           ),
         ),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0C6B58),
-                minimumSize: const Size(double.infinity, 50), // Make the button take the full width
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AddExamPage()),
-                ).then((_) => _fetchExaminations());
-              },
-              child: const Text(
-                'Add New Exam',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-          const Padding(
-            padding: EdgeInsets.only(left: 16.0),
-            child: Text('List of Examinations', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          ),
-          const SizedBox(height: 16),
-
-          // Search bar for filtering examinations
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: TextField(
-              onChanged: _filterExaminations,
-              decoration: InputDecoration(
-                labelText: 'Search Examination',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                  borderSide: const BorderSide(color: Color(0xFF0C6B58)),
-                ),
-                prefixIcon: const Icon(Icons.search, color: Color(0xFF0C6B58)),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 16),
-          Expanded(
-            child: filteredExaminations.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        Icons.assignment_outlined,
-                        size: 70,
-                        color: Colors.grey,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        searchQuery.isEmpty
-                          ? 'No Exams Added'
-                          : 'No Exams Found',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Refresh examination data
+          await _fetchExaminations();
+          return Future.delayed(const Duration(milliseconds: 500));
+        },
+        color: const Color(0xFF0C6B58),
+        child: ListView(  // Changed from Column to ListView
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0C6B58),
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
                   ),
-                )
-              : ListView.builder(
-                  itemCount: filteredExaminations.length,
-                  padding: const EdgeInsets.all(16.0),
-                  itemBuilder: (context, index) {
-                    final exam = filteredExaminations[index];
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 16.0),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [
-                            Color(0xFF0C6B58),
-                            Color(0xFF094A3D),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.3),
-                            spreadRadius: 2,
-                            blurRadius: 5,
-                            offset: const Offset(0, 3),
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AddExamPage()),
+                  ).then((_) => _fetchExaminations());
+                },
+                child: const Text(
+                  'Add New Exam',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.only(left: 16.0),
+              child: Text('List of Examinations', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            ),
+            const SizedBox(height: 16),
+
+            // Search bar for filtering examinations
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: TextField(
+                onChanged: _filterExaminations,
+                decoration: InputDecoration(
+                  labelText: 'Search Examination',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: const BorderSide(color: Color(0xFF0C6B58)),
+                  ),
+                  prefixIcon: const Icon(Icons.search, color: Color(0xFF0C6B58)),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+            
+            filteredExaminations.isEmpty
+                ? SizedBox(
+                    height: MediaQuery.of(context).size.height - 300,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.assignment_outlined,
+                            size: 70,
+                            color: Colors.grey,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            searchQuery.isEmpty
+                                ? 'No Exams Added'
+                                : 'No Exams Found',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ],
                       ),
-                      child: Theme(
-                        data: Theme.of(context).copyWith(
-                          dividerColor: Colors.transparent,
-                          colorScheme: ColorScheme.fromSwatch().copyWith(
-                            secondary: Colors.white,
+                    ),
+                  )
+                : ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: filteredExaminations.length,
+                    padding: const EdgeInsets.all(16.0),
+                    itemBuilder: (context, index) {
+                      final exam = filteredExaminations[index];
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 16.0),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [
+                              Color(0xFF0C6B58),
+                              Color(0xFF094A3D),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(15),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.3),
+                              spreadRadius: 2,
+                              blurRadius: 5,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: _buildExamCard(exam),
+                      );
+                    },
+                  ),
+            // Add extra padding at the bottom
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExamCard(Map<String, dynamic> exam) {
+    return Theme(
+      data: Theme.of(context).copyWith(
+        dividerColor: Colors.transparent,
+        colorScheme: ColorScheme.fromSwatch().copyWith(
+          secondary: Colors.white,
+        ),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(15),
+        child: ExpansionTile(
+          backgroundColor: Colors.transparent,
+          collapsedBackgroundColor: Colors.transparent,
+          leading: Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(
+              Icons.quiz_outlined,
+              color: Colors.white,
+            ),
+          ),
+          title: Text(
+            exam['title'] ?? 'No Title',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 8),
+              Text(
+                exam['description'] ?? 'No Description',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white.withOpacity(0.9),
+                ),
+              ),
+            ],
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(right: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.delete,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  onPressed: () => _deleteExam(exam['key']),
+                ),
+              ),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.expand_more,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+          children: [
+            Container(
+              color: Colors.white.withOpacity(0.1),
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: const Icon(Icons.edit, color: Colors.white),
+                    title: const Text(
+                      'Enter Scores',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EnterScorePage(examId: exam['key']),
+                        ),
+                      );
+                    },
+                  ),
+                  if (exam['subjects'] != null)
+                    ...exam['subjects'].entries.map((entry) {
+                      final subjectKey = entry.key;
+                      final subjectData = entry.value as Map<dynamic, dynamic>?;
+                      final subjectTitle = subjectData?['title'] as String? ?? 'No Title';
+                      final fileUrl = subjectData?['fileUrl'] as String? ?? '';
+
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          border: Border(
+                            top: BorderSide(color: Colors.white.withOpacity(0.1)),
                           ),
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(15),
-                          child: ExpansionTile(
-                            backgroundColor: Colors.transparent,
-                            collapsedBackgroundColor: Colors.transparent,
-                            leading: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(
-                                Icons.quiz_outlined,
-                                color: Colors.white,
-                              ),
-                            ),
-                            title: Text(
-                              exam['title'] ?? 'No Title',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            subtitle: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 8),
-                                Text(
-                                  exam['description'] ?? 'No Description',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.white.withOpacity(0.9),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  margin: const EdgeInsets.only(right: 8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: IconButton(
-                                    icon: const Icon(
-                                      Icons.delete,
-                                      color: Colors.white,
-                                      size: 20,
-                                    ),
-                                    onPressed: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                            title: const Text('Delete Exam'),
-                                            content: const Text('Are you sure you want to delete this exam?'),
-                                            actions: [
-                                              TextButton(
-                                                child: const Text('Cancel'),
-                                                onPressed: () => Navigator.of(context).pop(),
-                                              ),
-                                              TextButton(
-                                                child: const Text('Delete', style: TextStyle(color: Colors.red)),
-                                                onPressed: () {
-                                                  Navigator.of(context).pop();
-                                                  _deleteExam(exam['key']);
-                                                },
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      );
-                                    },
-                                  ),
-                                ),
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: const Icon(
-                                    Icons.expand_more,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
+                        child: ListTile(
+                          title: Text(
+                            subjectTitle,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Container(
-                                color: Colors.white.withOpacity(0.1),
-                                child: Column(
-                                  children: [
-                                    ListTile(
-                                      leading: const Icon(Icons.edit, color: Colors.white),
-                                      title: const Text(
-                                        'Enter Scores',
-                                        style: TextStyle(color: Colors.white),
+                              IconButton(
+                                icon: const Icon(Icons.remove_red_eye, color: Colors.white),
+                                onPressed: () {
+                                  if (fileUrl.isNotEmpty) {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => PDFViewerPage(fileUrl: fileUrl),
                                       ),
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => EnterScorePage(examId: exam['key']),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    if (exam['subjects'] != null)
-                                      ...exam['subjects'].entries.map((entry) {
-                                        final subjectKey = entry.key;
-                                        final subjectData = entry.value as Map<dynamic, dynamic>?;
-                                        final subjectTitle = subjectData?['title'] as String? ?? 'No Title';
-                                        final fileUrl = subjectData?['fileUrl'] as String? ?? '';
-
-                                        return Container(
-                                          decoration: BoxDecoration(
-                                            color: Colors.white.withOpacity(0.1),
-                                            border: Border(
-                                              top: BorderSide(color: Colors.white.withOpacity(0.1)),
-                                            ),
-                                          ),
-                                          child: ListTile(
-                                            title: Text(
-                                              subjectTitle,
-                                              style: const TextStyle(color: Colors.white),
-                                            ),
-                                            trailing: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                IconButton(
-                                                  icon: const Icon(Icons.remove_red_eye, color: Colors.white),
-                                                  onPressed: () {
-                                                    if (fileUrl.isNotEmpty) {
-                                                      Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                          builder: (context) => PDFViewerPage(fileUrl: fileUrl),
-                                                        ),
-                                                      );
-                                                    }
-                                                  },
-                                                ),
-                                                IconButton(
-                                                  icon: const Icon(Icons.edit, color: Colors.white),
-                                                  onPressed: () {
-                                                    Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                        builder: (context) => EditExamPage(
-                                                          examId: exam['key'],
-                                                          subjectId: subjectKey,
-                                                        ),
-                                                      ),
-                                                    );
-                                                  },
-                                                ),
-                                                IconButton(
-                                                  icon: const Icon(Icons.delete, color: Colors.white),
-                                                  onPressed: () {
-                                                    _examRef
-                                                        .child(exam['key'])
-                                                        .child('subjects')
-                                                        .child(subjectKey)
-                                                        .remove();
-                                                  },
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        );
-                                      }),
-                                    ListTile(
-                                      leading: const Icon(Icons.add, color: Colors.white),
-                                      title: const Text(
-                                        'Add Subject',
-                                        style: TextStyle(color: Colors.white),
+                                    );
+                                  }
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.edit, color: Colors.white),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => EditExamPage(
+                                        examId: exam['key'],
+                                        subjectId: subjectKey,
                                       ),
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => AddExamSubjectPage(examId: exam['key']),
-                                          ),
-                                        );
-                                      },
                                     ),
-                                  ],
-                                ),
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.white),
+                                onPressed: () {
+                                  _examRef
+                                      .child(exam['key'])
+                                      .child('subjects')
+                                      .child(subjectKey)
+                                      .remove();
+                                },
                               ),
                             ],
                           ),
                         ),
-                      ),
-                    );
-                  },
-                ),
-          ),
-        ],
+                      );
+                    }),
+                  ListTile(
+                    leading: const Icon(Icons.add, color: Colors.white),
+                    title: const Text(
+                      'Add Subject',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AddExamSubjectPage(examId: exam['key']),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

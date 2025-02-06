@@ -103,275 +103,249 @@ class _ManageAnalysisPageState extends State<ManageAnalysisPage> {
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        child: Padding(
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Refresh all data sources
+          await _loadSubjects();
+          await _loadExams();
+          if (selectedSubject != null && selectedExam != null) {
+            await _analyzeGrades();
+          }
+          return Future.delayed(const Duration(milliseconds: 500));
+        },
+        color: const Color(0xFF0C6B58),
+        child: ListView(  // Changed from SingleChildScrollView to ListView
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Subject Dropdown
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: 'Choose Subject',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16.0, 
+          children: [
+            // Subject Dropdown
+            DropdownButtonFormField<String>(
+              decoration: InputDecoration(
+                labelText: 'Choose Subject',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16.0, 
+                  vertical: 12.0
+                ),
+              ),
+              value: selectedSubject,
+              items: subjects.entries.map((entry) {
+                return DropdownMenuItem(
+                  value: entry.key,
+                  child: Text(entry.value['name']),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedSubject = value;
+                  selectedExam = null;
+                  gradeDistribution.clear();
+                });
+              },
+            ),
+            const SizedBox(height: 16.0),
+            
+            // Exam Dropdown
+            DropdownButtonFormField<String>(
+              decoration: InputDecoration(
+                labelText: 'Choose Examination',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16.0, 
+                  vertical: 12.0
+                ),
+              ),
+              value: selectedExam,
+              items: exams.entries.map((entry) {
+                return DropdownMenuItem(
+                  value: entry.key,
+                  child: Text(entry.value['title']),
+                );
+              }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  selectedExam = value;
+                });
+              },
+            ),
+            const SizedBox(height: 16.0),
+            
+            // Analyze Button
+            Center(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0C6B58),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32.0, 
                     vertical: 12.0
                   ),
-                ),
-                value: selectedSubject,
-                items: subjects.entries.map((entry) {
-                  return DropdownMenuItem(
-                    value: entry.key,
-                    child: Text(entry.value['name']),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedSubject = value;
-                    selectedExam = null;
-                    gradeDistribution.clear();
-                  });
-                },
-              ),
-              const SizedBox(height: 16.0),
-              
-              // Exam Dropdown
-              DropdownButtonFormField<String>(
-                decoration: InputDecoration(
-                  labelText: 'Choose Examination',
-                  border: OutlineInputBorder(
+                  shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(8.0),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16.0, 
-                    vertical: 12.0
-                  ),
                 ),
-                value: selectedExam,
-                items: exams.entries.map((entry) {
-                  return DropdownMenuItem(
-                    value: entry.key,
-                    child: Text(entry.value['title']),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedExam = value;
-                  });
-                },
-              ),
-              const SizedBox(height: 16.0),
-              
-              // Analyze Button
-              Center(
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF0C6B58),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32.0, 
-                      vertical: 12.0
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
-                  onPressed: _analyzeGrades,
-                  child: const Text(
-                    'Analyze',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                    ),
+                onPressed: _analyzeGrades,
+                child: const Text(
+                  'Analyze',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
                   ),
                 ),
               ),
-              const SizedBox(height: 24.0),
-              
-              // Loading Indicator or Graph
-              if (isLoading)
-                const Center(child: CircularProgressIndicator())
-              else if (hasAnalyzed && gradeDistribution.isEmpty)
-                const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.assessment_outlined,
-                        size: 70,
+            ),
+            const SizedBox(height: 24.0),
+            
+            // Loading Indicator or Graph
+            if (isLoading)
+              const Center(child: CircularProgressIndicator())
+            else if (hasAnalyzed && gradeDistribution.isEmpty)
+              const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.assessment_outlined,
+                      size: 70,
+                      color: Colors.grey,
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'No Marks Found',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      'The marks have not been entered yet',
+                      style: TextStyle(
+                        fontSize: 14,
                         color: Colors.grey,
                       ),
-                      SizedBox(height: 16),
-                      Text(
-                        'No Marks Found',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'The marks have not been entered yet',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              )
+            else if (gradeDistribution.isNotEmpty)
+              _buildAnalysisCard(),
+
+            // Add extra padding at the bottom
+            const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAnalysisCard() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12)
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Grade Distribution',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Wrap(
+                spacing: 16.0,
+                children: [
+                  _buildLegendItem('A (≥80)', const Color(0xFF4CAF50)),
+                  _buildLegendItem('B (≥60)', const Color(0xFF2196F3)),
+                  _buildLegendItem('C (≥40)', const Color(0xFFFFA726)),
+                  _buildLegendItem('D (<40)', const Color(0xFFE53935)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 300,
+              child: BarChart(
+                BarChartData(
+                  alignment: BarChartAlignment.spaceAround,
+                  maxY: gradeDistribution.values
+                      .reduce((a, b) => a > b ? a : b)
+                      .toDouble(),
+                  barGroups: [
+                    _createBarGroup(0, 'A', gradeDistribution['A'] ?? 0),
+                    _createBarGroup(1, 'B', gradeDistribution['B'] ?? 0),
+                    _createBarGroup(2, 'C', gradeDistribution['C'] ?? 0),
+                    _createBarGroup(3, 'D', gradeDistribution['D'] ?? 0),
+                  ],
+                  gridData: FlGridData(
+                    show: true,
+                    drawHorizontalLine: true,
+                    horizontalInterval: 1,
+                    getDrawingHorizontalLine: (value) => FlLine(
+                      color: Colors.grey[300],
+                      strokeWidth: 1,
+                    ),
                   ),
-                )
-              else if (gradeDistribution.isNotEmpty)
-                Card(
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Grade Distribution',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8.0),
-                          child: Wrap(
-                            spacing: 16.0,
-                            children: [
-                              _buildLegendItem('A (≥80)', const Color(0xFF4CAF50)),
-                              _buildLegendItem('B (≥60)', const Color(0xFF2196F3)),
-                              _buildLegendItem('C (≥40)', const Color(0xFFFFA726)),
-                              _buildLegendItem('D (<40)', const Color(0xFFE53935)),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          height: 300,
-                          child: BarChart(
-                            BarChartData(
-                              alignment: BarChartAlignment.spaceAround,
-                              maxY: gradeDistribution.values
-                                  .reduce((a, b) => a > b ? a : b)
-                                  .toDouble(),
-                              barGroups: [
-                                _createBarGroup(0, 'A', gradeDistribution['A'] ?? 0),
-                                _createBarGroup(1, 'B', gradeDistribution['B'] ?? 0),
-                                _createBarGroup(2, 'C', gradeDistribution['C'] ?? 0),
-                                _createBarGroup(3, 'D', gradeDistribution['D'] ?? 0),
-                              ],
-                              gridData: FlGridData(
-                                show: true,
-                                drawHorizontalLine: true,
-                                horizontalInterval: 1,
-                                getDrawingHorizontalLine: (value) => FlLine(
-                                  color: Colors.grey[300],
-                                  strokeWidth: 1,
-                                ),
-                              ),
-                              titlesData: FlTitlesData(
-                                show: true,
-                                bottomTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    getTitlesWidget: (value, meta) {
-                                      const grades = ['A', 'B', 'C', 'D'];
-                                      return Padding(
-                                        padding: const EdgeInsets.only(top: 8.0),
-                                        child: Text(
-                                          grades[value.toInt()],
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            color: Colors.black87,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                                leftTitles: AxisTitles(
-                                  sideTitles: SideTitles(
-                                    showTitles: true,
-                                    getTitlesWidget: (value, meta) {
-                                      return Text(
-                                        value.toInt().toString(),
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.black54,
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                ),
-                                rightTitles: const AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false),
-                                ),
-                                topTitles: const AxisTitles(
-                                  sideTitles: SideTitles(showTitles: false),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        const Text(
-                          'Summary',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _buildGradeSummary('A', gradeDistribution['A'] ?? 0, const Color(0xFF4CAF50)),
-                            _buildGradeSummary('B', gradeDistribution['B'] ?? 0, const Color(0xFF2196F3)),
-                            _buildGradeSummary('C', gradeDistribution['C'] ?? 0, const Color(0xFFFFA726)),
-                            _buildGradeSummary('D', gradeDistribution['D'] ?? 0, const Color(0xFFE53935)),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Divider(color: Colors.grey[300]),
-                        const SizedBox(height: 16),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Text(
-                              'Total Students: ',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                  titlesData: FlTitlesData(
+                    show: true,
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, meta) {
+                          const grades = ['A', 'B', 'C', 'D'];
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              grades[value.toInt()],
+                              style: const TextStyle(
+                                fontSize: 14,
                                 color: Colors.black87,
                               ),
                             ),
-                            Text(
-                              '${gradeDistribution.values.fold(0, (sum, count) => sum + count)}',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF0C6B58),
-                              ),
+                          );
+                        },
+                      ),
+                    ),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        getTitlesWidget: (value, meta) {
+                          return Text(
+                            value.toInt().toString(),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.black54,
                             ),
-                          ],
-                        ),
-                      ],
+                          );
+                        },
+                      ),
+                    ),
+                    rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
                     ),
                   ),
                 ),
-            ],
-          ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            _buildGradeSummary(),
+          ],
         ),
       ),
     );
@@ -437,7 +411,57 @@ class _ManageAnalysisPageState extends State<ManageAnalysisPage> {
     );
   }
 
-  Widget _buildGradeSummary(String grade, int count, Color color) {
+  Widget _buildGradeSummary() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Summary',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildGradeSummaryItem('A', gradeDistribution['A'] ?? 0, const Color(0xFF4CAF50)),
+            _buildGradeSummaryItem('B', gradeDistribution['B'] ?? 0, const Color(0xFF2196F3)),
+            _buildGradeSummaryItem('C', gradeDistribution['C'] ?? 0, const Color(0xFFFFA726)),
+            _buildGradeSummaryItem('D', gradeDistribution['D'] ?? 0, const Color(0xFFE53935)),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Divider(color: Colors.grey[300]),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Total Students: ',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            Text(
+              '${gradeDistribution.values.fold(0, (sum, count) => sum + count)}',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF0C6B58),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGradeSummaryItem(String grade, int count, Color color) {
     return Expanded(
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 4),

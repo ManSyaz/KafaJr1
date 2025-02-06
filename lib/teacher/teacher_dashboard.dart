@@ -168,7 +168,7 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
           top: 0,
           left: 0,
           right: 0,
-          child: Material(  // Add Material widget to ensure touch events work
+          child: Material(
             color: Colors.transparent,
             child: AppBar(
               backgroundColor: const Color(0xFF0C6B58),
@@ -224,7 +224,7 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
                   ),
                 ],
               ),
-              toolbarHeight: 250.0,
+              toolbarHeight: 270.0,
               shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.only(
                   bottomLeft: Radius.circular(15),
@@ -235,72 +235,87 @@ class _TeacherDashboardState extends State<TeacherDashboard> {
           ),
         ),
         
-        // Rest of the dashboard content
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              const SizedBox(height: 100),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildDashboardButton(
-                    context,
-                    'Students\nProgress',
-                    const Color.fromARGB(255, 236, 191, 57),
-                    const ManageStudentProgressPage(),
-                    Icons.trending_up,
-                  ),
-                  _buildDashboardButton(
-                    context,
-                    'Academic\nRecord',
-                    const Color.fromARGB(255, 216, 127, 231),
-                    const ManageAcademicRecordPage(),
-                    Icons.book,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildDashboardButton(
-                    context,
-                    'Student',
-                    const Color.fromARGB(255, 120, 165, 241),
-                    const ManageStudentPage(),
-                    Icons.person,
-                  ),
-                  _buildDashboardButton(
-                    context,
-                    'Subject',
-                    const Color.fromARGB(255, 72, 214, 181),
-                    const ManageSubjectPage(),
-                    Icons.subject,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _buildDashboardButton(
-                    context,
-                    'Notes',
-                    const Color.fromARGB(255, 123, 184, 74),
-                    const ManageNotesPage(),
-                    Icons.note,
-                  ),
-                  _buildDashboardButton(
-                    context,
-                    'Examination',
-                    Colors.orangeAccent,
-                    const ManageExaminationPage(),
-                    Icons.assignment,
-                  ),
-                ],
-              ),
-            ],
+        // Content with RefreshIndicator
+        Positioned(
+          top: 100,  // Position below AppBar
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: RefreshIndicator(
+            onRefresh: () async {
+              // Refresh user data
+              setState(() {});
+              return Future.delayed(const Duration(milliseconds: 500));
+            },
+            color: const Color(0xFF0C6B58),
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16.0),
+              children: [
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildDashboardButton(
+                      context,
+                      'Students\nProgress',
+                      const Color.fromARGB(255, 236, 191, 57),
+                      const ManageStudentProgressPage(),
+                      Icons.trending_up,
+                    ),
+                    _buildDashboardButton(
+                      context,
+                      'Academic\nRecord',
+                      const Color.fromARGB(255, 216, 127, 231),
+                      const ManageAcademicRecordPage(),
+                      Icons.book,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildDashboardButton(
+                      context,
+                      'Student',
+                      const Color.fromARGB(255, 120, 165, 241),
+                      const ManageStudentPage(),
+                      Icons.person,
+                    ),
+                    _buildDashboardButton(
+                      context,
+                      'Subject',
+                      const Color.fromARGB(255, 72, 214, 181),
+                      const ManageSubjectPage(),
+                      Icons.subject,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildDashboardButton(
+                      context,
+                      'Notes',
+                      const Color.fromARGB(255, 123, 184, 74),
+                      const ManageNotesPage(),
+                      Icons.note,
+                    ),
+                    _buildDashboardButton(
+                      context,
+                      'Examination',
+                      Colors.orangeAccent,
+                      const ManageExaminationPage(),
+                      Icons.assignment,
+                    ),
+                  ],
+                ),
+                // Add extra padding at the bottom
+                const SizedBox(height: 32),
+              ],
+            ),
           ),
         ),
       ],

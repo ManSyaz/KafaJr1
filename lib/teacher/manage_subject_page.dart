@@ -194,81 +194,94 @@ class _ManageSubjectPageState extends State<ManageSubjectPage> {
           ),
         ),
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0C6B58),
-                minimumSize: const Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Refresh subject data
+          await _fetchSubjects();
+          return Future.delayed(const Duration(milliseconds: 500));
+        },
+        color: const Color(0xFF0C6B58),
+        child: ListView(  // Changed from Column to ListView
+          physics: const AlwaysScrollableScrollPhysics(),
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0C6B58),
+                  minimumSize: const Size(double.infinity, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
                 ),
-              ),
-              onPressed: _navigateToAddSubjectPage,
-              child: const Text(
-                'Add New Subject',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                onPressed: _navigateToAddSubjectPage,
+                child: const Text(
+                  'Add New Subject',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
-          ),
-          const Padding(
-            padding: EdgeInsets.only(left: 16.0),
-            child: Text('List of Subjects', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-          ),
-          const SizedBox(height: 16),
+            const Padding(
+              padding: EdgeInsets.only(left: 16.0),
+              child: Text('List of Subjects', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            ),
+            const SizedBox(height: 16),
 
-          // Search bar for filtering subjects
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: TextField(
-              onChanged: _filterSubjects,
-              decoration: InputDecoration(
-                labelText: 'Search Subject',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
+            // Search bar for filtering subjects
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: TextField(
+                onChanged: _filterSubjects,
+                decoration: InputDecoration(
+                  labelText: 'Search Subject',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                    borderSide: const BorderSide(color: Color(0xFF0C6B58)),
+                  ),
+                  prefixIcon: const Icon(Icons.search, color: Color(0xFF0C6B58)),
                 ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                  borderSide: const BorderSide(color: Color(0xFF0C6B58)),
-                ),
-                prefixIcon: const Icon(Icons.search, color: Color(0xFF0C6B58)),
               ),
             ),
-          ),
 
-          Expanded(
-            child: filteredSubjects.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.subject_outlined,
-                          size: 70,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          searchQuery.isEmpty
-                              ? 'No Subjects Added'
-                              : 'No Subjects Found',
-                          style: const TextStyle(
-                            fontSize: 18,
+            const SizedBox(height: 16),
+            
+            filteredSubjects.isEmpty
+                ? SizedBox(
+                    height: MediaQuery.of(context).size.height - 300,
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.subject_outlined,
+                            size: 70,
                             color: Colors.grey,
-                            fontWeight: FontWeight.bold,
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 16),
+                          Text(
+                            searchQuery.isEmpty
+                                ? 'No Subjects Added'
+                                : 'No Subjects Found',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   )
                 : ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
                     itemCount: filteredSubjects.length,
                     padding: const EdgeInsets.all(16.0),
                     itemBuilder: (context, index) {
@@ -395,8 +408,10 @@ class _ManageSubjectPageState extends State<ManageSubjectPage> {
                       );
                     },
                   ),
-          ),
-        ],
+            // Add extra padding at the bottom
+            const SizedBox(height: 32),
+          ],
+        ),
       ),
     );
   }
