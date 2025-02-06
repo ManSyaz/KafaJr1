@@ -600,9 +600,21 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Refresh all data sources
+          await _fetchExams();
+          await _fetchStudentEmails();
+          await _fetchSubjects();
+          if (_selectedExam != 'Choose Exam' && _selectedStudentId.isNotEmpty) {
+            await _fetchStudentProgressByExam(_selectedExam);
+          }
+          return Future.delayed(const Duration(milliseconds: 500));
+        },
+        color: const Color(0xFF0C6B58),
+        child: ListView(  // Changed from SingleChildScrollView to ListView
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16.0),
           children: [
             DropdownButtonFormField<String>(
               decoration: InputDecoration(
@@ -808,6 +820,8 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
                   ),
               ],
             ],
+            // Add extra padding at the bottom to ensure all content is scrollable
+            const SizedBox(height: 32.0),
           ],
         ),
       ),

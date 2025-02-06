@@ -85,72 +85,105 @@ class _NotificationPageState extends State<NotificationPage> {
             ],
           ),
         ),
-        child: StreamBuilder<List<SchoolNotification>>(
-          stream: _getNotifications(),
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+        child: RefreshIndicator(
+          onRefresh: () async {
+            // Force refresh by setting state
+            setState(() {});
+            return Future.delayed(const Duration(milliseconds: 500));
+          },
+          color: const Color(0xFF0C6B58),
+          child: StreamBuilder<List<SchoolNotification>>(
+            stream: _getNotifications(),
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return ListView( // Wrap with ListView to enable pull-to-refresh
+                  physics: const AlwaysScrollableScrollPhysics(),
                   children: [
-                    Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Error: ${snapshot.error}',
-                      style: const TextStyle(color: Colors.red),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0C6B58)),
-                ),
-              );
-            }
-
-            final notifications = snapshot.data ?? [];
-
-            if (notifications.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.notifications_off_outlined,
-                      size: 64,
-                      color: Colors.grey[400],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No notifications yet',
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500,
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.7,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Error: ${snapshot.error}',
+                              style: const TextStyle(color: Colors.red),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
-                ),
-              );
-            }
-
-            return ListView.builder(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              itemCount: notifications.length,
-              itemBuilder: (context, index) {
-                final notification = notifications[index];
-                return NotificationCard(
-                  notification: notification,
-                  onTap: () => _showNotificationDetails(notification),
-                  onDelete: () => _deleteNotification(notification.id),
                 );
-              },
-            );
-          },
+              }
+
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return ListView( // Wrap with ListView to enable pull-to-refresh
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.7,
+                      child: const Center(
+                        child: CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF0C6B58)),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }
+
+              final notifications = snapshot.data ?? [];
+
+              if (notifications.isEmpty) {
+                return ListView( // Wrap with ListView to enable pull-to-refresh
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  children: [
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.7,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.notifications_off_outlined,
+                              size: 64,
+                              color: Colors.grey[400],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No notifications yet',
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: Colors.grey[600],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }
+
+              return ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                itemCount: notifications.length,
+                itemBuilder: (context, index) {
+                  final notification = notifications[index];
+                  return NotificationCard(
+                    notification: notification,
+                    onTap: () => _showNotificationDetails(notification),
+                    onDelete: () => _deleteNotification(notification.id),
+                  );
+                },
+              );
+            },
+          ),
         ),
       ),
     );

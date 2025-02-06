@@ -507,9 +507,21 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Refresh all data sources
+          await _fetchExams();
+          await _fetchSubjects();
+          await _fetchStudentEmails();
+          if (_selectedSubject != 'Choose Subject' && _selectedStudentId.isNotEmpty) {
+            await _fetchStudentProgressBySubject(_selectedSubject);
+          }
+          return Future.delayed(const Duration(milliseconds: 500));
+        },
+        color: const Color(0xFF0C6B58),
+        child: ListView(  // Changed from SingleChildScrollView to ListView
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16.0),
           children: [
             DropdownButtonFormField<String>(
               decoration: InputDecoration(
@@ -599,8 +611,22 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
                   ),
                 ),
               ],
-              if (studentsProgress.isEmpty) const Center(child: Text('No data available for the selected subject.')),
+              if (studentsProgress.isEmpty) 
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Text(
+                      'No data available for the selected subject.',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ),
             ],
+            // Add extra padding at the bottom to ensure all content is scrollable
+            const SizedBox(height: 32.0),
           ],
         ),
       ),

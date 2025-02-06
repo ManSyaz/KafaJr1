@@ -184,140 +184,150 @@ class _ParentDashboardState extends State<ParentDashboard> {
   }
 
   Widget _buildDashboard() {
-    return Stack(
-      children: [
-        // Pattern container overlapping everything
-        Container(
-          decoration: const BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('assets/kafapattern.png'),
-              repeat: ImageRepeat.repeat,
-              opacity: 0.2,
+    return RefreshIndicator(
+      onRefresh: () async {
+        // Refresh all data sources
+        _setupNotificationListener();
+        setState(() {
+          _selectedStudentEmail = null; // Reset selected student to force refresh
+        });
+        return Future.delayed(const Duration(milliseconds: 500));
+      },
+      color: const Color(0xFF0C6B58),
+      child: Stack(
+        children: [
+          // Pattern container overlapping everything
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/kafapattern.png'),
+                repeat: ImageRepeat.repeat,
+                opacity: 0.2,
+              ),
             ),
           ),
-        ),
-        
-        // AppBar with higher z-index for interactivity
-        Positioned(
-          top: 0,
-          left: 0,
-          right: 0,
-          child: Material(  // Add Material widget to ensure touch events work
-            color: Colors.transparent,
-            child: AppBar(
-              backgroundColor: const Color(0xFF0C6B58),
-              flexibleSpace: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  SizedBox(height: MediaQuery.of(context).padding.top),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        FutureBuilder<Map<String, dynamic>>(
-                          future: _getUserData(),
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState == ConnectionState.waiting) {
-                              return const Text('Loading...');
-                            } else if (snapshot.hasError) {
-                              return const Text('Error');
-                            } else {
-                              var userData = snapshot.data!;
-                              String userFullName = userData['fullName'] ?? 'User';
-                              return Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Welcome!',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    Text(
-                                      userFullName,
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                        Row(
-                          children: [
-                            Stack(
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.notifications, size: 35, color: Colors.white),
-                                  onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => const NotificationPage(),
-                                      ),
-                                    );
-                                  },
-                                ),
-                                if (_unreadNotificationCount > 0)
-                                  Positioned(
-                                    right: 0,
-                                    top: 0,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(2),
-                                      decoration: BoxDecoration(
-                                        color: Colors.red,
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      constraints: const BoxConstraints(
-                                        minWidth: 20,
-                                        minHeight: 20,
-                                      ),
-                                      child: Text(
-                                        _unreadNotificationCount.toString(),
-                                        style: const TextStyle(
+          
+          // AppBar with higher z-index for interactivity
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Material(  // Add Material widget to ensure touch events work
+              color: Colors.transparent,
+              child: AppBar(
+                backgroundColor: const Color(0xFF0C6B58),
+                flexibleSpace: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    SizedBox(height: MediaQuery.of(context).padding.top),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          FutureBuilder<Map<String, dynamic>>(
+                            future: _getUserData(),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return const Text('Loading...');
+                              } else if (snapshot.hasError) {
+                                return const Text('Error');
+                              } else {
+                                var userData = snapshot.data!;
+                                String userFullName = userData['fullName'] ?? 'User';
+                                return Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const Text(
+                                        'Welcome!',
+                                        style: TextStyle(
+                                          fontSize: 16,
                                           color: Colors.white,
-                                          fontSize: 12,
                                         ),
-                                        textAlign: TextAlign.center,
+                                      ),
+                                      Text(
+                                        userFullName,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+                            },
+                          ),
+                          Row(
+                            children: [
+                              Stack(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.notifications, size: 35, color: Colors.white),
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const NotificationPage(),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  if (_unreadNotificationCount > 0)
+                                    Positioned(
+                                      right: 0,
+                                      top: 0,
+                                      child: Container(
+                                        padding: const EdgeInsets.all(2),
+                                        decoration: BoxDecoration(
+                                          color: Colors.red,
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        constraints: const BoxConstraints(
+                                          minWidth: 20,
+                                          minHeight: 20,
+                                        ),
+                                        child: Text(
+                                          _unreadNotificationCount.toString(),
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                              ],
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.logout, size: 35, color: Colors.white),
-                              onPressed: _handleLogout,
-                            ),
-                          ],
-                        ),
-                      ],
+                                ],
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.logout, size: 35, color: Colors.white),
+                                onPressed: _handleLogout,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
+                  ],
+                ),
+                toolbarHeight: 250.0,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(15),
+                    bottomRight: Radius.circular(15),
                   ),
-                ],
-              ),
-              toolbarHeight: 250.0,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(15),
-                  bottomRight: Radius.circular(15),
                 ),
               ),
             ),
           ),
-        ),
-        
-        // Rest of the dashboard content
-        Container(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
+          
+          // Rest of the dashboard content
+          ListView( // Changed from Container to ListView to enable scrolling
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16.0),
             children: [
               const SizedBox(height: 115),
               Row(
@@ -437,18 +447,16 @@ class _ParentDashboardState extends State<ParentDashboard> {
                 ],
               ),
               const SizedBox(height: 20),
-              Expanded(
+              SizedBox(
+                height: 300, // Add a fixed height for the score summary
                 child: _selectedStudentEmail != null
-                    ? Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: _buildScoreSummary(_selectedStudentEmail!),
-                      )
+                    ? _buildScoreSummary(_selectedStudentEmail!)
                     : const SizedBox(),
               ),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
