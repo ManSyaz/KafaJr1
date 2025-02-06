@@ -311,28 +311,23 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
                                 alignment: BarChartAlignment.spaceAround,
                                 maxY: 100,
                                 barGroups: () {
-                                  // Define the desired order
-                                  final examOrder = ['PAT', 'PPT', 'PUPKK'];
-                                  
-                                  // Create a sorted list of exams based on the desired order
-                                  final sortedExams = examOrder.map((examType) {
-                                    return exams.firstWhere(
-                                      (exam) => exam['description'] == examType,
-                                      orElse: () => {'id': '', 'description': examType},
-                                    );
-                                  }).toList();
+                                  // Use actual exams from the data structure
+                                  final examsList = exams.where((exam) => 
+                                    exam['id'] != 'Choose Exam' && 
+                                    exam['description'] != null
+                                  ).toList();
 
                                   return List.generate(
-                                    sortedExams.length,
+                                    examsList.length,
                                     (index) => BarChartGroupData(
                                       x: index,
                                       barRods: [
                                         BarChartRodData(
                                           toY: double.tryParse(
-                                            studentProgressByExam[sortedExams[index]['id']]?[subjectCode] ?? '0'
+                                            studentProgressByExam[examsList[index]['id']]?[subjectCode] ?? '0'
                                           ) ?? 0,
                                           color: _getScoreColor(double.tryParse(
-                                            studentProgressByExam[sortedExams[index]['id']]?[subjectCode] ?? '0'
+                                            studentProgressByExam[examsList[index]['id']]?[subjectCode] ?? '0'
                                           ) ?? 0),
                                           width: 30,
                                           borderRadius: BorderRadius.circular(4),
@@ -376,12 +371,16 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
                                     sideTitles: SideTitles(
                                       showTitles: true,
                                       getTitlesWidget: (value, meta) {
-                                        final examOrder = ['PAT', 'PPT', 'PUPKK'];
-                                        if (value >= 0 && value < examOrder.length) {
+                                        final examsList = exams.where((exam) => 
+                                          exam['id'] != 'Choose Exam' && 
+                                          exam['description'] != null
+                                        ).toList();
+                                        
+                                        if (value >= 0 && value < examsList.length) {
                                           return Padding(
                                             padding: const EdgeInsets.only(top: 8.0),
                                             child: Text(
-                                              examOrder[value.toInt()],
+                                              examsList[value.toInt()]['description'] ?? '',
                                               style: const TextStyle(
                                                 fontSize: 12,
                                                 color: Colors.black54,
@@ -411,8 +410,12 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
                                     tooltipPadding: const EdgeInsets.all(8),
                                     tooltipMargin: 8,
                                     getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                                      final examOrder = ['PAT', 'PPT', 'PUPKK'];
-                                      final examType = examOrder[group.x];
+                                      final examsList = exams.where((exam) => 
+                                        exam['id'] != 'Choose Exam' && 
+                                        exam['description'] != null
+                                      ).toList();
+                                      
+                                      final examType = examsList[group.x]['description'] ?? '';
                                       final value = rod.toY.round();
                                       final grade = _getGradeText(value.toString());
                                       return BarTooltipItem(
@@ -429,15 +432,16 @@ class _ViewAcademicRecordPageState extends State<ViewAcademicRecordPage> {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          // Add exam abbreviation legend below the graph
+                          // Update exam abbreviation legend to be dynamic
                           Container(
                             alignment: Alignment.center,
                             padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: const Text(
-                              'PAT: Peperiksaan Awal Tahun\n'
-                              'PPT: Peperiksaan Pertengahan Tahun\n'
-                              'PUPKK: Percubaan Ujian Penilaian Kelas KAFA',
-                              style: TextStyle(
+                            child: Text(
+                              exams.where((exam) => exam['id'] != 'Choose Exam')
+                                  .map((exam) => 
+                                    '${exam['description']}: ${exam['title']}')
+                                  .join('\n'),
+                              style: const TextStyle(
                                 fontSize: 12,
                                 color: Colors.black54,
                                 fontStyle: FontStyle.italic,

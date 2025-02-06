@@ -653,30 +653,32 @@ class _ManageStudentProgressPageState
                                       ),
                                     ),
                                     const SizedBox(height: 16),
-                                    SingleChildScrollView(
-                                      scrollDirection: Axis.horizontal,
-                                      child: DataTable(
-                                        columnSpacing: 24,
-                                        horizontalMargin: 12,
-                                        columns: examTypes.map((exam) => DataColumn(
-                                          label: Container(
-                                            width: 100,
-                                            alignment: Alignment.center,
-                                            child: Text(
-                                              exam['description'] ?? '',
-                                              style: const TextStyle(fontSize: 14),
-                                              textAlign: TextAlign.center,
+                                    Center(
+                                      child: SingleChildScrollView(
+                                        scrollDirection: Axis.horizontal,
+                                        child: DataTable(
+                                          columnSpacing: examTypes.length <= 2 ? 48 : 24,
+                                          horizontalMargin: examTypes.length <= 2 ? 24 : 12,
+                                          columns: examTypes.map((exam) => DataColumn(
+                                            label: Container(
+                                              width: 100,
+                                              alignment: Alignment.center,
+                                              child: Text(
+                                                exam['description'] ?? '',
+                                                style: const TextStyle(fontSize: 14),
+                                                textAlign: TextAlign.center,
+                                              ),
                                             ),
-                                          ),
-                                        )).toList(),
-                                        rows: [
-                                          DataRow(
-                                            cells: examTypes.map((exam) {
-                                              final score = studentProgress![exam['description']] ?? '-';
-                                              return DataCell(_buildScoreCell(score));
-                                            }).toList(),
-                                          ),
-                                        ],
+                                          )).toList(),
+                                          rows: [
+                                            DataRow(
+                                              cells: examTypes.map((exam) {
+                                                final score = studentProgress![exam['description']] ?? '-';
+                                                return DataCell(_buildScoreCell(score));
+                                              }).toList(),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ],

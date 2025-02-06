@@ -541,27 +541,30 @@ class _ParentDashboardState extends State<ParentDashboard> {
         if (snapshot.exists) {
             Map<dynamic, dynamic> data = snapshot.value as Map<dynamic, dynamic>;
             
-            print('Debug - All Progress Data: ${data.toString()}'); // Debug print
+            // Create a map to track unique subject IDs for each exam type
+            Map<String, Set<String>> uniqueSubjects = {};
 
             data.forEach((key, value) {
                 if (value['studentId'] == studentId) {
                     String examType = value['examDescription'] ?? 'Unknown';
-                    print('Debug - Found exam: $examType for student: $studentId'); // Debug print
+                    String subjectId = value['subjectId'] ?? '';
                     
-                    // Initialize the list if it doesn't exist
+                    // Initialize sets and lists if they don't exist
                     if (!examScores.containsKey(examType)) {
                         examScores[examType] = [];
+                        uniqueSubjects[examType] = {};
                     }
                     
-                    // Add the score
-                    examScores[examType]!.add({
-                        'subjectId': value['subjectId'],
-                        'score': value['score'],
-                    });
+                    // Only add the score if we haven't recorded this subject for this exam type
+                    if (!uniqueSubjects[examType]!.contains(subjectId)) {
+                        uniqueSubjects[examType]!.add(subjectId);
+                        examScores[examType]!.add({
+                            'subjectId': subjectId,
+                            'score': value['score'],
+                        });
+                    }
                 }
             });
-
-            print('Debug - Final examScores: ${examScores.toString()}'); // Debug print
         }
     } catch (e) {
         print('Error fetching scores: $e');

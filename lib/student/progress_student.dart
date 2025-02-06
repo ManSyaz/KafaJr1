@@ -374,82 +374,84 @@ class _ViewProgressStudentPageState extends State<ViewProgressStudentPage> {
               ),
             ),
             const SizedBox(height: 16),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Theme(
-                data: Theme.of(context).copyWith(
-                  dataTableTheme: DataTableThemeData(
-                    headingTextStyle: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                      fontSize: 14,
+            Center(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Theme(
+                  data: Theme.of(context).copyWith(
+                    dataTableTheme: DataTableThemeData(
+                      headingTextStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                        fontSize: 14,
+                      ),
+                      dataTextStyle: const TextStyle(
+                        color: Colors.black87,
+                        fontSize: 14,
+                      ),
+                      headingRowColor: WidgetStateProperty.all(Colors.grey[100]),
                     ),
-                    dataTextStyle: const TextStyle(
-                      color: Colors.black87,
-                      fontSize: 14,
-                    ),
-                    headingRowColor: WidgetStateProperty.all(Colors.grey[100]),
                   ),
-                ),
-                child: DataTable(
-                  columnSpacing: 24,
-                  horizontalMargin: 12,
-                  columns: examTypes.map((exam) => DataColumn(
-                    label: Container(
-                      alignment: Alignment.center,
-                      width: 100,
-                      child: Tooltip(
-                        message: exam['title'],
-                        child: Text(
-                          exam['description'],
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
+                  child: DataTable(
+                    columnSpacing: examTypes.length <= 2 ? 48 : 24,
+                    horizontalMargin: examTypes.length <= 2 ? 24 : 12,
+                    columns: examTypes.map((exam) => DataColumn(
+                      label: Container(
+                        alignment: Alignment.center,
+                        width: 100,
+                        child: Tooltip(
+                          message: exam['title'],
+                          child: Text(
+                            exam['description'],
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
-                          textAlign: TextAlign.center,
                         ),
                       ),
-                    ),
-                  )).toList(),
-                  rows: studentsProgress.entries.map((entry) {
-                    return DataRow(
-                      cells: examTypes.map((exam) => DataCell(
-                        Container(
-                          alignment: Alignment.center,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                            decoration: BoxDecoration(
-                              color: _getScoreColor(double.tryParse(entry.value[exam['description']] ?? '0') ?? 0),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  entry.value[exam['description']] ?? '-',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 14,
+                    )).toList(),
+                    rows: studentsProgress.entries.map((entry) {
+                      return DataRow(
+                        cells: examTypes.map((exam) => DataCell(
+                          Container(
+                            alignment: Alignment.center,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                              decoration: BoxDecoration(
+                                color: _getScoreColor(double.tryParse(entry.value[exam['description']] ?? '0') ?? 0),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    entry.value[exam['description']] ?? '-',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  _getGradeText(entry.value[exam['description']]),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 14,
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    _getGradeText(entry.value[exam['description']]),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14,
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      )).toList(),
-                    );
-                  }).toList(),
+                        )).toList(),
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
             ),
