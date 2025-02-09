@@ -23,6 +23,7 @@ class _AddExamSubjectPageState extends State<AddExamSubjectPage> {
   final DatabaseReference _examRef = FirebaseDatabase.instance.ref().child('Exam');
   final DatabaseReference _subjectRef = FirebaseDatabase.instance.ref().child('Subject');
   List<String> subjects = [];
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -82,9 +83,14 @@ class _AddExamSubjectPageState extends State<AddExamSubjectPage> {
       return;
     }
 
+    setState(() {
+      _isLoading = true;
+    });
+
     try {
-      // Upload the file to Firebase Storage
-      final storageRef = FirebaseStorage.instance.ref().child('exams/${widget.examId}/${DateTime.now().millisecondsSinceEpoch}.pdf');
+      // Generate a timestamp-based filename in the exams folder
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final storageRef = FirebaseStorage.instance.ref().child('exams/$timestamp.pdf');
       final uploadTask = storageRef.putFile(_file!);
 
       // Get the download URL after the file is uploaded
@@ -98,6 +104,10 @@ class _AddExamSubjectPageState extends State<AddExamSubjectPage> {
         'description': _descriptionController.text,
         'subject': _selectedSubject,
         'fileUrl': downloadUrl,
+      });
+
+      setState(() {
+        _isLoading = false;
       });
 
       if (!mounted) return;
@@ -124,6 +134,10 @@ class _AddExamSubjectPageState extends State<AddExamSubjectPage> {
       );
       Navigator.pop(context);
     } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -151,122 +165,135 @@ class _AddExamSubjectPageState extends State<AddExamSubjectPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: const Color(0xFF0C6B58),
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'Add Exam Subject',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: AppBar(
+            elevation: 0,
+            backgroundColor: const Color(0xFF0C6B58),
+            iconTheme: const IconThemeData(color: Colors.white),
+            title: const Text(
+              'Add Exam Subject',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            centerTitle: true,
           ),
-        ),
-        centerTitle: true,
-      ),
-      body: Container(
-        color: const Color(0xFFF5F5F5),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 10),
-                
-                // Subject Dropdown
-                _buildDropdownField(
-                  'Select Subject',
-                  Icons.subject,
-                  DropdownButtonFormField<String>(
-                    value: _selectedSubject,
-                    hint: const Text('Select Subject'),
-                    items: subjects.map((subject) {
-                      return DropdownMenuItem<String>(
-                        value: subject,
-                        child: Text(subject),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedSubject = value;
-                      });
-                    },
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
-                    ),
-                  ),
-                ),
-
-                // Form Fields
-                _buildInputField(
-                  'Title',
-                  _titleController,
-                  Icons.title,
-                  'Enter exam subject title',
-                ),
-
-                _buildInputField(
-                  'Description',
-                  _descriptionController,
-                  Icons.description,
-                  'Enter exam subject description',
-                  maxLines: 3,
-                ),
-
-                // File Upload Section
-                _buildFileUploadSection(),
-
-                const SizedBox(height: 30),
-
-                // Submit Button
-                Container(
-                  width: double.infinity,
-                  height: 55,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFF0C6B58),
-                        Color(0xFF094A3D),
-                      ],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF0C6B58).withOpacity(0.3),
-                        spreadRadius: 1,
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
+          body: Container(
+            color: const Color(0xFFF5F5F5),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 10),
+                    
+                    // Subject Dropdown
+                    _buildDropdownField(
+                      'Select Subject',
+                      Icons.subject,
+                      DropdownButtonFormField<String>(
+                        value: _selectedSubject,
+                        hint: const Text('Select Subject'),
+                        items: subjects.map((subject) {
+                          return DropdownMenuItem<String>(
+                            value: subject,
+                            child: Text(subject),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedSubject = value;
+                          });
+                        },
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 10.0),
+                        ),
                       ),
-                    ],
-                  ),
-                  child: ElevatedButton(
-                    onPressed: _uploadFileAndSubmit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(
+                    ),
+
+                    // Form Fields
+                    _buildInputField(
+                      'Title',
+                      _titleController,
+                      Icons.title,
+                      'Enter exam subject title',
+                    ),
+
+                    _buildInputField(
+                      'Description',
+                      _descriptionController,
+                      Icons.description,
+                      'Enter exam subject description',
+                      maxLines: 3,
+                    ),
+
+                    // File Upload Section
+                    _buildFileUploadSection(),
+
+                    const SizedBox(height: 30),
+
+                    // Submit Button
+                    Container(
+                      width: double.infinity,
+                      height: 55,
+                      decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(15),
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFF0C6B58),
+                            Color(0xFF094A3D),
+                          ],
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF0C6B58).withOpacity(0.3),
+                            spreadRadius: 1,
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: _uploadFileAndSubmit,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                        ),
+                        child: const Text(
+                          'Submit',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
                     ),
-                    child: const Text(
-                      'Submit',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
-      ),
+        if (_isLoading)
+          Container(
+            color: Colors.black54,
+            child: const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF0C6B58),
+              ),
+            ),
+          ),
+      ],
     );
   }
 

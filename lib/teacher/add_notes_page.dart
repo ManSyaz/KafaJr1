@@ -25,6 +25,7 @@ class _AddNotePageState extends State<AddNotePage> {
   File? _pickedFile;
 
   List<String> _subjects = [];
+  bool _isLoading = false;
 
   @override
   void initState() {
@@ -85,6 +86,10 @@ class _AddNotePageState extends State<AddNotePage> {
 
   Future<void> _addNote() async {
     if (_formKey.currentState!.validate() && _pickedFile != null) {
+      setState(() {
+        _isLoading = true;
+      });
+
       _formKey.currentState!.save();
 
       final fileUrl = await _uploadFileToStorage(_pickedFile!);
@@ -111,6 +116,9 @@ class _AddNotePageState extends State<AddNotePage> {
             ),
           ),
         );
+        setState(() {
+          _isLoading = false;
+        });
         return;
       }
 
@@ -120,6 +128,10 @@ class _AddNotePageState extends State<AddNotePage> {
           'title': _titleController.text,
           'description': _descriptionController.text,
           'fileUrl': fileUrl,
+        });
+
+        setState(() {
+          _isLoading = false;
         });
 
         if (!mounted) return;
@@ -146,6 +158,10 @@ class _AddNotePageState extends State<AddNotePage> {
         );
         Navigator.pop(context, true);
       } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+        
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -196,111 +212,124 @@ class _AddNotePageState extends State<AddNotePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: const Color(0xFF0C6B58),
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'Add New Note',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: AppBar(
+            elevation: 0,
+            backgroundColor: const Color(0xFF0C6B58),
+            iconTheme: const IconThemeData(color: Colors.white),
+            title: const Text(
+              'Add New Note',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            centerTitle: true,
           ),
-        ),
-        centerTitle: true,
-      ),
-      body: Container(
-        color: const Color(0xFFF5F5F5),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 10),
-                  
-                  // Subject Dropdown
-                  _buildDropdownField(
-                    'Select Subject',
-                    Icons.subject,
-                    _selectedSubject,
-                    _subjects,
-                    (String? newValue) {
-                      setState(() {
-                        _selectedSubject = newValue!;
-                      });
-                    },
-                  ),
-
-                  _buildInputField(
-                    'Title',
-                    _titleController,
-                    Icons.title,
-                    'Enter note title',
-                  ),
-
-                  _buildInputField(
-                    'Description',
-                    _descriptionController,
-                    Icons.description,
-                    'Enter note description',
-                    maxLines: 3,
-                  ),
-
-                  _buildFileUploadField(),
-
-                  const SizedBox(height: 30),
-
-                  // Submit Button
-                  Container(
-                    width: double.infinity,
-                    height: 55,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
-                      gradient: const LinearGradient(
-                        colors: [
-                          Color(0xFF0C6B58),
-                          Color(0xFF094A3D),
-                        ],
+          body: Container(
+            color: const Color(0xFFF5F5F5),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 10),
+                      
+                      // Subject Dropdown
+                      _buildDropdownField(
+                        'Select Subject',
+                        Icons.subject,
+                        _selectedSubject,
+                        _subjects,
+                        (String? newValue) {
+                          setState(() {
+                            _selectedSubject = newValue!;
+                          });
+                        },
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF0C6B58).withOpacity(0.3),
-                          spreadRadius: 1,
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: ElevatedButton(
-                      onPressed: _addNote,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(
+
+                      _buildInputField(
+                        'Title',
+                        _titleController,
+                        Icons.title,
+                        'Enter note title',
+                      ),
+
+                      _buildInputField(
+                        'Description',
+                        _descriptionController,
+                        Icons.description,
+                        'Enter note description',
+                        maxLines: 3,
+                      ),
+
+                      _buildFileUploadField(),
+
+                      const SizedBox(height: 30),
+
+                      // Submit Button
+                      Container(
+                        width: double.infinity,
+                        height: 55,
+                        decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(15),
+                          gradient: const LinearGradient(
+                            colors: [
+                              Color(0xFF0C6B58),
+                              Color(0xFF094A3D),
+                            ],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF0C6B58).withOpacity(0.3),
+                              spreadRadius: 1,
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          onPressed: _addNote,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                          ),
+                          child: const Text(
+                            'Add Note',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
                       ),
-                      child: const Text(
-                        'Add Note',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
         ),
-      ),
+        if (_isLoading)
+          Container(
+            color: Colors.black54,
+            child: const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF0C6B58),
+              ),
+            ),
+          ),
+      ],
     );
   }
 

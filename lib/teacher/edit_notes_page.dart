@@ -25,14 +25,27 @@ class _EditNotePageState extends State<EditNotePage> {
   String _description = '';
   String? _fileUrl;
   File? _pickedFile;
+  bool _isLoading = false;
 
   List<String> _subjects = [];
+
+  // Initialize controllers immediately instead of using late
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _fetchNoteDetails();
     _fetchSubjects();
+  }
+
+  @override
+  void dispose() {
+    // Clean up controllers
+    _titleController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchNoteDetails() async {
@@ -45,6 +58,10 @@ class _EditNotePageState extends State<EditNotePage> {
           _title = noteData['title'] as String;
           _description = noteData['description'] as String;
           _fileUrl = noteData['fileUrl'] as String?;
+          
+          // Set the text controllers' values
+          _titleController.text = _title;
+          _descriptionController.text = _description;
         });
       }
     } catch (e) {
@@ -87,6 +104,9 @@ class _EditNotePageState extends State<EditNotePage> {
   Future<String?> _uploadFileToStorage(File file) async {
     try {
       final storageRef = _storage.ref().child('notes/${DateTime.now().millisecondsSinceEpoch}.pdf');
+      // First upload the file
+      await storageRef.putFile(file);
+      // Then get the download URL
       final downloadUrl = await storageRef.getDownloadURL();
       return downloadUrl;
     } catch (e) {
@@ -97,7 +117,13 @@ class _EditNotePageState extends State<EditNotePage> {
 
   Future<void> _updateNote() async {
     if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+      setState(() {
+        _isLoading = true;
+      });
+
+      // Get values from controllers
+      _title = _titleController.text;
+      _description = _descriptionController.text;
 
       String? fileUrl = _fileUrl;
       if (_pickedFile != null) {
@@ -137,6 +163,10 @@ class _EditNotePageState extends State<EditNotePage> {
           'fileUrl': fileUrl,
         });
 
+        setState(() {
+          _isLoading = false;
+        });
+
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -161,6 +191,10 @@ class _EditNotePageState extends State<EditNotePage> {
         );
         Navigator.pop(context);
       } catch (e) {
+        setState(() {
+          _isLoading = false;
+        });
+
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -211,113 +245,126 @@ class _EditNotePageState extends State<EditNotePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: const Color(0xFF0C6B58),
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          'Edit Note',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
+    return Stack(
+      children: [
+        Scaffold(
+          appBar: AppBar(
+            elevation: 0,
+            backgroundColor: const Color(0xFF0C6B58),
+            iconTheme: const IconThemeData(color: Colors.white),
+            title: const Text(
+              'Edit Note',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            centerTitle: true,
           ),
-        ),
-        centerTitle: true,
-      ),
-      body: Container(
-        color: const Color(0xFFF5F5F5),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 10),
-                  
-                  // Subject Dropdown
-                  _buildDropdownField(
-                    'Select Subject',
-                    Icons.subject,
-                    _selectedSubject,
-                    _subjects,
-                    (String? newValue) {
-                      setState(() {
-                        _selectedSubject = newValue!;
-                      });
-                    },
-                  ),
-
-                  _buildInputField(
-                    'Title',
-                    TextEditingController(text: _title),
-                    Icons.title,
-                    'Enter note title',
-                    maxLines: 1,
-                  ),
-
-                  _buildInputField(
-                    'Description',
-                    TextEditingController(text: _description),
-                    Icons.description,
-                    'Enter note description',
-                    maxLines: 3,
-                  ),
-
-                  _buildFileUploadField(),
-
-                  const SizedBox(height: 30),
-
-                  // Submit Button
-                  Container(
-                    width: double.infinity,
-                    height: 55,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(15),
-                      gradient: const LinearGradient(
-                        colors: [
-                          Color(0xFF0C6B58),
-                          Color(0xFF094A3D),
-                        ],
+          body: Container(
+            color: const Color(0xFFF5F5F5),
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 10),
+                      
+                      // Subject Dropdown
+                      _buildDropdownField(
+                        'Select Subject',
+                        Icons.subject,
+                        _selectedSubject,
+                        _subjects,
+                        (String? newValue) {
+                          setState(() {
+                            _selectedSubject = newValue!;
+                          });
+                        },
                       ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF0C6B58).withOpacity(0.3),
-                          spreadRadius: 1,
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: ElevatedButton(
-                      onPressed: _updateNote,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.transparent,
-                        shadowColor: Colors.transparent,
-                        shape: RoundedRectangleBorder(
+
+                      _buildInputField(
+                        'Title',
+                        _titleController,
+                        Icons.title,
+                        'Enter note title',
+                        maxLines: 1,
+                      ),
+
+                      _buildInputField(
+                        'Description',
+                        _descriptionController,
+                        Icons.description,
+                        'Enter note description',
+                        maxLines: 3,
+                      ),
+
+                      _buildFileUploadField(),
+
+                      const SizedBox(height: 30),
+
+                      // Submit Button
+                      Container(
+                        width: double.infinity,
+                        height: 55,
+                        decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(15),
+                          gradient: const LinearGradient(
+                            colors: [
+                              Color(0xFF0C6B58),
+                              Color(0xFF094A3D),
+                            ],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF0C6B58).withOpacity(0.3),
+                              spreadRadius: 1,
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          onPressed: _updateNote,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                          ),
+                          child: const Text(
+                            'Save Changes',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                         ),
                       ),
-                      child: const Text(
-                        'Save Changes',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
+                      const SizedBox(height: 20),
+                    ],
                   ),
-                  const SizedBox(height: 20),
-                ],
+                ),
               ),
             ),
           ),
         ),
-      ),
+        if (_isLoading)
+          Container(
+            color: Colors.black54,
+            child: const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF0C6B58),
+              ),
+            ),
+          ),
+      ],
     );
   }
 

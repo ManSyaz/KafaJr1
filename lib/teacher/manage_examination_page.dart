@@ -7,6 +7,7 @@ import 'add_exam_subject_page.dart';
 import 'edit_exam_page.dart';
 import 'enter_score_page.dart';
 import '../pdf_viewer_page.dart';
+import 'package:http/http.dart' as http;
 
 class ManageExaminationPage extends StatefulWidget {
   const ManageExaminationPage({super.key});
@@ -425,12 +426,100 @@ class _ManageExaminationPageState extends State<ManageExaminationPage> {
                             children: [
                               IconButton(
                                 icon: const Icon(Icons.remove_red_eye, color: Colors.white),
-                                onPressed: () {
+                                onPressed: () async {
                                   if (fileUrl.isNotEmpty) {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => PDFViewerPage(fileUrl: fileUrl),
+                                    try {
+                                      // Show loading dialog
+                                      showDialog(
+                                        context: context,
+                                        barrierDismissible: false,
+                                        builder: (BuildContext context) {
+                                          return const Center(
+                                            child: CircularProgressIndicator(
+                                              color: Color(0xFF0C6B58),
+                                            ),
+                                          );
+                                        },
+                                      );
+
+                                      if (fileUrl.contains('firebasestorage.googleapis.com')) {
+                                        // Add a timestamp to force URL refresh
+                                        final refreshedUrl = '$fileUrl?t=${DateTime.now().millisecondsSinceEpoch}';
+                                        
+                                        if (!mounted) return;
+                                        Navigator.pop(context); // Dismiss loading dialog
+                                        
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => PDFViewerPage(fileUrl: refreshedUrl),
+                                          ),
+                                        );
+                                      } else {
+                                        // For other URLs, keep the existing verification
+                                        final response = await http.head(Uri.parse(fileUrl));
+                                        
+                                        if (!mounted) return;
+                                        Navigator.pop(context); // Dismiss loading dialog
+
+                                        if (response.statusCode == 200) {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => PDFViewerPage(fileUrl: fileUrl),
+                                            ),
+                                          );
+                                        } else {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: const Text(
+                                                'PDF file is not accessible',
+                                                style: TextStyle(color: Colors.white),
+                                                textAlign: TextAlign.center,
+                                              ),
+                                              backgroundColor: Colors.red,
+                                              behavior: SnackBarBehavior.floating,
+                                              margin: const EdgeInsets.all(20),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(10),
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    } catch (e) {
+                                      if (!mounted) return;
+                                      Navigator.pop(context); // Dismiss loading dialog
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: const Text(
+                                            'Error accessing PDF file',
+                                            style: TextStyle(color: Colors.white),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          backgroundColor: Colors.red,
+                                          behavior: SnackBarBehavior.floating,
+                                          margin: const EdgeInsets.all(20),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                        ),
+                                      );
+                                    }
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: const Text(
+                                          'No PDF file available',
+                                          style: TextStyle(color: Colors.white),
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        backgroundColor: Colors.orange,
+                                        behavior: SnackBarBehavior.floating,
+                                        margin: const EdgeInsets.all(20),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
                                       ),
                                     );
                                   }
@@ -447,7 +536,7 @@ class _ManageExaminationPageState extends State<ManageExaminationPage> {
                                         subjectId: subjectKey,
                                       ),
                                     ),
-                                  );
+                                  ).then((_) => _fetchExaminations());
                                 },
                               ),
                               IconButton(
