@@ -339,6 +339,7 @@ class _SubjectListPageState extends State<SubjectListPage> {
   List<String> selectedSubjects = []; // List to hold selected subjects
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
   List<String> allSubjects = []; // List to hold all subjects
+  Map<String, String> subjectCodeToName = {}; // Add this to store subject mappings
 
   @override
   void initState() {
@@ -503,10 +504,16 @@ class _SubjectListPageState extends State<SubjectListPage> {
         final subjectData = snapshot.value as Map<Object?, Object?>?;
         if (subjectData != null) {
           setState(() {
-            allSubjects = subjectData.entries.map((entry) {
-              final subject = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
-              return subject['name'] as String;
-            }).toList();
+            // Store both the code and name mapping
+            subjectCodeToName = Map.fromEntries(
+              subjectData.entries.map((entry) {
+                final subject = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
+                return MapEntry(subject['code'] as String, "${subject['code']} - ${subject['name']}");
+              }),
+            );
+            
+            // Update allSubjects list with the full subject names
+            allSubjects = subjectCodeToName.values.toList();
           });
         }
       }
@@ -523,12 +530,22 @@ class _SubjectListPageState extends State<SubjectListPage> {
     return widget.subjects.entries.where((entry) {
       final subjectValue = entry.value['subject'] as String?;
       if (subjectValue == null) return false;
-      return selectedSubjects.contains(subjectValue);
+      
+      // Extract the subject code from the exam subject (e.g., "US" from "US - Ulum Syari'ah")
+      final examSubjectCode = subjectValue.split(' - ').first;
+      
+      // Check if any selected subject's code matches the exam subject code
+      return selectedSubjects.any((selected) {
+        final selectedCode = selected.split(' - ').first;
+        return selectedCode == examSubjectCode;
+      });
     }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
+    final filteredSubjects = getFilteredSubjects();
+    
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF0C6B58),
@@ -544,7 +561,7 @@ class _SubjectListPageState extends State<SubjectListPage> {
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          // Refresh subject data by triggering a rebuild
+          await _fetchAllSubjects();
           setState(() {});
           return Future.delayed(const Duration(milliseconds: 500));
         },
@@ -593,7 +610,6 @@ class _SubjectListPageState extends State<SubjectListPage> {
                       ),
                     ),
                   ),
-                  // Chips for each subject from the database
                   ...allSubjects.map((subject) {
                     final isSelected = selectedSubjects.contains(subject);
                     return Padding(
@@ -625,142 +641,183 @@ class _SubjectListPageState extends State<SubjectListPage> {
             ),
 
             const SizedBox(height: 8),
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16.0),
-              itemCount: getFilteredSubjects().length,
-              itemBuilder: (context, index) {
-                final entry = getFilteredSubjects()[index];
-                final subject = entry.value;
 
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 16.0),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFF0C6B58),
-                        Color(0xFF094A3D),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(15),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.3),
-                        spreadRadius: 2,
-                        blurRadius: 5,
-                        offset: const Offset(0, 3),
+            // Show empty state if no subjects match the filter
+            if (filteredSubjects.isEmpty) ...[
+              SizedBox(
+                height: MediaQuery.of(context).size.height - 200,
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.subject,
+                        size: 70,
+                        color: Colors.grey,
                       ),
+                      const SizedBox(height: 16),
+                      Text(
+                        selectedSubjects.isEmpty
+                            ? 'No Subjects Found'
+                            : 'No Subjects Found for Selected Filter${selectedSubjects.length > 1 ? 's' : ''}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (selectedSubjects.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          selectedSubjects.join(', '),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
                     ],
                   ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ] else
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(16.0),
+                itemCount: filteredSubjects.length,
+                itemBuilder: (context, index) {
+                  final entry = filteredSubjects[index];
+                  final subject = entry.value;
+                  
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 16.0),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFF0C6B58),
+                          Color(0xFF094A3D),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.3),
+                          spreadRadius: 2,
+                          blurRadius: 5,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(15),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(
+                                    Icons.subject,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
                                 ),
-                                child: const Icon(
-                                  Icons.subject,
-                                  color: Colors.white,
-                                  size: 24,
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        subject['title'] ?? 'No Title',
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        subject['description'] ?? 'No Description',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.white.withOpacity(0.9),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: Text(
+                                          subject['subject'] ?? 'No Subject',
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      subject['title'] ?? 'No Title',
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Text(
-                                      subject['description'] ?? 'No Description',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.white.withOpacity(0.9),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 8,
-                                        vertical: 4,
-                                      ),
+                                if (subject['fileUrl'] != null && subject['fileUrl'].isNotEmpty) ...[
+                                  InkWell(
+                                    onTap: () => _downloadFile(subject['fileUrl'], subject['title']),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      margin: const EdgeInsets.only(right: 8),
                                       decoration: BoxDecoration(
                                         color: Colors.white.withOpacity(0.2),
                                         borderRadius: BorderRadius.circular(8),
                                       ),
-                                      child: Text(
-                                        subject['subject'] ?? 'No Subject',
-                                        style: const TextStyle(
-                                          fontSize: 12,
-                                          color: Colors.white,
-                                        ),
+                                      child: const Icon(
+                                        Icons.download,
+                                        color: Colors.white,
+                                        size: 20,
                                       ),
                                     ),
-                                  ],
-                                ),
-                              ),
-                              if (subject['fileUrl'] != null && subject['fileUrl'].isNotEmpty) ...[
-                                InkWell(
-                                  onTap: () => _downloadFile(subject['fileUrl'], subject['title']),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    margin: const EdgeInsets.only(right: 8),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Icon(
-                                      Icons.download,
-                                      color: Colors.white,
-                                      size: 20,
+                                  ),
+                                  InkWell(
+                                    onTap: () => _viewFile(context, subject['fileUrl']),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Icon(
+                                        Icons.remove_red_eye,
+                                        color: Colors.white,
+                                        size: 20,
+                                      ),
                                     ),
                                   ),
-                                ),
-                                InkWell(
-                                  onTap: () => _viewFile(context, subject['fileUrl']),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Icon(
-                                      Icons.remove_red_eye,
-                                      color: Colors.white,
-                                      size: 20,
-                                    ),
-                                  ),
-                                ),
+                                ],
                               ],
-                            ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              },
-            ),
+                  );
+                },
+              ),
             // Add extra padding at the bottom
             const SizedBox(height: 32),
           ],
