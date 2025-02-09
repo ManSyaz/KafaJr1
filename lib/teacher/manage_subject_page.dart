@@ -229,6 +229,10 @@ class _ManageSubjectPageState extends State<ManageSubjectPage> {
               padding: EdgeInsets.only(left: 16.0),
               child: Text('List of Subjects', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ),
+            Padding(
+              padding: const EdgeInsets.only(left: 16.0),
+              child: Text('Total Subjects: ${filteredSubjects.length}', style: const TextStyle(fontSize: 16)),
+            ),
             const SizedBox(height: 16),
 
             // Search bar for filtering subjects
@@ -253,30 +257,27 @@ class _ManageSubjectPageState extends State<ManageSubjectPage> {
             const SizedBox(height: 16),
             
             filteredSubjects.isEmpty
-                ? SizedBox(
-                    height: MediaQuery.of(context).size.height - 300,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.subject_outlined,
-                            size: 70,
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.subject_outlined,
+                          size: 70,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          searchQuery.isEmpty
+                              ? 'No Subjects Added'
+                              : 'No Subjects Found',
+                          style: const TextStyle(
+                            fontSize: 18,
                             color: Colors.grey,
+                            fontWeight: FontWeight.bold,
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            searchQuery.isEmpty
-                                ? 'No Subjects Added'
-                                : 'No Subjects Found',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   )
                 : ListView.builder(
@@ -307,110 +308,114 @@ class _ManageSubjectPageState extends State<ManageSubjectPage> {
                             ),
                           ],
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(15),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(12),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: const Icon(
-                                      Icons.book_outlined,
-                                      color: Colors.white,
-                                      size: 24,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          subject['name'] ?? 'No Name',
-                                          style: const TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 4),
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 4,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white.withOpacity(0.2),
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                          child: Text(
-                                            subject['code'] ?? 'No Code',
-                                            style: const TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Container(
-                                        margin: const EdgeInsets.only(left: 8),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.2),
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: IconButton(
-                                          icon: const Icon(
-                                            Icons.edit,
-                                            color: Colors.white,
-                                            size: 20,
-                                          ),
-                                          onPressed: () => _navigateToEditSubjectPage(
-                                            subject['key'],
-                                            subject,
-                                          ),
-                                        ),
-                                      ),
-                                      Container(
-                                        margin: const EdgeInsets.only(left: 8),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.2),
-                                          borderRadius: BorderRadius.circular(8),
-                                        ),
-                                        child: IconButton(
-                                          icon: const Icon(
-                                            Icons.delete,
-                                            color: Colors.white,
-                                            size: 20,
-                                          ),
-                                          onPressed: () => _deleteSubject(subject['key']),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
+                        child: _buildSubjectCard(subject),
                       );
                     },
                   ),
             // Add extra padding at the bottom
             const SizedBox(height: 32),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSubjectCard(Map<String, dynamic> subject) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(15),
+      child: Material(
+        color: Colors.transparent,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.book_outlined,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      subject['name'] ?? 'No Name',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        subject['code'] ?? 'No Code',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(left: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.edit,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      onPressed: () => _navigateToEditSubjectPage(
+                        subject['key'],
+                        subject,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(left: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.delete,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      onPressed: () => _deleteSubject(subject['key']),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

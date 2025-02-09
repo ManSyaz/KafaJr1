@@ -329,7 +329,8 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
               child: Text('Total Students: ${filteredStudents.length}', style: const TextStyle(fontSize: 16)),
             ),
             const SizedBox(height: 16),
-            
+
+            // Search bar for filtering students
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: TextField(
@@ -347,65 +348,65 @@ class _ManageStudentPageState extends State<ManageStudentPage> {
                 ),
               ),
             ),
+
+            const SizedBox(height: 16),
             
-            Expanded(
-              child: filteredStudents.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.people_outline,
-                            size: 70,
+            filteredStudents.isEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.people_outline,
+                          size: 70,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          searchQuery.isEmpty
+                              ? 'No Students Added'
+                              : 'No Students Found',
+                          style: const TextStyle(
+                            fontSize: 18,
                             color: Colors.grey,
+                            fontWeight: FontWeight.bold,
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            searchQuery.isEmpty
-                                ? 'No Students Added'
-                                : 'No Students Found',
-                            style: const TextStyle(
-                              fontSize: 18,
-                              color: Colors.grey,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    )
-                  : ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: filteredStudents.length,
-                      padding: const EdgeInsets.all(16.0),
-                      itemBuilder: (context, index) {
-                        final student = filteredStudents[index];
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 16.0),
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [
-                                Color(0xFF0C6B58),
-                                Color(0xFF094A3D),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(15),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.grey.withOpacity(0.3),
-                                spreadRadius: 2,
-                                blurRadius: 5,
-                                offset: const Offset(0, 3),
-                              ),
-                            ],
-                          ),
-                          child: _buildStudentCard(student, index),
-                        );
-                      },
+                        ),
+                      ],
                     ),
-            ),
+                  )
+                : ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: filteredStudents.length,
+                    padding: const EdgeInsets.all(16.0),
+                    itemBuilder: (context, index) {
+                      final student = filteredStudents[index];
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 16.0),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [
+                              Color(0xFF0C6B58),
+                              Color(0xFF094A3D),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(15),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.3),
+                              spreadRadius: 2,
+                              blurRadius: 5,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                        child: _buildStudentCard(student, index),
+                      );
+                    },
+                  ),
             // Add extra padding at the bottom
             const SizedBox(height: 32),
           ],
