@@ -7,6 +7,7 @@ import 'package:open_file/open_file.dart';
 import 'dart:io'; // Ensure this import is present
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as path;
+import 'package:permission_handler/permission_handler.dart';
 
 class ViewExamPage extends StatefulWidget {
   const ViewExamPage({super.key});
@@ -337,11 +338,13 @@ class SubjectListPage extends StatefulWidget {
 class _SubjectListPageState extends State<SubjectListPage> {
   List<String> selectedSubjects = []; // List to hold selected subjects
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+  List<String> allSubjects = []; // List to hold all subjects
 
   @override
   void initState() {
     super.initState();
     _initializeNotifications();
+    _fetchAllSubjects();
   }
 
   Future<void> _initializeNotifications() async {
@@ -371,8 +374,27 @@ class _SubjectListPageState extends State<SubjectListPage> {
     );
   }
 
+  Future<bool> _requestPermissions() async {
+    if (Platform.isAndroid) {
+      final status = await Permission.storage.request();
+      if (status.isGranted) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   Future<void> _downloadFile(String url, String fileName) async {
     try {
+      // Request permissions first
+      if (!await _requestPermissions()) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Storage permission is required to download files')),
+        );
+        return;
+      }
+
       // Ensure the file has a .pdf extension
       String sanitizedFileName = path.basename(fileName);
       if (!sanitizedFileName.toLowerCase().endsWith('.pdf')) {
@@ -380,17 +402,35 @@ class _SubjectListPageState extends State<SubjectListPage> {
       }
 
       // Get the Downloads directory path
-      Directory? directory = Directory('/storage/emulated/0/Download');
-      
-      // Create directory if it doesn't exist
+      final directory = Directory('/storage/emulated/0/Download');
       if (!await directory.exists()) {
         await directory.create(recursive: true);
       }
 
       final filePath = '${directory.path}/$sanitizedFileName';
+      
+      // Show initial notification
+      const androidDetailsInitial = AndroidNotificationDetails(
+        'download_channel',
+        'File Download',
+        channelDescription: 'Shows file download progress',
+        importance: Importance.low,
+        priority: Priority.low,
+        showProgress: true,
+        maxProgress: 100,
+        progress: 0,
+      );
+      const notificationDetailsInitial = NotificationDetails(android: androidDetailsInitial);
+      await flutterLocalNotificationsPlugin.show(
+        0,
+        'Starting Download',
+        'Downloading $sanitizedFileName',
+        notificationDetailsInitial,
+      );
 
-      // Download file with progress
-      await Dio().download(
+      // Download file
+      final dio = Dio();
+      await dio.download(
         url,
         filePath,
         onReceiveProgress: (received, total) {
@@ -427,7 +467,6 @@ class _SubjectListPageState extends State<SubjectListPage> {
         priority: Priority.high,
       );
       const notificationDetailsComplete = NotificationDetails(android: androidDetailsComplete);
-
       await flutterLocalNotificationsPlugin.show(
         1,
         'Download Complete',
@@ -439,58 +478,57 @@ class _SubjectListPageState extends State<SubjectListPage> {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Downloaded $sanitizedFileName'),
+          content: Text('Downloaded to: $filePath'),
           action: SnackBarAction(
             label: 'Open',
-            onPressed: () async {
-              try {
-                final result = await OpenFile.open(filePath);
-                if (result.type != ResultType.done) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Could not open file: ${result.message}')),
-                  );
-                }
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Error opening file: $e')),
-                );
-              }
-            },
+            onPressed: () => OpenFile.open(filePath),
           ),
         ),
       );
     } catch (e) {
-      // Show error notification
-      const androidDetailsError = AndroidNotificationDetails(
-        'download_channel',
-        'File Download',
-        channelDescription: 'Shows file download progress',
-        importance: Importance.high,
-        priority: Priority.high,
-      );
-      const notificationDetailsError = NotificationDetails(android: androidDetailsError);
-
-      await flutterLocalNotificationsPlugin.show(
-        2,
-        'Download Failed',
-        'Failed to download file',
-        notificationDetailsError,
-      );
-
+      print('Download error: $e');
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to download file: $e')),
+        SnackBar(content: Text('Download failed: $e')),
       );
     }
   }
 
+  Future<void> _fetchAllSubjects() async {
+    try {
+      final DatabaseReference subjectRef = FirebaseDatabase.instance.ref().child('Subject');
+      final snapshot = await subjectRef.get();
+      
+      if (snapshot.exists) {
+        final subjectData = snapshot.value as Map<Object?, Object?>?;
+        if (subjectData != null) {
+          setState(() {
+            allSubjects = subjectData.entries.map((entry) {
+              final subject = Map<String, dynamic>.from(entry.value as Map<Object?, Object?>);
+              return subject['name'] as String;
+            }).toList();
+          });
+        }
+      }
+    } catch (e) {
+      print('Error fetching subjects: $e');
+    }
+  }
+
+  List<MapEntry<dynamic, dynamic>> getFilteredSubjects() {
+    if (selectedSubjects.isEmpty) {
+      return widget.subjects.entries.toList();
+    }
+    
+    return widget.subjects.entries.where((entry) {
+      final subjectValue = entry.value['subject'] as String?;
+      if (subjectValue == null) return false;
+      return selectedSubjects.contains(subjectValue);
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Extract unique subjects for filtering
-    List<String> subjectNames = List<String>.from(widget.subjects.entries.map((entry) {
-      return entry.value['subject'];
-    }).toSet());
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF0C6B58),
@@ -555,8 +593,8 @@ class _SubjectListPageState extends State<SubjectListPage> {
                       ),
                     ),
                   ),
-                  // Chips for each subject
-                  ...subjectNames.map((subject) {
+                  // Chips for each subject from the database
+                  ...allSubjects.map((subject) {
                     final isSelected = selectedSubjects.contains(subject);
                     return Padding(
                       padding: const EdgeInsets.only(right: 8.0),
@@ -591,15 +629,9 @@ class _SubjectListPageState extends State<SubjectListPage> {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16.0),
-              itemCount: widget.subjects.entries.where((entry) {
-                final subject = entry.value['subject'];
-                return selectedSubjects.isEmpty || selectedSubjects.contains(subject);
-              }).length,
+              itemCount: getFilteredSubjects().length,
               itemBuilder: (context, index) {
-                final entry = widget.subjects.entries.where((entry) {
-                  final subject = entry.value['subject'];
-                  return selectedSubjects.isEmpty || selectedSubjects.contains(subject);
-                }).elementAt(index);
+                final entry = getFilteredSubjects()[index];
                 final subject = entry.value;
 
                 return Container(
