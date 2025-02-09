@@ -58,6 +58,7 @@ dependencies:
   open_file: ^3.5.10
   intl: ^0.20.1
   excel: ^2.1.0
+  device_info_plus: ^11.3.0
 
 dev_dependencies:
   flutter_launcher_icons: ^0.14.1

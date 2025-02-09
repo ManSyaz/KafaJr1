@@ -8,6 +8,8 @@ import 'dart:io'; // Ensure this import is present
 // ignore: depend_on_referenced_packages
 import 'package:path/path.dart' as path;
 import 'package:permission_handler/permission_handler.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ViewExamPage extends StatefulWidget {
   const ViewExamPage({super.key});
@@ -377,9 +379,17 @@ class _SubjectListPageState extends State<SubjectListPage> {
 
   Future<bool> _requestPermissions() async {
     if (Platform.isAndroid) {
-      final status = await Permission.storage.request();
-      if (status.isGranted) {
+      if (await Permission.storage.request().isGranted) {
         return true;
+      }
+      // For Android 13 and above
+      if (await DeviceInfoPlugin().androidInfo.then((info) => info.version.sdkInt) >= 33) {
+        final notifications = await Permission.notification.request();
+        // Request media permissions
+        final photos = await Permission.photos.request();
+        if (photos.isGranted && notifications.isGranted) {
+          return true;
+        }
       }
     }
     return false;
@@ -402,8 +412,17 @@ class _SubjectListPageState extends State<SubjectListPage> {
         sanitizedFileName = '$sanitizedFileName.pdf';
       }
 
-      // Get the Downloads directory path
-      final directory = Directory('/storage/emulated/0/Download');
+      // Get the Downloads directory path based on SDK version
+      late final Directory directory;
+      if (await DeviceInfoPlugin().androidInfo.then((info) => info.version.sdkInt) >= 33) {
+        // For Android 13 and above, use the Downloads directory in app-specific storage
+        directory = Directory('${(await getApplicationDocumentsDirectory()).path}/Downloads');
+      } else {
+        // For older Android versions, use the public Downloads directory
+        directory = Directory('/storage/emulated/0/Download');
+      }
+      
+      // Create the directory if it doesn't exist
       if (!await directory.exists()) {
         await directory.create(recursive: true);
       }
