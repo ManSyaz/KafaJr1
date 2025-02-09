@@ -379,17 +379,18 @@ class _SubjectListPageState extends State<SubjectListPage> {
 
   Future<bool> _requestPermissions() async {
     if (Platform.isAndroid) {
-      if (await Permission.storage.request().isGranted) {
-        return true;
-      }
-      // For Android 13 and above
-      if (await DeviceInfoPlugin().androidInfo.then((info) => info.version.sdkInt) >= 33) {
+      final androidInfo = await DeviceInfoPlugin().androidInfo;
+      
+      if (androidInfo.version.sdkInt >= 33) {
+        // For Android 13+
         final notifications = await Permission.notification.request();
-        // Request media permissions
         final photos = await Permission.photos.request();
-        if (photos.isGranted && notifications.isGranted) {
-          return true;
-        }
+        return photos.isGranted && notifications.isGranted;
+      } else {
+        // For Android 12 and below
+        final storage = await Permission.storage.request();
+        final manageStorage = await Permission.manageExternalStorage.request();
+        return storage.isGranted && manageStorage.isGranted;
       }
     }
     return false;
@@ -412,23 +413,33 @@ class _SubjectListPageState extends State<SubjectListPage> {
         sanitizedFileName = '$sanitizedFileName.pdf';
       }
 
-      // Get the Downloads directory path based on SDK version
-      late final Directory directory;
-      if (await DeviceInfoPlugin().androidInfo.then((info) => info.version.sdkInt) >= 33) {
-        // For Android 13 and above, use the Downloads directory in app-specific storage
-        directory = Directory('${(await getApplicationDocumentsDirectory()).path}/Downloads');
-      } else {
-        // For older Android versions, use the public Downloads directory
-        directory = Directory('/storage/emulated/0/Download');
-      }
+      late final String filePath;
+      final androidInfo = await DeviceInfoPlugin().androidInfo;
       
-      // Create the directory if it doesn't exist
-      if (!await directory.exists()) {
-        await directory.create(recursive: true);
+      if (androidInfo.version.sdkInt >= 33) {
+        // For Android 13+, use app-specific directory
+        final directory = await getApplicationDocumentsDirectory();
+        final downloadsDir = Directory('${directory.path}/Downloads');
+        if (!await downloadsDir.exists()) {
+          await downloadsDir.create(recursive: true);
+        }
+        filePath = '${downloadsDir.path}/$sanitizedFileName';
+      } else {
+        // For Android 12 and below, use external storage
+        Directory? directory;
+        if (await Permission.manageExternalStorage.isGranted) {
+          directory = Directory('/storage/emulated/0/Download');
+        } else {
+          final externalDir = await getExternalStorageDirectory();
+          directory = Directory('${externalDir?.path}/Download');
+        }
+        
+        if (!await directory.exists()) {
+          await directory.create(recursive: true);
+        }
+        filePath = '${directory.path}/$sanitizedFileName';
       }
 
-      final filePath = '${directory.path}/$sanitizedFileName';
-      
       // Show initial notification
       const androidDetailsInitial = AndroidNotificationDetails(
         'download_channel',
